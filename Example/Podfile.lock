@@ -1,0 +1,25 @@
+PODS:
+  - NVActivityIndicatorView (4.8.0):
+    - NVActivityIndicatorView/Presenter (= 4.8.0)
+  - NVActivityIndicatorView/Presenter (4.8.0)
+  - PandaSDK (0.0.1):
+    - NVActivityIndicatorView
+
+DEPENDENCIES:
+  - PandaSDK (from `../`)
+
+SPEC REPOS:
+  trunk:
+    - NVActivityIndicatorView
+
+EXTERNAL SOURCES:
+  PandaSDK:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  NVActivityIndicatorView: d24b7ebcf80af5dcd994adb650e2b6c93379270f
+  PandaSDK: 9f8f40d44ff7afe8c8cd7e27442e989da9a7d4c6
+
+PODFILE CHECKSUM: 0df70673626eaea2fdebc5ea2e824fc8e9658d23
+
+COCOAPODS: 1.9.3
