@@ -40,7 +40,7 @@ final class UnconfiguredPanda: PandaProtocol {
 }
 
 public extension Panda {
-    static func configure(token: String = "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: Bool = false, callback: ((Bool) -> Void)?) {
+    static func configure(token: String, isDebug: Bool = false, callback: ((Bool) -> Void)?) {
         guard shared is UnconfiguredPanda else {
             pandaLog("Already configured")
             callback?(true)
@@ -48,11 +48,11 @@ public extension Panda {
         }
         let networkClient = NetworkClient(isDebug: isDebug)
         let deviceStorage: Storage<RegistredDevice> = CodableStorageFactory.userDefaults()
-//        if let device = deviceStorage.fetch() {
-//            shared = Panda(token: token, device: device, networkClient: networkClient)
-//            callback?(true)
-//            return
-//        }
+        if let device = deviceStorage.fetch() {
+            shared = Panda(token: token, device: device, networkClient: networkClient)
+            callback?(true)
+            return
+        }
         networkClient.registerDevice(token: token) { (result) in
             switch result {
             case .success(let device):
@@ -61,7 +61,7 @@ public extension Panda {
                 shared = Panda(token: token, device: device, networkClient: networkClient)
                 callback?(true)
             case .failure(let error):
-                pandaLog(error.localizedDescription)
+                pandaLog("\(error)")
                 callback?(false)
             }
         }

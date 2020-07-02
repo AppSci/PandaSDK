@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import PandaSDK
 
 class ViewController: UIViewController {
 
@@ -16,5 +17,15 @@ class ViewController: UIViewController {
     }
 
 
+    @IBAction func onShowTap(_ sender: Any) {
+        Panda.shared.getScreen(screenId: "0fe27e07-a104-48bc-b558-e5afce061c3a") { [weak self] (result) in
+            switch result {
+            case .success(let vc):
+                self?.present(vc, animated: true, completion: nil)
+            case .failure(let error):
+                print("Screen: \(error)")
+            }
+        }
+    }
 }
 

@@ -66,7 +66,7 @@ internal class NetworkClient {
         request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
         request.timeoutInterval = 20
         request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
-        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.addValue(token, forHTTPHeaderField: "Authorization")
         if let language = Locale.current.languageCode {
             request.addValue(language, forHTTPHeaderField: "Accept-Language")
         }
@@ -106,7 +106,7 @@ internal class NetworkClient {
         request.timeoutInterval = 20
         request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.addValue(token, forHTTPHeaderField: "Authorization")
         let encoder = JSONEncoder()
         guard let data = try? encoder.encode(currentDeviceParameters()) else {
             callback?(.failure(Errors.message("Error encoding parameters.")))
