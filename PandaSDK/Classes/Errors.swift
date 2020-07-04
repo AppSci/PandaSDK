@@ -11,4 +11,7 @@ import Foundation
 enum Errors: Error {
     case message(String)
     case notConfigured
+    
+    case invalidProductId(String)
+    case unknownStoreError
 }

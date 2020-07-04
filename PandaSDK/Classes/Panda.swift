@@ -11,6 +11,7 @@ import UIKit
 
 public protocol PandaProtocol: class {
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    func prefetchScreen(screenId: String?)
 }
 
 class ScreenCache {
@@ -36,6 +37,9 @@ final class UnconfiguredPanda: PandaProtocol {
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         callback?(.failure(Errors.notConfigured))
+    }
+    func prefetchScreen(screenId: String?) {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
 }
 
@@ -68,7 +72,6 @@ public extension Panda {
     }
 }
 
-
 final public class Panda: PandaProtocol {
 
     public private(set) static var shared: PandaProtocol = UnconfiguredPanda()
@@ -77,11 +80,44 @@ final public class Panda: PandaProtocol {
     let cache: ScreenCache = ScreenCache()
     let token: String
     let device: RegistredDevice
+    let appStoreClient: AppStoreClient
+    var viewControllers: Set<WeakObject<WebViewController>> = []
 
     init(token: String, device: RegistredDevice, networkClient: NetworkClient) {
         self.token = token
         self.device = device
         self.networkClient = networkClient
+        self.appStoreClient = AppStoreClient()
+        configureAppstStoreClient()
+    }
+    
+    func configureAppstStoreClient() {
+        appStoreClient.onError = { [weak self] error in
+            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+        }
+        appStoreClient.onPurchase = { [weak self] productId in
+            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+        }
+        appStoreClient.onRestore = { [weak self] productId in
+            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+        }
+        appStoreClient.startObserving()
+    }
+    
+    public func prefetchScreen(screenId: String?) {
+        networkClient.loadScreen(token: token, device: device, screenId: screenId) { [weak self] result in
+            guard let self = self else {
+                pandaLog("Panda is missing!")
+                return
+            }
+            switch result {
+            case .failure(let error):
+                pandaLog("Prefetch \(screenId ?? "default") screen failed: \(error)!")
+            case .success(let screen):
+                self.cache[screenId] = screen
+                pandaLog("Prefetched \(screenId ?? "default")")
+            }
+        }
     }
     
     public func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
@@ -114,11 +150,16 @@ final public class Panda: PandaProtocol {
         viewModel.onSurvey = { value in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onPurchase = { product, source in
-            pandaLog("Purchase: \(product?.description ?? "") \(source)")
+        viewModel.onPurchase = { [appStoreClient] productId, source in
+            guard let productId = productId else {
+                pandaLog("Missing productId with source: \(source)")
+                return
+            }
+            appStoreClient.purchase(productId: productId)
         }
-        viewModel.onRestorePurchase = {
+        viewModel.onRestorePurchase = { [appStoreClient] in
             pandaLog("Restore")
+            appStoreClient.restore()
         }
         
         viewModel.onTerms = openTerms
@@ -137,6 +178,8 @@ final public class Panda: PandaProtocol {
 //            }
         }
         let controller = setupWebView(html: screen.html, viewModel: viewModel)
+        viewControllers = viewControllers.filter { $0.value != nil }
+        viewControllers.insert(WeakObject(value: controller))
         return controller
     }
     

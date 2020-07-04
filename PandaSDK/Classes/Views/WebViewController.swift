@@ -103,7 +103,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     private func getWKWebViewConfiguration() -> WKWebViewConfiguration {
         let userController = WKUserContentController()
-        userController.add(self, name: "locationChanges")
+        userController.add(ScriptMessageHandlerWeakProxy(handler: self), name: "locationChanges")
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = .audio
@@ -293,5 +293,16 @@ extension WebViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         print("WebViewController // Did fail navigation: \(String(describing: webView.url?.absoluteString)), error: \(error)")
+    }
+}
+
+class ScriptMessageHandlerWeakProxy: NSObject, WKScriptMessageHandler {
+    weak var handler: WKScriptMessageHandler?
+    init(handler: WKScriptMessageHandler) {
+        self.handler = handler
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        handler?.userContentController(userContentController, didReceive: message)
     }
 }

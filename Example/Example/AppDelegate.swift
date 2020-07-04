@@ -19,6 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: false) { (result) in
             print("Configured: \(result)")
+            Panda.shared.prefetchScreen(screenId: "0fe27e07-a104-48bc-b558-e5afce061c3a")
         }
         return true
     }
