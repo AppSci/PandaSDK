@@ -50,26 +50,6 @@ final class UnconfiguredPanda: PandaProtocol {
 }
 
 public extension Panda {
-    static func loadPlist(name: String) -> Dictionary<String, AnyObject>? {
-        guard
-            let pListFileUrl = Bundle.main.url(forResource: name, withExtension: "plist", subdirectory: ""),
-            FileManager.default.fileExists(atPath: pListFileUrl.path)
-            else {
-            return nil
-        }
-        do {
-            let pListData = try Data(contentsOf: pListFileUrl)
-            let pListObject = try PropertyListSerialization.propertyList(from: pListData, options:PropertyListSerialization.ReadOptions(), format:nil)
-            guard let pListDict = pListObject as? Dictionary<String, AnyObject> else {
-              return nil
-            }
-            return pListDict
-        } catch {
-            print("Error \(error)")
-            return nil
-        }
-    }
-    
     static func configure(token: String, isDebug: Bool = false, callback: ((Bool) -> Void)?) {
         guard shared is UnconfiguredPanda else {
             pandaLog("Already configured")
@@ -80,11 +60,8 @@ public extension Panda {
         let networkClient = NetworkClient(isDebug: isDebug)
         let appStoreClient = AppStoreClient()
         
-        let plist = Panda.loadPlist(name: "PandaSDK-Info")
-        let productIds = plist?["ProductIDs"] as? Array<String>
-        if let productIdsArray = productIds {
-            let productsIdsSet = Set(productIdsArray)
-            appStoreClient.fetchProducts(productIds: productsIdsSet, completion: {_ in })
+        if let productIds = ClientConfig.current.productIds {
+            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
         }
         
         let deviceStorage: Storage<RegistredDevice> = CodableStorageFactory.userDefaults()
@@ -244,21 +221,21 @@ final public class Panda: PandaProtocol {
 
 extension Panda {
     private func openBillingIssue() {
-        openLink(link: Settings.current.billingUrl) { result in
-            self.trackOpenLink("billing_issue", result)
-        }
+//        openLink(link: Settings.current.billingUrl) { result in
+//            self.trackOpenLink("billing_issue", result)
+//        }
     }
     
     private func openTerms() {
-        openLink(link: Settings.current.termsUrl) { result in
-            self.trackOpenLink("terms", result)
-        }
+//        openLink(link: Settings.current.termsUrl) { result in
+//            self.trackOpenLink("terms", result)
+//        }
     }
     
     private func openPolicy() {
-        openLink(link: Settings.current.policyUrl) { result in
-            self.trackOpenLink("policy", result)
-        }
+//        openLink(link: Settings.current.policyUrl) { result in
+//            self.trackOpenLink("policy", result)
+//        }
     }
     
     private func openLink(link: String, completionHandler completion: ((Bool) -> Void)? = nil) {
