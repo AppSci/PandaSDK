@@ -211,6 +211,7 @@ final public class Panda: PandaProtocol {
 //        controller.url = urlComponents
 
         controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
+        controller.modalPresentationStyle = .overFullScreen
         controller.loadPage(html: html)
         controller.viewModel = viewModel
         return controller
