@@ -97,7 +97,7 @@ internal class NetworkClient {
     }
 
     internal func registerDevice(token: String, callback: ((Result<RegistredDevice, Error>) -> Void)?) {
-        guard let url = URL(string: "https://sdk-api.panda-stage.boosters.company/v1/auth/register"),
+        guard let url = URL(string: "https://sdk-api.panda-stage.boosters.company/v1/users"),
             var request = networkService.createRequest(url: url, method: .post) else {
                 callback?(.failure(Errors.message("Wrong url")))
                 return
@@ -135,6 +135,34 @@ internal class NetworkClient {
             callback?(.success(device))
         }
     }
+    
+    func registerUser(token: String, callback: @escaping (Result<RegistredDevice, Error>) -> Void) {
+        retry(2, task: { (onComplete) in
+            self.registerDevice(token: token, callback: onComplete)
+        }, completion: callback)
+    }
+}
+
+func retry<T>(_ attempts: Int,
+              interval: DispatchTimeInterval = .seconds(0),
+              task: @escaping (_ completion:@escaping (Result<T, Error>) -> Void) -> Void,
+              completion: @escaping (Result<T, Error>) -> Void) {
+    
+    task({ result in
+        switch result {
+        case .success:
+            completion(result)
+        case .failure(let error):
+            guard attempts > 0 else {
+                completion(result)
+                return
+            }
+            print("retries left \(attempts) and error = \(error)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+                retry(attempts - 1, interval: interval, task: task, completion: completion)
+            }
+        }
+    })
 }
 
 enum DeviceInfo {

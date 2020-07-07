@@ -50,25 +50,55 @@ final class UnconfiguredPanda: PandaProtocol {
 }
 
 public extension Panda {
+    static func loadPlist(name: String) -> Dictionary<String, AnyObject>? {
+        guard
+            let pListFileUrl = Bundle.main.url(forResource: name, withExtension: "plist", subdirectory: ""),
+            FileManager.default.fileExists(atPath: pListFileUrl.path)
+            else {
+            return nil
+        }
+        do {
+            let pListData = try Data(contentsOf: pListFileUrl)
+            let pListObject = try PropertyListSerialization.propertyList(from: pListData, options:PropertyListSerialization.ReadOptions(), format:nil)
+            guard let pListDict = pListObject as? Dictionary<String, AnyObject> else {
+              return nil
+            }
+            return pListDict
+        } catch {
+            print("Error \(error)")
+            return nil
+        }
+    }
+    
     static func configure(token: String, isDebug: Bool = false, callback: ((Bool) -> Void)?) {
         guard shared is UnconfiguredPanda else {
             pandaLog("Already configured")
             callback?(true)
             return
         }
+
         let networkClient = NetworkClient(isDebug: isDebug)
+        let appStoreClient = AppStoreClient()
+        
+        let plist = Panda.loadPlist(name: "PandaSDK-Info")
+        let productIds = plist?["ProductIDs"] as? Array<String>
+        if let productIdsArray = productIds {
+            let productsIdsSet = Set(productIdsArray)
+            appStoreClient.fetchProducts(productIds: productsIdsSet, completion: {_ in })
+        }
+        
         let deviceStorage: Storage<RegistredDevice> = CodableStorageFactory.userDefaults()
         if let device = deviceStorage.fetch() {
-            shared = Panda(token: token, device: device, networkClient: networkClient)
+            shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
             callback?(true)
             return
         }
-        networkClient.registerDevice(token: token) { (result) in
+        networkClient.registerUser(token: token) { (result) in
             switch result {
             case .success(let device):
                 pandaLog(device.id)
                 deviceStorage.store(device)
-                shared = Panda(token: token, device: device, networkClient: networkClient)
+                shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
                 callback?(true)
             case .failure(let error):
                 pandaLog("\(error)")
@@ -93,11 +123,11 @@ final public class Panda: PandaProtocol {
     public var onRestorePurchase: (() -> Void)?
     public var onError: ((Error) -> Void)?
     
-    init(token: String, device: RegistredDevice, networkClient: NetworkClient) {
+    init(token: String, device: RegistredDevice, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.token = token
         self.device = device
         self.networkClient = networkClient
-        self.appStoreClient = AppStoreClient()
+        self.appStoreClient = appStoreClient
         configureAppstStoreClient()
     }
     
