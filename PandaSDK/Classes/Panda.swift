@@ -222,21 +222,21 @@ final public class Panda: PandaProtocol {
 
 extension Panda {
     private func openBillingIssue() {
-//        openLink(link: Settings.current.billingUrl) { result in
-//            self.trackOpenLink("billing_issue", result)
-//        }
+        openLink(link: Settings.current.billingUrl) { result in
+            self.trackOpenLink("billing_issue", result)
+        }
     }
     
     private func openTerms() {
-//        openLink(link: Settings.current.termsUrl) { result in
-//            self.trackOpenLink("terms", result)
-//        }
+        openLink(link: Settings.current.termsUrl) { result in
+            self.trackOpenLink("terms", result)
+        }
     }
     
     private func openPolicy() {
-//        openLink(link: Settings.current.policyUrl) { result in
-//            self.trackOpenLink("policy", result)
-//        }
+        openLink(link: Settings.current.policyUrl) { result in
+            self.trackOpenLink("policy", result)
+        }
     }
     
     private func openLink(link: String, completionHandler completion: ((Bool) -> Void)? = nil) {
