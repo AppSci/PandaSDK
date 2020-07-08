@@ -141,6 +141,15 @@ internal class NetworkClient {
             self.registerDevice(token: token, callback: onComplete)
         }, completion: callback)
     }
+    
+    func loadScreenFromBundle() throws -> ScreenData {
+        guard let fileURL = Bundle.main.url(forResource: "Default", withExtension: "html"), let fileContents = try? String(contentsOf: fileURL) else {
+            throw Errors.message("Cannot find default screen html")
+        }
+        let screenData = ScreenData(id: "default", name: "default", html: fileContents)
+        return screenData
+    }
+    
 }
 
 func retry<T>(_ attempts: Int,
