@@ -50,7 +50,7 @@ final class UnconfiguredPanda: PandaProtocol {
 }
 
 public extension Panda {
-    static func configure(token: String, isDebug: Bool = false, callback: ((Bool) -> Void)?) {
+    static func configure(token: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
         guard shared is UnconfiguredPanda else {
             pandaLog("Already configured")
             callback?(true)
@@ -233,19 +233,19 @@ final public class Panda: PandaProtocol {
 
 extension Panda {
     private func openBillingIssue() {
-        openLink(link: Settings.current.billingUrl) { result in
+        openLink(link: ClientConfig.current.billingUrl) { result in
             self.trackOpenLink("billing_issue", result)
         }
     }
     
     private func openTerms() {
-        openLink(link: Settings.current.termsUrl) { result in
+        openLink(link: ClientConfig.current.termsUrl) { result in
             self.trackOpenLink("terms", result)
         }
     }
     
     private func openPolicy() {
-        openLink(link: Settings.current.policyUrl) { result in
+        openLink(link: ClientConfig.current.policyUrl) { result in
             self.trackOpenLink("policy", result)
         }
     }

@@ -36,13 +36,13 @@ internal class NetworkClient {
     let boosterAPI: String
     let networkService: NetworkService
     
-    init(networkService: NetworkService, isDebug: Bool = false) {
+    init(networkService: NetworkService, isDebug: Bool = true) {
         self.networkService = networkService
         self.isDebug = isDebug
-        self.boosterAPI = isDebug ? Settings.current.serverDebugUrl : Settings.current.serverUrl
+        self.boosterAPI = isDebug ? ClientConfig.current.serverDebugUrl : ClientConfig.current.serverUrl
     }
     
-    convenience init(isDebug: Bool = false) {
+    convenience init(isDebug: Bool = true) {
         let config = URLSessionConfiguration.default
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.urlCache = nil
@@ -50,7 +50,8 @@ internal class NetworkClient {
     }
         
     internal func loadScreen(token: String, device: RegistredDevice, screenId: String?, callback: ((Result<ScreenData, Error>) -> Void)?) {
-        guard var components = URLComponents(string: "https://sdk-api.panda-stage.boosters.company/v1/screen") else {
+        let boosterScreenURL = boosterAPI + "/v1/screen"
+        guard var components = URLComponents(string: boosterScreenURL) else {
             callback?(.failure(Errors.message("Error Creating Request. Nil URL?")))
             return
         }
