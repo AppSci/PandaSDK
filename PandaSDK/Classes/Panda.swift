@@ -154,16 +154,18 @@ final public class Panda: PandaProtocol {
             }
             switch result {
             case .failure(let error):
-//                let res = Result(catching: { try self.networkClient.loadScreenFromBundle() })
-//                    .mapError {_ -> Error in error}
-//                    .map { self.prepareViewController(screen: $0) as UIViewController }
-//                callback?(res)
+                //                let res = Result(catching: { try self.networkClient.loadScreenFromBundle() })
+                //                    .mapError {_ -> Error in error}
+                //                    .map { self.prepareViewController(screen: $0) as UIViewController }
+                //                callback?(res)
                 
                 guard let defaultScreen = try? self.networkClient.loadScreenFromBundle() else {
                     callback?(.failure(error))
                     return
                 }
-                callback?(.success(self.prepareViewController(screen: defaultScreen)))
+                DispatchQueue.main.async {
+                    callback?(.success(self.prepareViewController(screen: defaultScreen)))
+                }
             case .success(let screen):
                 self.cache[screenId] = screen
                 DispatchQueue.main.async {
