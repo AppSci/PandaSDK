@@ -10,10 +10,38 @@ import Foundation
 import UIKit
 
 public protocol PandaProtocol: class {
+    
+    /**
+     Returns screen from Panda Web
+     - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
+     - parameter callback: Optional. Returns Result for getting screen
+     */
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    
+    /**
+     Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
+     - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
+     */
     func prefetchScreen(screenId: String?)
-    var onPurchase: (() -> Void)? { get set }
-    var onRestorePurchase: (() -> Void)? { get set }
+    
+    // MARK: - Handle Purchases
+    /**
+     Purchase product callback.
+     Callback for successful purchase in Panda purchase screen - you can validate & do you own setup in this callback
+     - parameter String in callback: Product ID that was purchased.
+     */
+     var onPurchase: ((String) -> Void)? { get set }
+    
+    /**
+     Restore purchase callback
+     Callback for successful restore in Panda purchase screen.
+     - parameter String in callback: Product ID that was restored.
+     */
+    var onRestorePurchase: ((String) -> Void)? { get set }
+    
+    /**
+     Called when purchase failed in Panda purchase screen.
+    */
     var onError: ((Error) -> Void)? { get set }
 }
 
@@ -44,12 +72,20 @@ final class UnconfiguredPanda: PandaProtocol {
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
-    var onPurchase: (() -> Void)?
-    var onRestorePurchase: (() -> Void)?
+    var onPurchase: ((String) -> Void)?
+    var onRestorePurchase: ((String) -> Void)?
     var onError: ((Error) -> Void)?
 }
 
 public extension Panda {
+    
+    /**
+     Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
+     
+     - parameter apiKey: Required. Your api key.
+     - parameter isDebug: Optional. Please, use `true` for debugging, `false` for production. Default is `true`.
+     - parameter callback: Optional. You can do check if Panda SDK in configured.
+     */
     static func configure(token: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
         guard shared is UnconfiguredPanda else {
             pandaLog("Already configured")
@@ -96,8 +132,8 @@ final public class Panda: PandaProtocol {
     let appStoreClient: AppStoreClient
     var viewControllers: Set<WeakObject<WebViewController>> = []
 
-    public var onPurchase: (() -> Void)?
-    public var onRestorePurchase: (() -> Void)?
+    public var onPurchase: ((String) -> Void)?
+    public var onRestorePurchase: ((String) -> Void)?
     public var onError: ((Error) -> Void)?
     
     init(token: String, device: RegistredDevice, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
@@ -105,20 +141,20 @@ final public class Panda: PandaProtocol {
         self.device = device
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
-        configureAppstStoreClient()
+        configureAppStoreClient()
     }
     
-    func configureAppstStoreClient() {
+    internal func configureAppStoreClient() {
         appStoreClient.onError = { [weak self] error in
             self?.onError?(error)
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
         }
         appStoreClient.onPurchase = { [weak self] productId in
-            self?.onPurchase?()
+            self?.onPurchase?(productId)
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
         }
         appStoreClient.onRestore = { [weak self] productId in
-            self?.onRestorePurchase?()
+            self?.onRestorePurchase?(productId)
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
         }
         appStoreClient.startObserving()

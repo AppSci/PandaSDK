@@ -1,0 +1,99 @@
+
+## Panda SDK
+
+Panda SDK is a lightweight open-source Swift library to easily integrate purchase screens into your app without coding.
+
+Visit our website for details: https://app.panda.boosters.company/
+
+## Features
+
+👍 Integrating subscriptions using our SDK is very easy.<br/>Panda takes care of a subscription purchase flow. Integrate SDK in just a few lines of code.
+
+🎨 Create subscription purchase screens without coding - just use html.<br/>You don't need to develop purchase screens. So easy!
+
+## SDK Requirements
+
+Panda SDK requires minimum iOS 11.2, Xcode 10 and Swift 4.2. 
+
+## Installation
+
+Panda SDK can be installed via CocoaPods, Swift Package Manager or manually.
+
+##### Install via CocoaPods
+
+Add the following line to your Podfile:
+
+```ruby
+pod 'PandaSDK'
+```
+
+And then run in the Terminal:
+
+```ruby
+pod install
+```
+##### Install via SPM (Swift Package Manager)
+
+Add dependecy with the following URL:
+
+```
+https://github.com/AppSci/PandaSDK
+```
+
+#### Manual Installation
+
+Copy all files in `Source` folder to your project.
+
+## Initialize Panda SDK
+
+To set up Panda SDK you will need API Key. [Register](https://app.panda.boosters.company/) your app in Panda Web and get your API key.
+
+```swift
+import PandaSDK
+
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+	
+  Panda.configure(token: "YOUR_API_KEY", isDebug: true) { (result) in
+      print("Configured: \(result)")
+  }
+
+  // the rest of your code
+  return true
+}
+
+```
+
+## Handle Subscriptions
+
+Panda SDK provides a set of methods to manage subscriptions. 
+
+### Fetch Products
+
+Panda SDK automatically fetches SKProduct objects upon launch. Products identifiers must be added in "PandaSDK-Info.plist". You can download example for .plist from Example app in Source code.
+
+### Make a Purchase
+
+To make a purchase - you are creating html with products_ids for Purchases - Panda SDK upon clicking on concreate button or view gets this product_id for purchase & you just need to implement callbacks for successful purchase or error :
+
+```swift
+var onPurchase: ((String) -> Void)? { get set }
+var onError: ((Error) -> Void)? { get set }
+```
+
+### Restore Purchases
+
+ Restore Purchase is called when user tap on `Restore purchase` button on html screen. You can handle this restore by implementing this callback
+ Returns product_id for Restore Purchase
+
+```swift
+var onRestorePurchase: ((String) -> Void)? { get set }
+```
+
+Basically it just sends App Store Receipt to AppStore .
+
+
+## Having troubles?
+
+If you have any questions or troubles with SDK integration feel free to contact us. We are online.
+
+*Like Panda? Place a star at the top 😊*
