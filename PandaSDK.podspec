@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "PandaSDK"
-  spec.version      = "0.0.1"
+  spec.version      = "0.0.2"
   spec.summary      = "Panda pod which will help us boost our revenue."
 
   # This description is used to generate tags and improve search results.
@@ -91,7 +91,7 @@ Pod::Spec.new do |spec|
   spec.ios.deployment_target = '11.0'
   spec.swift_versions = '4.2'
 
-  spec.source_files  = "PandaSDK/Classes/**/*.swift"
+  spec.source_files  = "Sources/PandaSDK/**/*.swift"
   
 
 
