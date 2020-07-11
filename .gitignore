@@ -2,7 +2,6 @@ Packages
 .build/
 xcuserdata
 DerivedData/
-*.xcodeproj
 .swiftpm
 Package.resolved
 Carthage/

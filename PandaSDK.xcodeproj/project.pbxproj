@@ -1,0 +1,421 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CDB44A3B24B9C89800D6F9AC /* PandaSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = CDB44A3924B9C89800D6F9AC /* PandaSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CDB44A4C24B9C92F00D6F9AC /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */; };
+		CDB44A4D24B9C92F00D6F9AC /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A3F24B9C92F00D6F9AC /* Storage.swift */; };
+		CDB44A4F24B9C92F00D6F9AC /* Panda.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4124B9C92F00D6F9AC /* Panda.swift */; };
+		CDB44A5024B9C92F00D6F9AC /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4224B9C92F00D6F9AC /* NetworkService.swift */; };
+		CDB44A5124B9C92F00D6F9AC /* WeakObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4324B9C92F00D6F9AC /* WeakObject.swift */; };
+		CDB44A5224B9C92F00D6F9AC /* PandaHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4424B9C92F00D6F9AC /* PandaHelpers.swift */; };
+		CDB44A5324B9C92F00D6F9AC /* AppStoreClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4524B9C92F00D6F9AC /* AppStoreClient.swift */; };
+		CDB44A5424B9C92F00D6F9AC /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4624B9C92F00D6F9AC /* Errors.swift */; };
+		CDB44A5524B9C92F00D6F9AC /* ClientConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4724B9C92F00D6F9AC /* ClientConfig.swift */; };
+		CDB44A5624B9C92F00D6F9AC /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4924B9C92F00D6F9AC /* WebViewController.swift */; };
+		CDB44A5724B9C92F00D6F9AC /* WebViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4A24B9C92F00D6F9AC /* WebViewModel.swift */; };
+		CDB44A5824B9C92F00D6F9AC /* NetworkLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4B24B9C92F00D6F9AC /* NetworkLoader.swift */; };
+		CDB44A5B24B9CC3900D6F9AC /* NVActivityIndicatorView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDB44A5A24B9CC3900D6F9AC /* NVActivityIndicatorView.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		CDB44A2D24B9C78100D6F9AC /* PandaSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PandaSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDB44A3924B9C89800D6F9AC /* PandaSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PandaSDK.h; sourceTree = "<group>"; };
+		CDB44A3A24B9C89800D6F9AC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
+		CDB44A3F24B9C92F00D6F9AC /* Storage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
+		CDB44A4124B9C92F00D6F9AC /* Panda.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Panda.swift; sourceTree = "<group>"; };
+		CDB44A4224B9C92F00D6F9AC /* NetworkService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		CDB44A4324B9C92F00D6F9AC /* WeakObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakObject.swift; sourceTree = "<group>"; };
+		CDB44A4424B9C92F00D6F9AC /* PandaHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PandaHelpers.swift; sourceTree = "<group>"; };
+		CDB44A4524B9C92F00D6F9AC /* AppStoreClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppStoreClient.swift; sourceTree = "<group>"; };
+		CDB44A4624B9C92F00D6F9AC /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
+		CDB44A4724B9C92F00D6F9AC /* ClientConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClientConfig.swift; sourceTree = "<group>"; };
+		CDB44A4924B9C92F00D6F9AC /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewController.swift; sourceTree = "<group>"; };
+		CDB44A4A24B9C92F00D6F9AC /* WebViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebViewModel.swift; sourceTree = "<group>"; };
+		CDB44A4B24B9C92F00D6F9AC /* NetworkLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkLoader.swift; sourceTree = "<group>"; };
+		CDB44A5A24B9CC3900D6F9AC /* NVActivityIndicatorView.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NVActivityIndicatorView.framework; path = Carthage/Build/iOS/NVActivityIndicatorView.framework; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CDB44A2A24B9C78100D6F9AC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDB44A5B24B9CC3900D6F9AC /* NVActivityIndicatorView.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CDB44A2324B9C78100D6F9AC = {
+			isa = PBXGroup;
+			children = (
+				CDB44A3D24B9C92F00D6F9AC /* PandaSDK */,
+				CDB44A3824B9C89800D6F9AC /* Framework */,
+				CDB44A2E24B9C78100D6F9AC /* Products */,
+				CDB44A5924B9CC3900D6F9AC /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		CDB44A2E24B9C78100D6F9AC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CDB44A2D24B9C78100D6F9AC /* PandaSDK.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CDB44A3824B9C89800D6F9AC /* Framework */ = {
+			isa = PBXGroup;
+			children = (
+				CDB44A3924B9C89800D6F9AC /* PandaSDK.h */,
+				CDB44A3A24B9C89800D6F9AC /* Info.plist */,
+			);
+			path = Framework;
+			sourceTree = "<group>";
+		};
+		CDB44A3D24B9C92F00D6F9AC /* PandaSDK */ = {
+			isa = PBXGroup;
+			children = (
+				CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */,
+				CDB44A3F24B9C92F00D6F9AC /* Storage.swift */,
+				CDB44A4124B9C92F00D6F9AC /* Panda.swift */,
+				CDB44A4224B9C92F00D6F9AC /* NetworkService.swift */,
+				CDB44A4324B9C92F00D6F9AC /* WeakObject.swift */,
+				CDB44A4424B9C92F00D6F9AC /* PandaHelpers.swift */,
+				CDB44A4524B9C92F00D6F9AC /* AppStoreClient.swift */,
+				CDB44A4624B9C92F00D6F9AC /* Errors.swift */,
+				CDB44A4724B9C92F00D6F9AC /* ClientConfig.swift */,
+				CDB44A4824B9C92F00D6F9AC /* Views */,
+				CDB44A4B24B9C92F00D6F9AC /* NetworkLoader.swift */,
+			);
+			name = PandaSDK;
+			path = Sources/PandaSDK;
+			sourceTree = "<group>";
+		};
+		CDB44A4824B9C92F00D6F9AC /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				CDB44A4924B9C92F00D6F9AC /* WebViewController.swift */,
+				CDB44A4A24B9C92F00D6F9AC /* WebViewModel.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		CDB44A5924B9CC3900D6F9AC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CDB44A5A24B9CC3900D6F9AC /* NVActivityIndicatorView.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		CDB44A2824B9C78100D6F9AC /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDB44A3B24B9C89800D6F9AC /* PandaSDK.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		CDB44A2C24B9C78100D6F9AC /* PandaSDK */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CDB44A3524B9C78100D6F9AC /* Build configuration list for PBXNativeTarget "PandaSDK" */;
+			buildPhases = (
+				CDB44A2824B9C78100D6F9AC /* Headers */,
+				CDB44A2924B9C78100D6F9AC /* Sources */,
+				CDB44A2A24B9C78100D6F9AC /* Frameworks */,
+				CDB44A2B24B9C78100D6F9AC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PandaSDK;
+			productName = PandaSDK;
+			productReference = CDB44A2D24B9C78100D6F9AC /* PandaSDK.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CDB44A2424B9C78100D6F9AC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1150;
+				ORGANIZATIONNAME = PandaSDK;
+				TargetAttributes = {
+					CDB44A2C24B9C78100D6F9AC = {
+						CreatedOnToolsVersion = 11.5;
+					};
+				};
+			};
+			buildConfigurationList = CDB44A2724B9C78100D6F9AC /* Build configuration list for PBXProject "PandaSDK" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CDB44A2324B9C78100D6F9AC;
+			productRefGroup = CDB44A2E24B9C78100D6F9AC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CDB44A2C24B9C78100D6F9AC /* PandaSDK */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CDB44A2B24B9C78100D6F9AC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CDB44A2924B9C78100D6F9AC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDB44A5324B9C92F00D6F9AC /* AppStoreClient.swift in Sources */,
+				CDB44A4C24B9C92F00D6F9AC /* NetworkClient.swift in Sources */,
+				CDB44A5524B9C92F00D6F9AC /* ClientConfig.swift in Sources */,
+				CDB44A5624B9C92F00D6F9AC /* WebViewController.swift in Sources */,
+				CDB44A5124B9C92F00D6F9AC /* WeakObject.swift in Sources */,
+				CDB44A5224B9C92F00D6F9AC /* PandaHelpers.swift in Sources */,
+				CDB44A5424B9C92F00D6F9AC /* Errors.swift in Sources */,
+				CDB44A5824B9C92F00D6F9AC /* NetworkLoader.swift in Sources */,
+				CDB44A5724B9C92F00D6F9AC /* WebViewModel.swift in Sources */,
+				CDB44A4D24B9C92F00D6F9AC /* Storage.swift in Sources */,
+				CDB44A5024B9C92F00D6F9AC /* NetworkService.swift in Sources */,
+				CDB44A4F24B9C92F00D6F9AC /* Panda.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CDB44A3324B9C78100D6F9AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		CDB44A3424B9C78100D6F9AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		CDB44A3624B9C78100D6F9AC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
+				INFOPLIST_FILE = "$(SRCROOT)/Framework/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pandasdk.PandaSDK;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CDB44A3724B9C78100D6F9AC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
+				INFOPLIST_FILE = "$(SRCROOT)/Framework/Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pandasdk.PandaSDK;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CDB44A2724B9C78100D6F9AC /* Build configuration list for PBXProject "PandaSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDB44A3324B9C78100D6F9AC /* Debug */,
+				CDB44A3424B9C78100D6F9AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CDB44A3524B9C78100D6F9AC /* Build configuration list for PBXNativeTarget "PandaSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDB44A3624B9C78100D6F9AC /* Debug */,
+				CDB44A3724B9C78100D6F9AC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CDB44A2424B9C78100D6F9AC /* Project object */;
+}
