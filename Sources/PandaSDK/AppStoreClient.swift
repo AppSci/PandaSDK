@@ -132,6 +132,8 @@ extension AppStoreClient: SKPaymentTransactionObserver {
                 break
             case .purchasing:
                 break
+            @unknown default:
+                break
             }
         }
     }
