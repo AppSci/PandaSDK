@@ -43,6 +43,12 @@ public protocol PandaProtocol: class {
      Called when purchase failed in Panda purchase screen.
     */
     var onError: ((Error) -> Void)? { get set }
+    
+    /**
+     Called when user click on Close cross in Panda purchase screen.
+    */
+    var onDismiss: (() -> Void)? { get set }
+
 }
 
 class ScreenCache {
@@ -75,6 +81,7 @@ final class UnconfiguredPanda: PandaProtocol {
     var onPurchase: ((String) -> Void)?
     var onRestorePurchase: ((String) -> Void)?
     var onError: ((Error) -> Void)?
+    var onDismiss: (() -> Void)?
 }
 
 public extension Panda {
@@ -135,6 +142,7 @@ final public class Panda: PandaProtocol {
     public var onPurchase: ((String) -> Void)?
     public var onRestorePurchase: ((String) -> Void)?
     public var onError: ((Error) -> Void)?
+    public var onDismiss: (() -> Void)?
     
     init(token: String, device: RegistredDevice, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.token = token
@@ -236,10 +244,11 @@ final public class Panda: PandaProtocol {
             self.openBillingIssue()
             view.dismiss(animated: true, completion: nil)
         }
-        viewModel.dismiss = { status, view in
+        viewModel.dismiss = { [weak self] status, view in
             pandaLog("Dismiss")
-            self.trackClickDismiss()
+            self?.trackClickDismiss()
             view.dismiss(animated: true, completion: nil)
+            self?.onDismiss?()
 //            if self.autoDismiss {
 //                self.dismiss(view: view)
 //            }
