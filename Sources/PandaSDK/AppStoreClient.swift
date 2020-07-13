@@ -40,7 +40,7 @@ class ProductRequest: NSObject, SKProductsRequestDelegate {
 class AppStoreClient: NSObject {
     
     var onPurchase: ((String) -> Void)?
-    var onRestore: ((String) -> Void)?
+    var onRestore: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     
     private var products: [String: SKProduct] = [:]
@@ -126,7 +126,6 @@ extension AppStoreClient: SKPaymentTransactionObserver {
                 fail(transaction: transaction)
                 break
             case .restored:
-                restore(transaction: transaction)
                 break
             case .deferred:
                 break
@@ -136,6 +135,9 @@ extension AppStoreClient: SKPaymentTransactionObserver {
                 break
             }
         }
+        let restored = transactions.filter {$0.transactionState == .restored}
+        guard !restored.isEmpty else { return }
+        restore(transactions: restored)
     }
     
     func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
@@ -155,11 +157,11 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         SKPaymentQueue.default().finishTransaction(transaction)
     }
 
-    private func restore(transaction: SKPaymentTransaction) {
-        let payment = transaction.original?.payment ?? transaction.payment
-        pandaLog("Restored: \(payment)")
-        onRestore?(payment.productIdentifier)
-        SKPaymentQueue.default().finishTransaction(transaction)
+    private func restore(transactions: [SKPaymentTransaction]) {
+        let payments = transactions.map { return $0.original?.payment ?? $0.payment }
+        pandaLog("Restored: \(payments)")
+        onRestore?(payments.map {$0.productIdentifier})
+        transactions.forEach {SKPaymentQueue.default().finishTransaction($0)}
     }
 
     private func fail(transaction: SKPaymentTransaction) {

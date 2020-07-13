@@ -37,7 +37,7 @@ public protocol PandaProtocol: class {
      Callback for successful restore in Panda purchase screen.
      - parameter String in callback: Product ID that was restored.
      */
-    var onRestorePurchase: ((String) -> Void)? { get set }
+    var onRestorePurchases: (([String]) -> Void)? { get set }
     
     /**
      Called when purchase failed in Panda purchase screen.
@@ -79,7 +79,7 @@ final class UnconfiguredPanda: PandaProtocol {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
     var onPurchase: ((String) -> Void)?
-    var onRestorePurchase: ((String) -> Void)?
+    var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
 }
@@ -112,7 +112,7 @@ public extension Panda {
             let prev = shared
             shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
             shared.onPurchase = prev.onPurchase
-            shared.onRestorePurchase = prev.onRestorePurchase
+            shared.onRestorePurchases = prev.onRestorePurchases
             shared.onError = prev.onError
             shared.onDismiss = prev.onDismiss
             callback?(true)
@@ -126,7 +126,7 @@ public extension Panda {
                 deviceStorage.store(device)
                 shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
                 shared.onPurchase = prev.onPurchase
-                shared.onRestorePurchase = prev.onRestorePurchase
+                shared.onRestorePurchases = prev.onRestorePurchases
                 shared.onError = prev.onError
                 shared.onDismiss = prev.onDismiss
                 callback?(true)
@@ -150,7 +150,7 @@ final public class Panda: PandaProtocol {
     var viewControllers: Set<WeakObject<WebViewController>> = []
 
     public var onPurchase: ((String) -> Void)?
-    public var onRestorePurchase: ((String) -> Void)?
+    public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
     
@@ -171,8 +171,8 @@ final public class Panda: PandaProtocol {
             self?.onPurchase?(productId)
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
         }
-        appStoreClient.onRestore = { [weak self] productId in
-            self?.onRestorePurchase?(productId)
+        appStoreClient.onRestore = { [weak self] productIds in
+            self?.onRestorePurchases?(productIds)
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
         }
         appStoreClient.startObserving()
