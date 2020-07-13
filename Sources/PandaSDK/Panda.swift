@@ -109,7 +109,12 @@ public extension Panda {
         
         let deviceStorage: Storage<RegistredDevice> = CodableStorageFactory.userDefaults()
         if let device = deviceStorage.fetch() {
+            let prev = shared
             shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
+            shared.onPurchase = prev.onPurchase
+            shared.onRestorePurchase = prev.onRestorePurchase
+            shared.onError = prev.onError
+            shared.onDismiss = prev.onDismiss
             callback?(true)
             return
         }
@@ -117,8 +122,13 @@ public extension Panda {
             switch result {
             case .success(let device):
                 pandaLog(device.id)
+                let prev = shared
                 deviceStorage.store(device)
                 shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
+                shared.onPurchase = prev.onPurchase
+                shared.onRestorePurchase = prev.onRestorePurchase
+                shared.onError = prev.onError
+                shared.onDismiss = prev.onDismiss
                 callback?(true)
             case .failure(let error):
                 pandaLog("\(error)")
