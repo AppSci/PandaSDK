@@ -62,6 +62,38 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 
 ```
+
+#### Working with Screens from Panda
+For getting screen from Panda Web you should use 
+
+```swift
+func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+```
+
+If you wanna prefetch screen to ensure that it will be ready before displaying it, you can use 
+
+```swift
+func prefetchScreen(screenId: String?)
+```
+
+We recommend you prefetch screen right after Panda SDK is configured:
+
+```swift
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    // Override point for customization after application launch.
+    Panda.configure(token: YOUR_SDK_TOKEN, isDebug: true) { (result) in
+        print("Configured: \(result)")
+        if configured {
+            Panda.shared.prefetchScreen(screenId: YOUR_SCREEN_ID)
+        }
+    }
+    return true
+}
+```
+
+You can use Default screen in case of any errors - e.g. no inet connection - if you want, you can embed "Default.html" screen in bundle - name is critical  - it should be named exactly "Default.html" - we will use it for displaying this screen in case of any errors
+
+
 ## Plist structure
 
 To have all set, you need to add this info in your `PandaSDK-Info.plist` - you can create it by your own or download  `PandaSDK-Info.plist` from Example - structure of `PandaSDK-Info.plist` is crutial, please, add 
@@ -104,6 +136,12 @@ var onRestorePurchase: ((String) -> Void)? { get set }
 
 Basically it just sends App Store Receipt to AppStore .
 
+### Skipping Purchase Process
+You can allow your users to skip all purchase process - when user tap cross on Screen, you can allow user to go futher into your app - this callback is called 
+
+```swift
+var onDismiss: (() -> Void)? { get set }
+```
 
 ## Having troubles?
 

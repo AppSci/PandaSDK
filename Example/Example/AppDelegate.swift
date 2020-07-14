@@ -17,9 +17,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (result) in
-            print("Configured: \(result)")
-            Panda.shared.prefetchScreen(screenId: "0fe27e07-a104-48bc-b558-e5afce061c3a")
+        Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (configured) in
+            print("Configured: \(configured)")
+            if configured {
+                Panda.shared.prefetchScreen(screenId: "0fe27e07-a104-48bc-b558-e5afce061c3a")
+            }
         }
         return true
     }
