@@ -164,18 +164,48 @@ final public class Panda: PandaProtocol {
     
     internal func configureAppStoreClient() {
         appStoreClient.onError = { [weak self] error in
-            self?.onError?(error)
-            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+            self?.onAppStoreClient(error: error)
         }
         appStoreClient.onPurchase = { [weak self] productId in
-            self?.onPurchase?(productId)
-            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+            self?.onAppStoreClientPurchase(productId: productId)
         }
         appStoreClient.onRestore = { [weak self] productIds in
-            self?.onRestorePurchases?(productIds)
-            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+            self?.onAppStoreClientRestore(productIds: productIds)
         }
         appStoreClient.startObserving()
+    }
+    
+    func onAppStoreClient(error: Error) {
+        onError?(error)
+        viewControllers.forEach { $0.value?.onFinishLoad() }
+    }
+    
+    func onAppStoreClientPurchase(productId: String) {
+        let receipt: String
+        switch appStoreClient.receiptBase64String() {
+            case .failure(let error):
+                onError?(Errors.appStoreReceiptError(error))
+                return
+            case .success(let receiptString):
+                receipt = receiptString
+        }
+        networkClient.verifySubscriptions(token: token, user: user, receipt: receipt) { [weak self] (result) in
+            defer {
+                self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+            }
+            switch result {
+            case .failure(let error):
+                self?.onError?(Errors.appStoreReceiptError(error))
+            case .success(let verification):
+                print("productId = \(productId)\nid = \(verification.id)")
+                self?.onPurchase?(verification.id)
+            }
+        }
+    }
+    
+    func onAppStoreClientRestore(productIds: [String]) {
+        onRestorePurchases?(productIds)
+        viewControllers.forEach { $0.value?.onFinishLoad() }
     }
     
     public func prefetchScreen(screenId: String?) {

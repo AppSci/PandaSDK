@@ -140,6 +140,17 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         restore(transactions: restored)
     }
     
+    internal func receiptBase64String() -> Result<String, Error> {
+        guard let appStoreReceiptURL = Bundle.main.appStoreReceiptURL else {
+            return .failure(Errors.message("Missing appStoreReceiptURL"))
+        }
+        do {
+            return .success(try Data(contentsOf: appStoreReceiptURL).base64EncodedString())
+        } catch {
+            return .failure(error)
+        }
+    }
+
     func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
         pandaLog("Restore Error: \(error)")
         onError?(error)
