@@ -32,6 +32,15 @@ And then run in the Terminal:
 ```ruby
 pod install
 ```
+
+##### Install via Carthage
+
+To use PandaSDK with Carthage, add it in your Cartfile.
+
+```ruby
+github "github "AppSci/PandaSDK"
+```
+
 ##### Install via SPM (Swift Package Manager)
 
 Add dependecy with the following URL:
