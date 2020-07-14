@@ -107,10 +107,10 @@ public extension Panda {
             appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
         }
         
-        let deviceStorage: Storage<RegistredDevice> = CodableStorageFactory.userDefaults()
-        if let device = deviceStorage.fetch() {
+        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
+        if let user = userStorage.fetch() {
             let prev = shared
-            shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
+            shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient)
             shared.onPurchase = prev.onPurchase
             shared.onRestorePurchases = prev.onRestorePurchases
             shared.onError = prev.onError
@@ -120,11 +120,11 @@ public extension Panda {
         }
         networkClient.registerUser(token: token) { (result) in
             switch result {
-            case .success(let device):
-                pandaLog(device.id)
+            case .success(let user):
+                pandaLog(user.id)
                 let prev = shared
-                deviceStorage.store(device)
-                shared = Panda(token: token, device: device, networkClient: networkClient, appStoreClient: appStoreClient)
+                userStorage.store(user)
+                shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient)
                 shared.onPurchase = prev.onPurchase
                 shared.onRestorePurchases = prev.onRestorePurchases
                 shared.onError = prev.onError
@@ -145,7 +145,7 @@ final public class Panda: PandaProtocol {
     let networkClient: NetworkClient
     let cache: ScreenCache = ScreenCache()
     let token: String
-    let device: RegistredDevice
+    let user: PandaUser
     let appStoreClient: AppStoreClient
     var viewControllers: Set<WeakObject<WebViewController>> = []
 
@@ -154,9 +154,9 @@ final public class Panda: PandaProtocol {
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
     
-    init(token: String, device: RegistredDevice, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
+    init(token: String, user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.token = token
-        self.device = device
+        self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
         configureAppStoreClient()
@@ -179,7 +179,7 @@ final public class Panda: PandaProtocol {
     }
     
     public func prefetchScreen(screenId: String?) {
-        networkClient.loadScreen(token: token, device: device, screenId: screenId) { [weak self] result in
+        networkClient.loadScreen(token: token, user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
                 pandaLog("Panda is missing!")
                 return
@@ -201,7 +201,7 @@ final public class Panda: PandaProtocol {
             }
             return
         }
-        networkClient.loadScreen(token: token, device: device, screenId: screenId) { [weak self] result in
+        networkClient.loadScreen(token: token, user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
                 callback?(.failure(Errors.message("Panda is missing!")))
                 return

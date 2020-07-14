@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-internal struct RegistredDevice: Codable {
+internal struct PandaUser: Codable {
     let id: String
 }
 
@@ -49,14 +49,14 @@ internal class NetworkClient {
         self.init(networkService: NetworkService(dataLoader: URLSession(configuration: config)), isDebug: isDebug)
     }
         
-    internal func loadScreen(token: String, device: RegistredDevice, screenId: String?, callback: ((Result<ScreenData, Error>) -> Void)?) {
+    internal func loadScreen(token: String, user: PandaUser, screenId: String?, callback: ((Result<ScreenData, Error>) -> Void)?) {
         let boosterScreenURL = boosterAPI + "/v1/screen"
         guard var components = URLComponents(string: boosterScreenURL) else {
             callback?(.failure(Errors.message("Error Creating Request. Nil URL?")))
             return
         }
         components.queryItems = [
-            URLQueryItem(name: "user", value: device.id),
+            URLQueryItem(name: "user", value: user.id),
             URLQueryItem(name: "id", value: screenId),
         ]
         guard let url = components.url, var request = networkService.createRequest(url: url, method: .get) else {
@@ -97,7 +97,7 @@ internal class NetworkClient {
         }
     }
 
-    internal func registerDevice(token: String, callback: ((Result<RegistredDevice, Error>) -> Void)?) {
+    internal func registerDevice(token: String, callback: ((Result<PandaUser, Error>) -> Void)?) {
         guard let url = URL(string: "https://sdk-api.panda-stage.boosters.company/v1/users"),
             var request = networkService.createRequest(url: url, method: .post) else {
                 callback?(.failure(Errors.message("Wrong url")))
@@ -126,18 +126,18 @@ internal class NetworkClient {
                 callback?(.failure(error))
                 return
             }
-            let device: RegistredDevice
+            let user: PandaUser
             do {
-                device = try decoder.decode(RegistredDevice.self, from: data)
+                user = try decoder.decode(PandaUser.self, from: data)
             } catch {
                 callback?(.failure(error))
                 return
             }
-            callback?(.success(device))
+            callback?(.success(user))
         }
     }
     
-    func registerUser(token: String, callback: @escaping (Result<RegistredDevice, Error>) -> Void) {
+    func registerUser(token: String, callback: @escaping (Result<PandaUser, Error>) -> Void) {
         retry(2, task: { (onComplete) in
             self.registerDevice(token: token, callback: onComplete)
         }, completion: callback)
