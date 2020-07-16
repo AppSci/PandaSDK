@@ -65,6 +65,12 @@ internal func currentDeviceParameters() -> [String: String] {
     return params
 }
 
+internal func currentUserParameters(pushToken: String) -> [String: String] {
+    var currentParameters = currentDeviceParameters()
+    currentParameters["push_notifications_token"] = pushToken
+    return currentParameters
+}
+
 internal func identifierForAdvertising() -> String? {
     // Check whether advertising tracking is enabled
     guard ASIdentifierManager.shared().isAdvertisingTrackingEnabled else {

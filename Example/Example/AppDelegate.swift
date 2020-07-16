@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (configured) in
             print("Configured: \(configured)")
             if configured {
-                Panda.shared.prefetchScreen(screenId: "0fe27e07-a104-48bc-b558-e5afce061c3a")
+                Panda.shared.prefetchScreen(screenId: "e7ce4093-907e-4be6-8fc5-d689b5265f32")
             }
         }
         return true

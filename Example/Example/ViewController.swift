@@ -18,7 +18,7 @@ class ViewController: UIViewController {
 
 
     @IBAction func onShowTap(_ sender: Any) {
-        Panda.shared.getScreen(screenId: "0fe27e07-a104-48bc-b558-e5afce061c3a") { [weak self] (result) in
+        Panda.shared.getScreen(screenId: "e7ce4093-907e-4be6-8fc5-d689b5265f32") { [weak self] (result) in
             switch result {
             case .success(let vc):
                 self?.present(vc, animated: true, completion: nil)

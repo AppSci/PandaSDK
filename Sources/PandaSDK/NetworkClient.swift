@@ -17,6 +17,10 @@ internal struct ResponseError: Codable, Error {
     let message: String
 }
 
+internal struct SubscriptionStatusResponse: Codable {
+    let state: SubscriptionAPIStatus
+}
+
 internal struct ScreenData: Codable {
     let id: String
     let name: String
@@ -31,6 +35,73 @@ internal struct ScreenData: Codable {
 internal struct ReceiptVerificationResult: Codable {
     let id: String
     let active: Bool
+}
+
+enum SubscriptionAPIStatus: String, Codable {
+    case success
+    case empty
+    case refund
+    case canceled
+    case disabledAutoRenew
+    case billing
+    
+    enum CodingKeys: String, CodingKey {
+        case success = "ok"
+        case empty
+        case refund
+        case canceled
+        case disabledAutoRenew = "disabled_auto_renew"
+        case billing = "failed_renew"
+    }
+}
+
+enum SubscriptionStatus: String {
+    case success
+    case empty
+    case refund
+    case canceled
+    case billing
+    
+    init?(rawValue: RawValue) {
+        switch rawValue {
+        case "ok":
+            self = .success
+        case "empty":
+            self = .empty
+        case "refund":
+            self = .refund
+        case "canceled", "disabled_auto_renew":
+            self = .canceled
+        case "failed_renew":
+            self = .billing
+        default:
+            return nil
+        }
+    }
+    
+    init(with subscriptionAPIstatus: SubscriptionAPIStatus) {
+        switch subscriptionAPIstatus {
+        case .success:
+            self = .success
+        case .billing:
+            self = .billing
+        case .refund:
+            self = .refund
+        case .canceled, .disabledAutoRenew:
+            self = .canceled
+        case .empty:
+            self = .empty
+        }
+    }
+    
+}
+
+enum ScreenType: String, Codable {
+    case sales
+    case promo
+    case billing
+    case survey
+    case feedback
 }
 
 internal class NetworkClient {
@@ -54,7 +125,7 @@ internal class NetworkClient {
         self.init(networkService: NetworkService(dataLoader: URLSession(configuration: config)), isDebug: isDebug)
     }
         
-    internal func loadScreen(token: String, user: PandaUser, screenId: String?, callback: ((Result<ScreenData, Error>) -> Void)?) {
+    internal func loadScreen(token: String, user: PandaUser, screenId: String?, screenType: ScreenType? = .sales,  callback: ((Result<ScreenData, Error>) -> Void)?) {
         let boosterScreenURL = serverAPI + "/v1/screen"
         guard var components = URLComponents(string: boosterScreenURL) else {
             callback?(.failure(Errors.message("Error Creating Request. Nil URL?")))
@@ -172,6 +243,38 @@ internal class NetworkClient {
         }
     }
     
+    func getSubscriptionStatus(token: String, user: PandaUser, callback: @escaping (Result<SubscriptionStatusResponse, Error>) -> Void) {
+        guard let url = URL(string: serverAPI + "/v1/subscription-status/\(user.id)"),
+            var request = networkService.createRequest(url: url, method: .post) else {
+                callback(.failure(Errors.message("Wrong url")))
+                return
+        }
+        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
+        request.timeoutInterval = 20
+        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(token, forHTTPHeaderField: "Authorization")
+        
+        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
+            guard let response = response, let data = data, requestError == nil else {
+                callback(.failure(requestError ?? Errors.message("No data")))
+                return
+            }
+            let decoder = JSONDecoder()
+            guard response.statusCode < 400 else {
+                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
+                callback(.failure(error))
+                return
+            }
+            do {
+                let subscriptionStatus = try decoder.decode(SubscriptionStatusResponse.self, from: data)
+                callback(.success(subscriptionStatus))
+            } catch {
+                callback(.failure(error))
+            }
+        }
+    }
+    
     func verifySubscriptions(token: String, user: PandaUser, receipt: String, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
             self.verifySubscriptionsRequest(token: token, user: user, receipt: receipt, callback: onComplete)
@@ -182,6 +285,43 @@ internal class NetworkClient {
         retry(retries, task: { (onComplete) in
             self.registerUserRequest(token: token, callback: onComplete)
         }, completion: callback)
+    }
+    
+    func updateUser(pushToken: String, token: String, user: PandaUser, callback: ((Result<PandaUser, Error>) -> Void)?) {
+        guard let url = URL(string: serverAPI + "/v1/users/\(user.id)"),
+            var request = networkService.createRequest(url: url, method: .put) else {
+                callback?(.failure(Errors.message("Wrong url")))
+                return
+        }
+        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
+        request.timeoutInterval = 20
+        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(token, forHTTPHeaderField: "Authorization")
+        let encoder = JSONEncoder()
+        guard let data = try? encoder.encode(currentUserParameters(pushToken: pushToken)) else {
+            callback?(.failure(Errors.message("Error encoding parameters.")))
+            return
+        }
+        request.httpBody = data
+        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
+            guard let response = response, let data = data, requestError == nil else {
+                callback?(.failure(requestError ?? Errors.message("No data")))
+                return
+            }
+            let decoder = JSONDecoder()
+            guard response.statusCode < 400 else {
+                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
+                callback?(.failure(error))
+                return
+            }
+            do {
+                let user = try decoder.decode(PandaUser.self, from: data)
+                callback?(.success(user))
+            } catch {
+                callback?(.failure(error))
+            }
+        }
     }
     
     func loadScreenFromBundle() throws -> ScreenData {
