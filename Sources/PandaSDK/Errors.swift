@@ -15,4 +15,5 @@ enum Errors: Error {
     case appStoreReceiptError(Error)
     case invalidProductId(String)
     case unknownStoreError
+    case unknownNetworkError
 }

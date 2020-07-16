@@ -100,7 +100,7 @@ public extension Panda {
             return
         }
 
-        let networkClient = NetworkClient(isDebug: isDebug)
+        let networkClient = NetworkClient(token: token, isDebug: isDebug)
         let appStoreClient = AppStoreClient()
         
         if let productIds = ClientConfig.current.productIds {
@@ -118,7 +118,7 @@ public extension Panda {
             callback?(true)
             return
         }
-        networkClient.registerUser(token: token) { (result) in
+        networkClient.registerUser() { (result) in
             switch result {
             case .success(let user):
                 pandaLog(user.id)
@@ -189,7 +189,7 @@ final public class Panda: PandaProtocol {
             case .success(let receiptString):
                 receipt = receiptString
         }
-        networkClient.verifySubscriptions(token: token, user: user, receipt: receipt) { [weak self] (result) in
+        networkClient.verifySubscriptions(user: user, receipt: receipt) { [weak self] (result) in
             defer {
                 self?.viewControllers.forEach { $0.value?.onFinishLoad() }
             }
@@ -209,7 +209,7 @@ final public class Panda: PandaProtocol {
     }
     
     public func prefetchScreen(screenId: String?) {
-        networkClient.loadScreen(token: token, user: user, screenId: screenId) { [weak self] result in
+        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
                 pandaLog("Panda is missing!")
                 return
@@ -231,7 +231,7 @@ final public class Panda: PandaProtocol {
             }
             return
         }
-        networkClient.loadScreen(token: token, user: user, screenId: screenId) { [weak self] result in
+        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
                 callback?(.failure(Errors.message("Panda is missing!")))
                 return

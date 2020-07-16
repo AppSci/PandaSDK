@@ -13,10 +13,6 @@ internal struct PandaUser: Codable {
     let id: String
 }
 
-internal struct ResponseError: Codable, Error {
-    let message: String
-}
-
 internal struct SubscriptionStatusResponse: Codable {
     let state: SubscriptionAPIStatus
 }
@@ -106,222 +102,90 @@ enum ScreenType: String, Codable {
 
 internal class NetworkClient {
     
-    internal static let shared = NetworkClient()
-    
     let isDebug: Bool
     let serverAPI: String
-    let networkService: NetworkService
-    
-    init(networkService: NetworkService, isDebug: Bool = true) {
-        self.networkService = networkService
+    let networkLoader: NetworkLoader
+
+    enum HttpMethod: String {
+        case get = "GET"
+        case patch = "PATCH"
+        case post = "POST"
+        case put = "PUT"
+        case delete = "DELETE"
+    }
+
+    private init(networkLoader: NetworkLoader, isDebug: Bool = true) {
+        self.networkLoader = networkLoader
         self.isDebug = isDebug
         self.serverAPI = isDebug ? ClientConfig.current.serverDebugUrl : ClientConfig.current.serverUrl
     }
     
-    convenience init(isDebug: Bool = true) {
+    convenience init(token: String, isDebug: Bool = true) {
         let config = URLSessionConfiguration.default
-        config.requestCachePolicy = .reloadIgnoringLocalCacheData
-        config.urlCache = nil
-        self.init(networkService: NetworkService(dataLoader: URLSession(configuration: config)), isDebug: isDebug)
-    }
-        
-    internal func loadScreen(token: String, user: PandaUser, screenId: String?, screenType: ScreenType? = .sales,  callback: ((Result<ScreenData, Error>) -> Void)?) {
-        let boosterScreenURL = serverAPI + "/v1/screen"
-        guard var components = URLComponents(string: boosterScreenURL) else {
-            callback?(.failure(Errors.message("Error Creating Request. Nil URL?")))
-            return
-        }
-        components.queryItems = [
-            URLQueryItem(name: "user", value: user.id),
-            URLQueryItem(name: "id", value: screenId),
+        config.requestCachePolicy = .useProtocolCachePolicy
+        config.timeoutIntervalForRequest = 20
+        config.httpAdditionalHeaders = [
+            "User-Agent": DeviceInfo.userAgent,
+            "Content-Type": "application/json",
+            "Authorization": token
         ]
-        guard let url = components.url, var request = networkService.createRequest(url: url, method: .get) else {
-            callback?(.failure(Errors.message("Error Creating Request. Nil URL?")))
-            return
-        }
-    
-        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
-        request.timeoutInterval = 20
-        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
-        request.addValue(token, forHTTPHeaderField: "Authorization")
-        if let language = Locale.current.languageCode {
-            request.addValue(language, forHTTPHeaderField: "Accept-Language")
-        }
-
-        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
-            guard let response = response, let data = data, requestError == nil else {
-                callback?(.failure(requestError ?? Errors.message("No data")))
-                return
-            }
-
-            let decoder = JSONDecoder()
-            guard response.statusCode < 400 else {
-                print(request)
-                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
-                callback?(.failure(error))
-                return
-            }
-
-            let screen: ScreenData
-            do {
-                screen = try decoder.decode(ScreenData.self, from: data)
-            } catch {
-                callback?(.failure(error))
-                return
-            }
-            callback?(.success(screen))
-        }
-    }
-
-    internal func registerUserRequest(token: String, callback: ((Result<PandaUser, Error>) -> Void)?) {
-        guard let url = URL(string: serverAPI + "/v1/users"),
-            var request = networkService.createRequest(url: url, method: .post) else {
-                callback?(.failure(Errors.message("Wrong url")))
-                return
-        }
-        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
-        request.timeoutInterval = 20
-        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(token, forHTTPHeaderField: "Authorization")
-        let encoder = JSONEncoder()
-        guard let data = try? encoder.encode(currentDeviceParameters()) else {
-            callback?(.failure(Errors.message("Error encoding parameters.")))
-            return
-        }
-        request.httpBody = data
-        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
-            guard let response = response, let data = data, requestError == nil else {
-                callback?(.failure(requestError ?? Errors.message("No data")))
-                return
-            }
-            let decoder = JSONDecoder()
-            guard response.statusCode < 400 else {
-                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
-                callback?(.failure(error))
-                return
-            }
-            do {
-                let user = try decoder.decode(PandaUser.self, from: data)
-                callback?(.success(user))
-            } catch {
-                callback?(.failure(error))
-            }
-        }
+        config.urlCache = nil
+        self.init(networkLoader: URLSession(configuration: config), isDebug: isDebug)
     }
     
-    func verifySubscriptionsRequest(token: String, user: PandaUser, receipt: String, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
-        guard let url = URL(string: serverAPI + "/v1/itunes/verify/\(user.id)"),
-            var request = networkService.createRequest(url: url, method: .post) else {
-                callback(.failure(Errors.message("Wrong url")))
-                return
-        }
-        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
-        request.timeoutInterval = 20
-        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(token, forHTTPHeaderField: "Authorization")
-        request.httpBody = receipt.data(using: .utf8)
+    internal func loadScreen(user: PandaUser, screenId: String?, screenType: ScreenType? = .sales, callback: @escaping ((Result<ScreenData, Error>) -> Void)) {
+        let request = createRequest(path: "/v1/screen",
+                                    method: .get,
+                                    query: [
+                                        "user": user.id,
+                                        "id": screenId,
+                                        "type": screenType?.rawValue,
+                                    ],
+                                    headers: [
+                                        "Accept-Language": Locale.current.languageCode
+                                    ])
         
-        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
-            guard let response = response, let data = data, requestError == nil else {
-                callback(.failure(requestError ?? Errors.message("No data")))
-                return
-            }
-            let decoder = JSONDecoder()
-            guard response.statusCode < 400 else {
-                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
-                callback(.failure(error))
-                return
-            }
-            do {
-                let result = try decoder.decode(ReceiptVerificationResult.self, from: data)
-                callback(.success(result))
-            } catch {
-                callback(.failure(error))
-            }
-        }
+        networkLoader.loadData(with: request, completion: callback)
     }
     
-    func getSubscriptionStatus(token: String, user: PandaUser, callback: @escaping (Result<SubscriptionStatusResponse, Error>) -> Void) {
-        guard let url = URL(string: serverAPI + "/v1/subscription-status/\(user.id)"),
-            var request = networkService.createRequest(url: url, method: .post) else {
-                callback(.failure(Errors.message("Wrong url")))
-                return
-        }
-        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
-        request.timeoutInterval = 20
-        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(token, forHTTPHeaderField: "Authorization")
-        
-        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
-            guard let response = response, let data = data, requestError == nil else {
-                callback(.failure(requestError ?? Errors.message("No data")))
-                return
-            }
-            let decoder = JSONDecoder()
-            guard response.statusCode < 400 else {
-                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
-                callback(.failure(error))
-                return
-            }
-            do {
-                let subscriptionStatus = try decoder.decode(SubscriptionStatusResponse.self, from: data)
-                callback(.success(subscriptionStatus))
-            } catch {
-                callback(.failure(error))
-            }
-        }
+    internal func registerUserRequest(callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users",
+                                    method: .post,
+                                    body: currentDeviceParameters()
+        )
+        networkLoader.loadData(with: request, completion: callback)
+    }
+
+    func verifySubscriptionsRequest(user: PandaUser, receipt: String, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+        let request = createRequest(path: "/v1/itunes/verify/\(user.id)",
+                                    method: .post,
+                                    httpBody: receipt.data(using: .utf8))
+        networkLoader.loadData(with: request, completion: callback)
     }
     
-    func verifySubscriptions(token: String, user: PandaUser, receipt: String, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+    func getSubscriptionStatus(user: PandaUser, callback: @escaping (Result<SubscriptionStatusResponse, Error>) -> Void) {
+        let request = createRequest(path: "/v1/subscription-status/\(user.id)",
+                                    method: .get)
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
+    func updateUser(pushToken: String, user: PandaUser, callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .put,
+                                    body: currentUserParameters(pushToken: pushToken))
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
+    func verifySubscriptions(user: PandaUser, receipt: String, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
-            self.verifySubscriptionsRequest(token: token, user: user, receipt: receipt, callback: onComplete)
+            self.verifySubscriptionsRequest(user: user, receipt: receipt, callback: onComplete)
         }, completion: callback)
     }
-    
-    func registerUser(token: String, retries: Int = 2, callback: @escaping (Result<PandaUser, Error>) -> Void) {
+
+    func registerUser(retries: Int = 2, callback: @escaping (Result<PandaUser, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
-            self.registerUserRequest(token: token, callback: onComplete)
+            self.registerUserRequest(callback: onComplete)
         }, completion: callback)
-    }
-    
-    func updateUser(pushToken: String, token: String, user: PandaUser, callback: ((Result<PandaUser, Error>) -> Void)?) {
-        guard let url = URL(string: serverAPI + "/v1/users/\(user.id)"),
-            var request = networkService.createRequest(url: url, method: .put) else {
-                callback?(.failure(Errors.message("Wrong url")))
-                return
-        }
-        request.cachePolicy = URLRequest.CachePolicy.useProtocolCachePolicy
-        request.timeoutInterval = 20
-        request.setValue(DeviceInfo.userAgent, forHTTPHeaderField: "User-Agent")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue(token, forHTTPHeaderField: "Authorization")
-        let encoder = JSONEncoder()
-        guard let data = try? encoder.encode(currentUserParameters(pushToken: pushToken)) else {
-            callback?(.failure(Errors.message("Error encoding parameters.")))
-            return
-        }
-        request.httpBody = data
-        networkService.dataLoader.loadData(using: request) { (data, response, requestError) in
-            guard let response = response, let data = data, requestError == nil else {
-                callback?(.failure(requestError ?? Errors.message("No data")))
-                return
-            }
-            let decoder = JSONDecoder()
-            guard response.statusCode < 400 else {
-                let error: Error = (try? decoder.decode(ResponseError.self, from: data)) ?? Errors.message("ResponseCode: \(response.statusCode)")
-                callback?(.failure(error))
-                return
-            }
-            do {
-                let user = try decoder.decode(PandaUser.self, from: data)
-                callback?(.success(user))
-            } catch {
-                callback?(.failure(error))
-            }
-        }
     }
     
     func loadScreenFromBundle() throws -> ScreenData {
@@ -332,6 +196,33 @@ internal class NetworkClient {
         return screenData
     }
     
+    func createRequest(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, httpBody: Data? = nil) -> Result<URLRequest, Error> {
+        guard var components = URLComponents(string: serverAPI + path) else {
+            return .failure(Errors.message("Bad url: \(serverAPI + path)"))
+        }
+        components.queryItems = query?.compactMap { query in query.value.map { URLQueryItem(name: query.key, value: $0) } }
+        guard let url = components.url else {
+            return .failure(Errors.message("Bad url: \(serverAPI + path)\n\(components)"))
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.httpBody = httpBody
+        headers?.compactMapValues {$0}.forEach({ header in
+            request.setValue(header.value, forHTTPHeaderField: header.key)
+        })
+        return .success(request)
+    }
+    
+    func createRequest<T: Codable>(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, body: T) -> Result<URLRequest, Error> {
+        let encoder = JSONEncoder()
+        do {
+            let data = try encoder.encode(body)
+            return createRequest(path: path, method: method, query: query, headers: headers, httpBody: data)
+        } catch {
+            return .failure(error)
+        }
+    }
+
 }
 
 func retry<T>(_ attempts: Int,
