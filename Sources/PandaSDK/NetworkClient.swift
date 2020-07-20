@@ -51,14 +51,14 @@ enum SubscriptionAPIStatus: String, Codable {
     }
 }
 
-enum SubscriptionStatus: String {
+public enum SubscriptionStatus: String {
     case success
     case empty
     case refund
     case canceled
     case billing
     
-    init?(rawValue: RawValue) {
+    public init?(rawValue: String) {
         switch rawValue {
         case "ok":
             self = .success

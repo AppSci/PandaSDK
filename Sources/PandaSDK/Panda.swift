@@ -49,6 +49,11 @@ public protocol PandaProtocol: class {
     */
     var onDismiss: (() -> Void)? { get set }
 
+    /**
+     You can call to check subscription status of User
+    */
+    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
+                               screenCallback: ((Result<UIViewController, Error>) -> Void)?)
 }
 
 class ScreenCache {
@@ -72,12 +77,19 @@ class ScreenCache {
 
 final class UnconfiguredPanda: PandaProtocol {
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         callback?(.failure(Errors.notConfigured))
     }
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
+    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
+                               screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        statusCallback?(.failure(Errors.notConfigured))
+    }
+
     var onPurchase: ((String) -> Void)?
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
@@ -254,6 +266,39 @@ final public class Panda: PandaProtocol {
                 self.cache[screenId] = screen
                 DispatchQueue.main.async {
                     callback?(.success(self.prepareViewController(screen: screen)))
+                }
+            }
+        }
+    }
+    
+    public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
+                                      screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
+        networkClient.getSubscriptionStatus(user: user) { [weak self] (result) in
+            guard let self = self else {
+                statusCallback?(.failure(Errors.message("Panda is missing!")))
+                return
+            }
+            switch result {
+            case .failure(let error):
+                statusCallback?(.failure(error))
+            case .success(let apiResponse):
+                let apiStatus = apiResponse.state
+                let subscriptionStatus = SubscriptionStatus(with: apiStatus)
+                statusCallback?(.success(subscriptionStatus))
+                switch subscriptionStatus {
+                case .canceled:
+                    self.networkClient.loadScreen(user: self.user, screenId: nil, screenType: .survey) { (screenResult) in
+                        switch screenResult {
+                        case.failure(let error):
+                            screenCallback?(.failure(error))
+                        case .success(let screenData):
+                            DispatchQueue.main.async {
+                                screenCallback?(.success(self.prepareViewController(screen: screenData)))
+                            }
+                        }
+                    }
+                default:
+                    break
                 }
             }
         }
