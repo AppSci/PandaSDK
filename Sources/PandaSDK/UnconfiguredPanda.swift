@@ -12,7 +12,9 @@ final class UnconfiguredPanda: PandaProtocol {
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
-
+    
+    private var viewControllers: Set<WeakObject<WebViewController>> = []
+    
     struct LastConfigurationAttempt {
         var token: String
         var isDebug: Bool
@@ -36,11 +38,9 @@ final class UnconfiguredPanda: PandaProtocol {
         networkClient.registerUser() { [weak self] (result) in
             switch result {
             case .success(let user):
-                pandaLog(user.id)
                 userStorage.store(user)
                 callback?(.success(Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: self)))
             case .failure(let error):
-                pandaLog("\(error)")
                 callback?(.failure(error))
             }
         }
@@ -57,9 +57,99 @@ final class UnconfiguredPanda: PandaProtocol {
     }
 
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        let defaultScreen: ScreenData
+        do {
+            defaultScreen = try NetworkClient.loadScreenFromBundle()
+        } catch {
+            callback?(.failure(error))
+            return
+        }
+        DispatchQueue.main.async {
+            callback?(.success(self.prepareViewController(screen: defaultScreen)))
+        }
+    }
+    
+    private func reconfigure(callback: @escaping (Result<Panda, Error>) -> Void) {
+        guard let configAttempt = lastConfigurationAttempt else {
+            viewControllers.forEach { $0.value?.onFinishLoad() }
+            callback(.failure(Errors.notConfigured))
+            return
+        }
+        configure(token: configAttempt.token, isDebug: configAttempt.isDebug) { [viewControllers] (result) in
+            switch result {
+            case .success(let panda):
+                panda.addViewControllers(controllers: viewControllers)
+                Panda.shared = panda
+            case .failure:
+                viewControllers.forEach { $0.value?.onFinishLoad() }
+            }
+            callback(result)
+        }
+    }
+
+    private func prepareViewController(screen: ScreenData) -> WebViewController {
+        let viewModel = WebViewModel()
+        viewModel.screenName = screen.id
+        viewModel.onSurvey = { value in
+            pandaLog("Survey: \(value)")
+        }
+        viewModel.onPurchase = { [weak self] productId, source, view in
+            guard let productId = productId else {
+                pandaLog("Missing productId with source: \(source)")
+                return
+            }
+            self?.reconfigure(callback: { (result) in
+                switch result {
+                case .success:
+                    pandaLog("Reconfigured")
+                    view.viewModel?.onPurchase?(productId, source, view)
+                case .failure(let error):
+                    pandaLog("Reconfigured error: \(error)")
+                    self?.onError?(error)
+                }
+            })
+        }
+        viewModel.onRestorePurchase = { [weak self] view in
+            pandaLog("Restore")
+            self?.reconfigure(callback: { (result) in
+                switch result {
+                case .success:
+                    pandaLog("Reconfigured")
+                    view.viewModel?.onRestorePurchase?(view)
+                case .failure(let error):
+                    pandaLog("Reconfigured error: \(error)")
+                    self?.onError?(error)
+                }
+            })
+        }
         
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
-        callback?(.failure(Errors.notConfigured))
+        viewModel.onTerms = openTerms
+        viewModel.onPolicy = openPolicy
+        viewModel.onBillingIssue = { view in
+            pandaLog("onBillingIssue")
+            self.openBillingIssue()
+            view.dismiss(animated: true, completion: nil)
+        }
+        viewModel.dismiss = { [weak self] status, view in
+            pandaLog("Dismiss")
+            self?.trackClickDismiss()
+            view.dismiss(animated: true, completion: nil)
+            self?.onDismiss?()
+        }
+        let controller = setupWebView(html: screen.html, viewModel: viewModel)
+        viewControllers = viewControllers.filter { $0.value != nil }
+        viewControllers.insert(WeakObject(value: controller))
+        return controller
+    }
+    
+    private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
+        let controller = WebViewController()
+
+        controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
+        controller.modalPresentationStyle = .overFullScreen
+        controller.loadPage(html: html)
+        controller.viewModel = viewModel
+        return controller
     }
 
 }

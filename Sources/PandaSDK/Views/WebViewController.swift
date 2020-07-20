@@ -119,7 +119,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         
         if message.name == "weekly_offer" {
             print("JavaScript is sending a message \(message.body)")
-            viewModel?.onPurchase(message.name, "js-code")
+            viewModel?.onPurchase(message.name, "js-code", self)
         }
         if message.name == "locationChanges" {
             print("JavaScript is sending a message \(message.body)")
@@ -204,11 +204,11 @@ extension WebViewController: WKNavigationDelegate {
         case "purchase":
             onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
-            viewModel?.onPurchase(productID, url.lastPathComponent)
+            viewModel?.onPurchase(productID, url.lastPathComponent, self)
             return false
         case "restore":
             onStartLoad()
-            viewModel?.onRestorePurchase?()
+            viewModel?.onRestorePurchase?(self)
             return false
         case "dismiss":
             onFinishLoad()

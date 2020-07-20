@@ -85,13 +85,13 @@ public extension Panda {
 
 final public class Panda: PandaProtocol {
 
-    public private(set) static var shared: PandaProtocol = UnconfiguredPanda()
+    public internal(set) static var shared: PandaProtocol = UnconfiguredPanda()
     
     let networkClient: NetworkClient
     let cache: ScreenCache = ScreenCache()
     let user: PandaUser
     let appStoreClient: AppStoreClient
-    var viewControllers: Set<WeakObject<WebViewController>> = []
+    private var viewControllers: Set<WeakObject<WebViewController>> = []
 
     public var onPurchase: ((String) -> Void)?
     public var onRestorePurchases: (([String]) -> Void)?
@@ -231,20 +231,36 @@ final public class Panda: PandaProtocol {
         }
     }
     
+    func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
+        let updatedVCs = controllers.compactMap {$0.value}
+        updatedVCs.forEach { (vc) in
+            vc.viewModel = createViewModel(screenName: vc.viewModel?.screenName ?? "unknown")
+        }
+        viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
+    }
+    
     private func prepareViewController(screen: ScreenData) -> WebViewController {
+        let viewModel = createViewModel(screenName: screen.id)
+        let controller = setupWebView(html: screen.html, viewModel: viewModel)
+        viewControllers = viewControllers.filter { $0.value != nil }
+        viewControllers.insert(WeakObject(value: controller))
+        return controller
+    }
+    
+    private func createViewModel(screenName: String) -> WebViewModel {
         let viewModel = WebViewModel()
-        viewModel.screenName = screen.id
+        viewModel.screenName = screenName
         viewModel.onSurvey = { value in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onPurchase = { [appStoreClient] productId, source in
+        viewModel.onPurchase = { [appStoreClient] productId, source, _ in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
             appStoreClient.purchase(productId: productId)
         }
-        viewModel.onRestorePurchase = { [appStoreClient] in
+        viewModel.onRestorePurchase = { [appStoreClient] _ in
             pandaLog("Restore")
             appStoreClient.restore()
         }
@@ -262,10 +278,7 @@ final public class Panda: PandaProtocol {
             view.dismiss(animated: true, completion: nil)
             self?.onDismiss?()
         }
-        let controller = setupWebView(html: screen.html, viewModel: viewModel)
-        viewControllers = viewControllers.filter { $0.value != nil }
-        viewControllers.insert(WeakObject(value: controller))
-        return controller
+        return viewModel
     }
     
     private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {

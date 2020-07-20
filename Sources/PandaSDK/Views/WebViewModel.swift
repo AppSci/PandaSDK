@@ -8,9 +8,9 @@
 
 import Foundation
 protocol WebViewModelProtocol {
-    var onPurchase: ((_ product: String?, _ source: String) -> Void)!  { get set }
+    var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController) -> Void)!  { get set }
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)? { get set }
-    var onRestorePurchase: (() -> Void)? { get set }
+    var onRestorePurchase: ((_ viewController: WebViewController) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
     var onPolicy: (() -> Void)? { get set }
     var onSurvey: ((_ answer: String) -> Void)? { get set }
@@ -19,9 +19,9 @@ protocol WebViewModelProtocol {
 
 class WebViewModel: WebViewModelProtocol {
     
-    @objc var onPurchase: ((_ product: String?, _ source: String) -> Void)!
+    @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController) -> Void)!
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)?
-    var onRestorePurchase: (() -> Void)?
+    var onRestorePurchase: ((_ viewController: WebViewController) -> Void)?
     var onTerms: (() -> Void)?
     var onPolicy: (() -> Void)?
     var onSurvey: ((_ answer: String) -> Void)?

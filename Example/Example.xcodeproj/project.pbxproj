@@ -14,6 +14,7 @@
 		CDE8257C24AE2D9300824F65 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257A24AE2D9300824F65 /* Main.storyboard */; };
 		CDE8257E24AE2D9500824F65 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257D24AE2D9500824F65 /* Assets.xcassets */; };
 		CDE8258124AE2D9500824F65 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257F24AE2D9500824F65 /* LaunchScreen.storyboard */; };
+		CDED5C4124C5DE17008E0EDE /* Default.html in Resources */ = {isa = PBXBuildFile; fileRef = CDED5C4024C5DE17008E0EDE /* Default.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		CDE8257D24AE2D9500824F65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CDE8258024AE2D9500824F65 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CDE8258224AE2D9500824F65 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CDED5C4024C5DE17008E0EDE /* Default.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Default.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 		CDE8257324AE2D9300824F65 /* Example */ = {
 			isa = PBXGroup;
 			children = (
+				CDED5C4024C5DE17008E0EDE /* Default.html */,
 				CD54BB0F24B4DFAC00F3BA90 /* PandaSDK-Info.plist */,
 				CDE8257424AE2D9300824F65 /* AppDelegate.swift */,
 				CDE8257824AE2D9300824F65 /* ViewController.swift */,
@@ -154,6 +157,7 @@
 				CDE8258124AE2D9500824F65 /* LaunchScreen.storyboard in Resources */,
 				CDE8257E24AE2D9500824F65 /* Assets.xcassets in Resources */,
 				CDE8257C24AE2D9300824F65 /* Main.storyboard in Resources */,
+				CDED5C4124C5DE17008E0EDE /* Default.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
