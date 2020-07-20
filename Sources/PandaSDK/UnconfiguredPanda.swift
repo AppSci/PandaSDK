@@ -8,23 +8,59 @@
 import Foundation
 
 final class UnconfiguredPanda: PandaProtocol {
-    func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
-        callback?(.failure(Errors.notConfigured))
+    var onPurchase: ((String) -> Void)?
+    var onRestorePurchases: (([String]) -> Void)?
+    var onError: ((Error) -> Void)?
+    var onDismiss: (() -> Void)?
+
+    struct LastConfigurationAttempt {
+        var token: String
+        var isDebug: Bool
     }
+    private var lastConfigurationAttempt: LastConfigurationAttempt?
+
+    func configure(token: String, isDebug: Bool = true, callback: ((Result<Panda, Error>) -> Void)?) {
+        lastConfigurationAttempt = LastConfigurationAttempt(token: token, isDebug: isDebug)
+        let networkClient = NetworkClient(token: token, isDebug: isDebug)
+        let appStoreClient = AppStoreClient()
+        
+        if let productIds = ClientConfig.current.productIds {
+            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
+        }
+        
+        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
+        if let user = userStorage.fetch() {
+            callback?(.success(Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: self)))
+            return
+        }
+        networkClient.registerUser() { [weak self] (result) in
+            switch result {
+            case .success(let user):
+                pandaLog(user.id)
+                userStorage.store(user)
+                callback?(.success(Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: self)))
+            case .failure(let error):
+                pandaLog("\(error)")
+                callback?(.failure(error))
+            }
+        }
+    }
+
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
+
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
                                screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         statusCallback?(.failure(Errors.notConfigured))
     }
 
-    var onPurchase: ((String) -> Void)?
-    var onRestorePurchases: (([String]) -> Void)?
-    var onError: ((Error) -> Void)?
-    var onDismiss: (() -> Void)?
+    func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        callback?(.failure(Errors.notConfigured))
+    }
+
 }
 

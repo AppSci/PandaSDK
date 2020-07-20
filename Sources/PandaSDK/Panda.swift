@@ -66,34 +66,17 @@ public extension Panda {
      - parameter callback: Optional. You can do check if Panda SDK in configured.
      */
     static func configure(token: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
-        guard shared is UnconfiguredPanda else {
+        guard let unconfigured = shared as? UnconfiguredPanda else {
             pandaLog("Already configured")
             callback?(true)
             return
         }
-
-        let networkClient = NetworkClient(token: token, isDebug: isDebug)
-        let appStoreClient = AppStoreClient()
-        
-        if let productIds = ClientConfig.current.productIds {
-            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
-        }
-        
-        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
-        if let user = userStorage.fetch() {
-            shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: shared)
-            callback?(true)
-            return
-        }
-        networkClient.registerUser() { (result) in
+        unconfigured.configure(token: token, isDebug: isDebug) { (result) in
             switch result {
-            case .success(let user):
-                pandaLog(user.id)
-                userStorage.store(user)
-                shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: shared)
+            case .success(let panda):
+                shared = panda
                 callback?(true)
-            case .failure(let error):
-                pandaLog("\(error)")
+            case .failure:
                 callback?(false)
             }
         }
@@ -106,7 +89,6 @@ final public class Panda: PandaProtocol {
     
     let networkClient: NetworkClient
     let cache: ScreenCache = ScreenCache()
-    let token: String
     let user: PandaUser
     let appStoreClient: AppStoreClient
     var viewControllers: Set<WeakObject<WebViewController>> = []
@@ -116,8 +98,7 @@ final public class Panda: PandaProtocol {
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
     
-    init(token: String, user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
-        self.token = token
+    init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
@@ -300,33 +281,31 @@ final public class Panda: PandaProtocol {
 }
 
 
-extension Panda {
-    private func openBillingIssue() {
+extension PandaProtocol {
+    func openBillingIssue() {
         openLink(link: ClientConfig.current.billingUrl) { result in
             self.trackOpenLink("billing_issue", result)
         }
     }
     
-    private func openTerms() {
+    func openTerms() {
         openLink(link: ClientConfig.current.termsUrl) { result in
             self.trackOpenLink("terms", result)
         }
     }
     
-    private func openPolicy() {
+    func openPolicy() {
         openLink(link: ClientConfig.current.policyUrl) { result in
             self.trackOpenLink("policy", result)
         }
     }
     
-    private func openLink(link: String, completionHandler completion: ((Bool) -> Void)? = nil) {
+    func openLink(link: String, completionHandler completion: ((Bool) -> Void)? = nil) {
         if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url, options: [:], completionHandler: completion)
         }
     }
-}
 
-extension Panda {
     func trackOpenLink(_ link: String, _ result: Bool) {
     }
     
