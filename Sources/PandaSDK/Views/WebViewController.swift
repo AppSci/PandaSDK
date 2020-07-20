@@ -185,6 +185,12 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     internal func onFinishLoad() {
         NVActivityIndicatorPresenter.sharedInstance.stopAnimating(nil)
     }
+    
+    internal func showInternetConnectionAlert() {
+        let alert = UIAlertController(title: "Connection error", message: "Please, check you internet connection and try again", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
 }
 
 extension WebViewController: UIScrollViewDelegate {
