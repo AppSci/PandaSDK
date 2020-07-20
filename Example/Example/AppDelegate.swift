@@ -28,6 +28,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func applicationDidBecomeActive(_ application: UIApplication) {
+        Panda.shared.onPurchase = { result in print("onRestorePurchases: \(result)") }
+        Panda.shared.onRestorePurchases = { result in print("onRestorePurchases: \(result)") }
+        Panda.shared.onError = { result in print("onError: \(result)") }
+        Panda.shared.onDismiss = { print("onDismiss") }
+
         Panda.shared.getSubscriptionStatus(statusCallback: { (subscriptionResult) in
             switch subscriptionResult {
             case .failure(let error):

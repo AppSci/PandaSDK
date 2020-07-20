@@ -121,12 +121,7 @@ public extension Panda {
         
         let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
         if let user = userStorage.fetch() {
-            let prev = shared
-            shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient)
-            shared.onPurchase = prev.onPurchase
-            shared.onRestorePurchases = prev.onRestorePurchases
-            shared.onError = prev.onError
-            shared.onDismiss = prev.onDismiss
+            shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: shared)
             callback?(true)
             return
         }
@@ -134,13 +129,8 @@ public extension Panda {
             switch result {
             case .success(let user):
                 pandaLog(user.id)
-                let prev = shared
                 userStorage.store(user)
-                shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient)
-                shared.onPurchase = prev.onPurchase
-                shared.onRestorePurchases = prev.onRestorePurchases
-                shared.onError = prev.onError
-                shared.onDismiss = prev.onDismiss
+                shared = Panda(token: token, user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: shared)
                 callback?(true)
             case .failure(let error):
                 pandaLog("\(error)")
@@ -166,11 +156,12 @@ final public class Panda: PandaProtocol {
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
     
-    init(token: String, user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
+    init(token: String, user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
         self.token = token
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
+        other.map(self.copyCallbacks(from:))
         configureAppStoreClient()
     }
     
@@ -250,12 +241,7 @@ final public class Panda: PandaProtocol {
             }
             switch result {
             case .failure(let error):
-                //                let res = Result(catching: { try self.networkClient.loadScreenFromBundle() })
-                //                    .mapError {_ -> Error in error}
-                //                    .map { self.prepareViewController(screen: $0) as UIViewController }
-                //                callback?(res)
-                
-                guard let defaultScreen = try? self.networkClient.loadScreenFromBundle() else {
+                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
                     callback?(.failure(error))
                     return
                 }
@@ -334,9 +320,6 @@ final public class Panda: PandaProtocol {
             self?.trackClickDismiss()
             view.dismiss(animated: true, completion: nil)
             self?.onDismiss?()
-//            if self.autoDismiss {
-//                self.dismiss(view: view)
-//            }
         }
         let controller = setupWebView(html: screen.html, viewModel: viewModel)
         viewControllers = viewControllers.filter { $0.value != nil }
@@ -346,10 +329,6 @@ final public class Panda: PandaProtocol {
     
     private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
         let controller = WebViewController()
-
-//        let urlComponents = setupUrlRequest(state, viewModel.screenName)
-//        pandaLog("Panda // WEB URL to load \(urlComponents?.url?.absoluteString ?? "")")
-//        controller.url = urlComponents
 
         controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
         controller.modalPresentationStyle = .overFullScreen
@@ -392,5 +371,14 @@ extension Panda {
     }
     
     func trackClickDismiss() {
+    }
+}
+
+extension PandaProtocol {
+    func copyCallbacks(from other: PandaProtocol) {
+        onPurchase = other.onPurchase
+        onRestorePurchases = other.onRestorePurchases
+        onError = other.onError
+        onDismiss = other.onDismiss
     }
 }

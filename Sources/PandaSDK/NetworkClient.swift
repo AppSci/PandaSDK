@@ -188,14 +188,6 @@ internal class NetworkClient {
         }, completion: callback)
     }
     
-    func loadScreenFromBundle() throws -> ScreenData {
-        guard let fileURL = Bundle.main.url(forResource: "Default", withExtension: "html"), let fileContents = try? String(contentsOf: fileURL) else {
-            throw Errors.message("Cannot find default screen html")
-        }
-        let screenData = ScreenData(id: "default", name: "default", html: fileContents)
-        return screenData
-    }
-    
     func createRequest(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, httpBody: Data? = nil) -> Result<URLRequest, Error> {
         guard var components = URLComponents(string: serverAPI + path) else {
             return .failure(Errors.message("Bad url: \(serverAPI + path)"))
@@ -223,6 +215,13 @@ internal class NetworkClient {
         }
     }
 
+    static func loadScreenFromBundle(name: String = "Default") throws -> ScreenData {
+        guard let fileURL = Bundle.main.url(forResource: name, withExtension: "html"), let fileContents = try? String(contentsOf: fileURL) else {
+            throw Errors.message("Cannot find default screen html")
+        }
+        let screenData = ScreenData(id: "default", name: "default", html: fileContents)
+        return screenData
+    }
 }
 
 func retry<T>(_ attempts: Int,
