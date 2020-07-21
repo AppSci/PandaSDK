@@ -107,10 +107,17 @@ public extension Panda {
 
 final public class Panda: PandaProtocol {
 
+    private struct Settings: Codable {
+        var canceledScreenWasShown: Bool
+        
+        static let `default` = Settings(canceledScreenWasShown: false)
+    }
+    
     let networkClient: NetworkClient
     let cache: ScreenCache = ScreenCache()
     let user: PandaUser
     let appStoreClient: AppStoreClient
+    private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
     private var viewControllers: Set<WeakObject<WebViewController>> = []
 
     public var onPurchase: ((String) -> Void)?
@@ -292,7 +299,7 @@ final public class Panda: PandaProtocol {
     }
     
     func onApplicationDidBecomeActive() {
-        getSubscriptionStatus { [weak self] (result) in
+        getSubscriptionStatus { [weak self, settingsStorage] (result) in
             let status: SubscriptionStatus
             switch result {
             case .failure(let error):
@@ -301,25 +308,31 @@ final public class Panda: PandaProtocol {
             case .success(let value):
                 status = value
             }
+            var settings = settingsStorage.fetch() ?? Settings.default
             switch status {
             case .canceled:
-                self?.showScreen(screenType: .survey)
+                guard settings.canceledScreenWasShown == false else { break }
+                self?.showScreen(screenType: .survey, onShow: { [settingsStorage] in
+                    settings.canceledScreenWasShown = true
+                    settingsStorage.store(settings)
+                })
             case .billing:
                 self?.showScreen(screenType: .billing)
             default:
-                break
+                settings.canceledScreenWasShown = false
+                settingsStorage.store(settings)
             }
         }
     }
     
-    func showScreen(screenType: ScreenType) {
+    func showScreen(screenType: ScreenType, onShow: (() -> Void)? = nil) {
         networkClient.loadScreen(user: user, screenId: nil, screenType: .survey) { (screenResult) in
             switch screenResult {
             case.failure(let error):
                 pandaLog("ShowScreen Error: \(error)")
             case .success(let screenData):
                 DispatchQueue.main.async {
-                    UIApplication.getTopViewController()?.present(self.prepareViewController(screen: screenData, screenType: screenType), animated: true, completion: nil)
+                    UIApplication.getTopViewController()?.present(self.prepareViewController(screen: screenData, screenType: screenType), animated: true, completion: onShow)
                 }
             }
         }
