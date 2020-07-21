@@ -105,7 +105,9 @@ final class UnconfiguredPanda: PandaProtocol {
                     view.viewModel?.onPurchase?(productId, source, view)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
-                    view.showInternetConnectionAlert()
+                    DispatchQueue.main.async {
+                        view.showInternetConnectionAlert()
+                    }
                     self?.onError?(error)
                 }
             })
@@ -119,7 +121,9 @@ final class UnconfiguredPanda: PandaProtocol {
                     view.viewModel?.onRestorePurchase?(view)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
-                    view.showInternetConnectionAlert()
+                    DispatchQueue.main.async {
+                        view.showInternetConnectionAlert()
+                    }
                     self?.onError?(error)
                 }
             })
