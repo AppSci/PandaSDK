@@ -191,7 +191,7 @@ final public class Panda: PandaProtocol {
     public func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
-                callback?(.success(self.prepareViewController(screen: screen)))
+                callback?(.success(self.prepareViewController(screen: screen, screenType: .sales)))
             }
             return
         }
@@ -207,12 +207,12 @@ final public class Panda: PandaProtocol {
                     return
                 }
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: defaultScreen)))
+                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: .sales)))
                 }
             case .success(let screen):
                 self.cache[screenId] = screen
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: screen)))
+                    callback?(.success(self.prepareViewController(screen: screen, screenType: .sales)))
                 }
             }
         }
@@ -239,9 +239,9 @@ final public class Panda: PandaProtocol {
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
-    private func prepareViewController(screen: ScreenData) -> WebViewController {
+    private func prepareViewController(screen: ScreenData, screenType: ScreenType) -> WebViewController {
         let viewModel = createViewModel(screenName: screen.id)
-        let controller = setupWebView(html: screen.html, viewModel: viewModel)
+        let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
@@ -281,11 +281,11 @@ final public class Panda: PandaProtocol {
         return viewModel
     }
     
-    private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
+    private func setupWebView(html: String, viewModel: WebViewModel, screenType: ScreenType) -> WebViewController {
         let controller = WebViewController()
 
         controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
-        controller.modalPresentationStyle = .overFullScreen
+        controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
         controller.loadPage(html: html)
         controller.viewModel = viewModel
         return controller
@@ -319,7 +319,7 @@ final public class Panda: PandaProtocol {
                 pandaLog("ShowScreen Error: \(error)")
             case .success(let screenData):
                 DispatchQueue.main.async {
-                    UIApplication.getTopViewController()?.present(self.prepareViewController(screen: screenData), animated: true, completion: nil)
+                    UIApplication.getTopViewController()?.present(self.prepareViewController(screen: screenData, screenType: screenType), animated: true, completion: nil)
                 }
             }
         }
