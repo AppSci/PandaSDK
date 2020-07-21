@@ -107,6 +107,7 @@ final class UnconfiguredPanda: PandaProtocol {
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {
                         view.showInternetConnectionAlert()
+                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     }
                     self?.onError?(error)
                 }
@@ -123,6 +124,7 @@ final class UnconfiguredPanda: PandaProtocol {
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {
                         view.showInternetConnectionAlert()
+                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     }
                     self?.onError?(error)
                 }
