@@ -16,14 +16,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        Panda.shared.onPurchase = { result in print("onRestorePurchases: \(result)") }
-        Panda.shared.onRestorePurchases = { result in print("onRestorePurchases: \(result)") }
-        Panda.shared.onError = { result in print("onError: \(result)") }
-        Panda.shared.onDismiss = { print("onDismiss") }
-        // Override point for customization after application launch.
-        Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (configured) in
-            print("Configured: \(configured)")
-            if configured {
+        Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (status) in
+            print("Configured: \(status)")
+            if status {
                 Panda.shared.prefetchScreen(screenId: "e7ce4093-907e-4be6-8fc5-d689b5265f32")
             }
         }
@@ -32,16 +27,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-//        Panda.shared.getSubscriptionStatus(statusCallback: { (subscriptionResult) in
-//            switch subscriptionResult {
-//            case .failure(let error):
-//                print("Subscription status failed with error: \(error)")
-//            case .success(let subscriptionStatus):
-//                print("Subscription status is: \(subscriptionStatus.rawValue)")
-//            }
-//        }) { (screenResult) in
-//
-//        }
+        if Panda.isConfigured {
+            checkSubscriptionStatus()
+        } else {
+            Panda.shared.onConfigure = {
+                self.checkSubscriptionStatus()
+            }
+        }
+    }
+    
+    func checkSubscriptionStatus() {
+        Panda.shared.getSubscriptionStatus(statusCallback: { (subscriptionResult) in
+            switch subscriptionResult {
+            case .failure(let error):
+                print("Subscription status failed with error: \(error)")
+            case .success(let subscriptionStatus):
+                print("Subscription status is: \(subscriptionStatus.rawValue)")
+            }
+        }) { (screenResult) in
+
+        }
     }
 
 }

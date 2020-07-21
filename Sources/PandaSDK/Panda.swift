@@ -30,7 +30,7 @@ public protocol PandaProtocol: class {
      Callback for successful purchase in Panda purchase screen - you can validate & do you own setup in this callback
      - parameter String in callback: Product ID that was purchased.
      */
-     var onPurchase: ((String) -> Void)? { get set }
+    var onPurchase: ((String) -> Void)? { get set }
     
     /**
      Restore purchase callback
@@ -50,6 +50,11 @@ public protocol PandaProtocol: class {
     var onDismiss: (() -> Void)? { get set }
 
     /**
+     Called once on configation success
+     */
+    var onConfigure: (() -> Void)? { get set }
+    
+    /**
      You can call to check subscription status of User
     */
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
@@ -57,7 +62,13 @@ public protocol PandaProtocol: class {
 }
 
 public extension Panda {
-    
+    /**
+     Returns Panda configuration state
+     */
+    static var isConfigured: Bool {
+        return shared is Panda
+    }
+
     /**
      Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
      
@@ -97,6 +108,13 @@ final public class Panda: PandaProtocol {
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
+    private var configurationCallbackWasCalled = false
+    public var onConfigure: (() -> Void)? {
+        didSet {
+            callConfigurationCallback()
+        }
+    }
+
     
     init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
         self.user = user
@@ -104,6 +122,13 @@ final public class Panda: PandaProtocol {
         self.appStoreClient = appStoreClient
         other.map(self.copyCallbacks(from:))
         configureAppStoreClient()
+        callConfigurationCallback()
+    }
+    
+    private func callConfigurationCallback() {
+        guard let onConfigure = onConfigure, !configurationCallbackWasCalled else { return }
+        onConfigure()
+        configurationCallbackWasCalled = true
     }
     
     internal func configureAppStoreClient() {
@@ -351,5 +376,6 @@ extension PandaProtocol {
         onRestorePurchases = other.onRestorePurchases
         onError = other.onError
         onDismiss = other.onDismiss
+        onConfigure = other.onConfigure
     }
 }
