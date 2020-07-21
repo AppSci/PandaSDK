@@ -24,6 +24,11 @@ public protocol PandaProtocol: class {
      */
     func prefetchScreen(screenId: String?)
     
+    /**
+     You can call to check subscription status of User
+    */
+    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
+    
     // MARK: - Handle Purchases
     /**
      Purchase product callback.
@@ -49,19 +54,20 @@ public protocol PandaProtocol: class {
     */
     var onDismiss: (() -> Void)? { get set }
 
-    /**
-     Called once on configation success
-     */
-    var onConfigure: (() -> Void)? { get set }
-    
-    /**
-     You can call to check subscription status of User
-    */
-    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
-                               screenCallback: ((Result<UIViewController, Error>) -> Void)?)
 }
 
 public extension Panda {
+    /**
+     Shared Panda Instance
+     */
+    internal(set) static var shared: PandaProtocol = UnconfiguredPanda() {
+        didSet {
+            Panda.notificationDispatcher.onApplicationDidBecomeActive = (shared as? Panda)?.onApplicationDidBecomeActive
+        }
+    }
+    
+    internal static var notificationDispatcher: NotificationDispatcher!
+
     /**
      Returns Panda configuration state
      */
@@ -77,27 +83,30 @@ public extension Panda {
      - parameter callback: Optional. You can do check if Panda SDK in configured.
      */
     static func configure(token: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
+        if notificationDispatcher == nil {
+            notificationDispatcher = NotificationDispatcher()
+        }
         guard let unconfigured = shared as? UnconfiguredPanda else {
             pandaLog("Already configured")
             callback?(true)
             return
         }
+        
         unconfigured.configure(token: token, isDebug: isDebug) { (result) in
             switch result {
             case .success(let panda):
-                shared = panda
+                Panda.shared = panda
                 callback?(true)
             case .failure:
                 callback?(false)
             }
         }
     }
+    
 }
 
 final public class Panda: PandaProtocol {
 
-    public internal(set) static var shared: PandaProtocol = UnconfiguredPanda()
-    
     let networkClient: NetworkClient
     let cache: ScreenCache = ScreenCache()
     let user: PandaUser
@@ -108,27 +117,13 @@ final public class Panda: PandaProtocol {
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
-    private var configurationCallbackWasCalled = false
-    public var onConfigure: (() -> Void)? {
-        didSet {
-            callConfigurationCallback()
-        }
-    }
 
-    
     init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
         other.map(self.copyCallbacks(from:))
         configureAppStoreClient()
-        callConfigurationCallback()
-    }
-    
-    private func callConfigurationCallback() {
-        guard let onConfigure = onConfigure, !configurationCallbackWasCalled else { return }
-        onConfigure()
-        configurationCallbackWasCalled = true
     }
     
     internal func configureAppStoreClient() {
@@ -223,13 +218,8 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
-                                      screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
-        networkClient.getSubscriptionStatus(user: user) { [weak self] (result) in
-            guard let self = self else {
-                statusCallback?(.failure(Errors.message("Panda is missing!")))
-                return
-            }
+    public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
+        networkClient.getSubscriptionStatus(user: user) { (result) in
             switch result {
             case .failure(let error):
                 statusCallback?(.failure(error))
@@ -237,21 +227,6 @@ final public class Panda: PandaProtocol {
                 let apiStatus = apiResponse.state
                 let subscriptionStatus = SubscriptionStatus(with: apiStatus)
                 statusCallback?(.success(subscriptionStatus))
-                switch subscriptionStatus {
-                case .canceled:
-                    self.networkClient.loadScreen(user: self.user, screenId: nil, screenType: .survey) { (screenResult) in
-                        switch screenResult {
-                        case.failure(let error):
-                            screenCallback?(.failure(error))
-                        case .success(let screenData):
-                            DispatchQueue.main.async {
-                                screenCallback?(.success(self.prepareViewController(screen: screenData)))
-                            }
-                        }
-                    }
-                default:
-                    break
-                }
             }
         }
     }
@@ -315,6 +290,40 @@ final public class Panda: PandaProtocol {
         controller.viewModel = viewModel
         return controller
     }
+    
+    func onApplicationDidBecomeActive() {
+        getSubscriptionStatus { [weak self] (result) in
+            let status: SubscriptionStatus
+            switch result {
+            case .failure(let error):
+                pandaLog("SubscriptionStatus Error: \(error)")
+                return
+            case .success(let value):
+                status = value
+            }
+            switch status {
+            case .canceled:
+                self?.showScreen(screenType: .survey)
+            case .billing:
+                self?.showScreen(screenType: .billing)
+            default:
+                break
+            }
+        }
+    }
+    
+    func showScreen(screenType: ScreenType) {
+        networkClient.loadScreen(user: user, screenId: nil, screenType: .survey) { (screenResult) in
+            switch screenResult {
+            case.failure(let error):
+                pandaLog("ShowScreen Error: \(error)")
+            case .success(let screenData):
+                DispatchQueue.main.async {
+                    UIApplication.getTopViewController()?.present(self.prepareViewController(screen: screenData), animated: true, completion: nil)
+                }
+            }
+        }
+    }
 
 }
 
@@ -376,6 +385,5 @@ extension PandaProtocol {
         onRestorePurchases = other.onRestorePurchases
         onError = other.onError
         onDismiss = other.onDismiss
-        onConfigure = other.onConfigure
     }
 }

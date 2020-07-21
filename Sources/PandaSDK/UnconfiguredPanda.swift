@@ -12,7 +12,6 @@ final class UnconfiguredPanda: PandaProtocol {
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
-    var onConfigure: (() -> Void)?
     
     private var viewControllers: Set<WeakObject<WebViewController>> = []
     
@@ -51,8 +50,7 @@ final class UnconfiguredPanda: PandaProtocol {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
 
-    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
-                               screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
+    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         statusCallback?(.failure(Errors.notConfigured))
     }

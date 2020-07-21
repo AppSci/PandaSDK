@@ -25,30 +25,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-        if Panda.isConfigured {
-            checkSubscriptionStatus()
-        } else {
-            Panda.shared.onConfigure = {
-                self.checkSubscriptionStatus()
-            }
-        }
-    }
-    
-    func checkSubscriptionStatus() {
-        Panda.shared.getSubscriptionStatus(statusCallback: { (subscriptionResult) in
-            switch subscriptionResult {
-            case .failure(let error):
-                print("Subscription status failed with error: \(error)")
-            case .success(let subscriptionStatus):
-                print("Subscription status is: \(subscriptionStatus.rawValue)")
-            }
-        }) { (screenResult) in
-
-        }
-    }
-
 }
 
 // MARK: UIApplication extensions
