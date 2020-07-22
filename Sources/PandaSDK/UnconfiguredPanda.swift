@@ -26,7 +26,7 @@ final class UnconfiguredPanda: PandaProtocol {
 
     func configure(apiKey: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
         lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug)
-        Panda.createPanda(apiKey: apiKey, isDebug: isDebug, unconfigured: self, callback: { result in
+        Panda.configure(apiKey: apiKey, isDebug: isDebug, unconfigured: self, callback: { result in
             switch result {
             case .failure:
                 callback?(false)
@@ -42,7 +42,7 @@ final class UnconfiguredPanda: PandaProtocol {
             callback(.failure(Errors.notConfigured))
             return
         }
-        Panda.createPanda(apiKey: configAttempt.apiKey, isDebug: configAttempt.isDebug, unconfigured: self) { [viewControllers] (result) in
+        Panda.configure(apiKey: configAttempt.apiKey, isDebug: configAttempt.isDebug, unconfigured: self) { [viewControllers] (result) in
             if case .failure = result {
                 viewControllers.forEach { $0.value?.onFinishLoad() }
             }
