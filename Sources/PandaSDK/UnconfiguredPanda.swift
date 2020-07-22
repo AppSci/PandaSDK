@@ -8,44 +8,53 @@
 import Foundation
 
 final class UnconfiguredPanda: PandaProtocol {
+    
     var onPurchase: ((String) -> Void)?
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
+    let isConfigured: Bool = false
     
-    private var viewControllers: Set<WeakObject<WebViewController>> = []
+    var viewControllers: Set<WeakObject<WebViewController>> = []
+    var deviceToken: Data?
     
     struct LastConfigurationAttempt {
-        var token: String
+        var apiKey: String
         var isDebug: Bool
     }
     private var lastConfigurationAttempt: LastConfigurationAttempt?
 
-    func configure(token: String, isDebug: Bool = true, callback: ((Result<Panda, Error>) -> Void)?) {
-        lastConfigurationAttempt = LastConfigurationAttempt(token: token, isDebug: isDebug)
-        let networkClient = NetworkClient(token: token, isDebug: isDebug)
-        let appStoreClient = AppStoreClient()
-        
-        if let productIds = ClientConfig.current.productIds {
-            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
-        }
-        
-        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
-        if let user = userStorage.fetch() {
-            callback?(.success(Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: self)))
+    func configure(apiKey: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
+        lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug)
+        Panda.createPanda(apiKey: apiKey, isDebug: isDebug, unconfigured: self, callback: { result in
+            switch result {
+            case .failure:
+                callback?(false)
+            case .success:
+                callback?(true)
+            }
+        })
+    }
+    
+    private func reconfigure(callback: @escaping (Result<Panda, Error>) -> Void) {
+        guard let configAttempt = lastConfigurationAttempt else {
+            viewControllers.forEach { $0.value?.onFinishLoad() }
+            callback(.failure(Errors.notConfigured))
             return
         }
-        networkClient.registerUser() { [weak self] (result) in
-            switch result {
-            case .success(let user):
-                userStorage.store(user)
-                callback?(.success(Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, copyCallbacks: self)))
-            case .failure(let error):
-                callback?(.failure(error))
+        Panda.createPanda(apiKey: configAttempt.apiKey, isDebug: configAttempt.isDebug, unconfigured: self) { [viewControllers] (result) in
+            if case .failure = result {
+                viewControllers.forEach { $0.value?.onFinishLoad() }
             }
+            callback(result)
         }
     }
 
+
+    func registerDevice(token: Data) {
+        deviceToken = token
+    }
+    
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
@@ -68,24 +77,6 @@ final class UnconfiguredPanda: PandaProtocol {
         }
     }
     
-    private func reconfigure(callback: @escaping (Result<Panda, Error>) -> Void) {
-        guard let configAttempt = lastConfigurationAttempt else {
-            viewControllers.forEach { $0.value?.onFinishLoad() }
-            callback(.failure(Errors.notConfigured))
-            return
-        }
-        configure(token: configAttempt.token, isDebug: configAttempt.isDebug) { [viewControllers] (result) in
-            switch result {
-            case .success(let panda):
-                panda.addViewControllers(controllers: viewControllers)
-                Panda.shared = panda
-            case .failure:
-                viewControllers.forEach { $0.value?.onFinishLoad() }
-            }
-            callback(result)
-        }
-    }
-
     private func prepareViewController(screen: ScreenData) -> WebViewController {
         let viewModel = WebViewModel()
         viewModel.screenName = screen.id

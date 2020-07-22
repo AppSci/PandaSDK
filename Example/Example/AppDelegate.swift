@@ -16,7 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (status) in
+        Panda.shared.configure(apiKey: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (status) in
             print("Configured: \(status)")
             if status {
                 Panda.shared.prefetchScreen(screenId: "e7ce4093-907e-4be6-8fc5-d689b5265f32")
@@ -25,6 +25,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        Panda.shared.registerDevice(token: deviceToken)
+    }
 }
 
 // MARK: UIApplication extensions

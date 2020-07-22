@@ -120,14 +120,14 @@ internal class NetworkClient {
         self.serverAPI = isDebug ? ClientConfig.current.serverDebugUrl : ClientConfig.current.serverUrl
     }
     
-    convenience init(token: String, isDebug: Bool = true) {
+    convenience init(apiKey: String, isDebug: Bool = true) {
         let config = URLSessionConfiguration.default
         config.requestCachePolicy = .useProtocolCachePolicy
         config.timeoutIntervalForRequest = 20
         config.httpAdditionalHeaders = [
             "User-Agent": DeviceInfo.userAgent,
             "Content-Type": "application/json",
-            "Authorization": token
+            "Authorization": apiKey
         ]
         config.urlCache = nil
         self.init(networkLoader: URLSession(configuration: config), isDebug: isDebug)

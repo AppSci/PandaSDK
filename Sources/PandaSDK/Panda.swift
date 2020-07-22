@@ -10,6 +10,26 @@ import Foundation
 import UIKit
 
 public protocol PandaProtocol: class {
+    /**
+     Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
+     
+     - parameter apiKey: Required. Your api key.
+     - parameter isDebug: Optional. Please, use `true` for debugging, `false` for production.
+     - parameter callback: Optional. You can do check if Panda SDK in configured.
+     */
+    func configure(apiKey: String, isDebug: Bool, callback: ((Bool) -> Void)?)
+    
+    /**
+     Returns Panda configuration state
+     */
+    var isConfigured: Bool {get}
+    
+    /**
+     Register user for recieving Push Notifications
+     - parameter token: Token that user recieved after succeeded registration to Push Notifications
+     - parameter callback: Optional. Returns If Device Registration was successfull
+     */
+    func registerDevice(token: Data)
     
     /**
      Returns screen from Panda Web
@@ -60,52 +80,12 @@ public extension Panda {
     /**
      Shared Panda Instance
      */
-    internal(set) static var shared: PandaProtocol = UnconfiguredPanda() {
-        didSet {
-            Panda.notificationDispatcher.onApplicationDidBecomeActive = (shared as? Panda)?.onApplicationDidBecomeActive
-        }
-    }
-    
-    internal static var notificationDispatcher: NotificationDispatcher!
-
-    /**
-     Returns Panda configuration state
-     */
-    static var isConfigured: Bool {
-        return shared is Panda
-    }
-
-    /**
-     Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
-     
-     - parameter apiKey: Required. Your api key.
-     - parameter isDebug: Optional. Please, use `true` for debugging, `false` for production. Default is `true`.
-     - parameter callback: Optional. You can do check if Panda SDK in configured.
-     */
-    static func configure(token: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
-        if notificationDispatcher == nil {
-            notificationDispatcher = NotificationDispatcher()
-        }
-        guard let unconfigured = shared as? UnconfiguredPanda else {
-            pandaLog("Already configured")
-            callback?(true)
-            return
-        }
-        
-        unconfigured.configure(token: token, isDebug: isDebug) { (result) in
-            switch result {
-            case .success(let panda):
-                Panda.shared = panda
-                callback?(true)
-            case .failure:
-                callback?(false)
-            }
-        }
-    }
-    
+    internal(set) static var shared: PandaProtocol = UnconfiguredPanda()
 }
 
 final public class Panda: PandaProtocol {
+
+    internal static var notificationDispatcher: NotificationDispatcher!
 
     private struct Settings: Codable {
         var canceledScreenWasShown: Bool
@@ -124,13 +104,13 @@ final public class Panda: PandaProtocol {
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
+    public let isConfigured: Bool = true
 
-    init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
+
+    init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
-        other.map(self.copyCallbacks(from:))
-        configureAppStoreClient()
     }
     
     internal func configureAppStoreClient() {
@@ -144,6 +124,11 @@ final public class Panda: PandaProtocol {
             self?.onAppStoreClientRestore(productIds: productIds)
         }
         appStoreClient.startObserving()
+    }
+    
+    public func configure(apiKey: String, isDebug: Bool, callback: ((Bool) -> Void)?) {
+        pandaLog("Already configured")
+        callback?(true)
     }
     
     func onAppStoreClient(error: Error) {
@@ -177,6 +162,17 @@ final public class Panda: PandaProtocol {
     func onAppStoreClientRestore(productIds: [String]) {
         onRestorePurchases?(productIds)
         viewControllers.forEach { $0.value?.onFinishLoad() }
+    }
+    
+    public func registerDevice(token: Data) {
+        networkClient.updateUser(pushToken: token.base64EncodedString(), user: user) { (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("Register device error: \(error)")
+            case .success:
+                pandaLog("Device registred")
+            }
+        }
     }
     
     public func prefetchScreen(screenId: String?) {
@@ -336,6 +332,48 @@ final public class Panda: PandaProtocol {
                 }
             }
         }
+    }
+    
+    static func createPanda(apiKey: String, isDebug: Bool = true, unconfigured: UnconfiguredPanda?, callback: @escaping (Result<Panda, Error>) -> Void) {
+        if notificationDispatcher == nil {
+            notificationDispatcher = NotificationDispatcher()
+        }
+
+        let networkClient = NetworkClient(apiKey: apiKey, isDebug: isDebug)
+        let appStoreClient = AppStoreClient()
+        
+        if let productIds = ClientConfig.current.productIds {
+            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
+        }
+        
+        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
+        if let user = userStorage.fetch() {
+            callback(.success(setupPanda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
+            return
+        }
+        networkClient.registerUser() { (result) in
+            switch result {
+            case .success(let user):
+                userStorage.store(user)
+                callback(.success(setupPanda(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
+            case .failure(let error):
+                callback(.failure(error))
+            }
+        }
+    }
+    
+    static private func setupPanda(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, unconfigured: UnconfiguredPanda?) -> Panda {
+        let panda = Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient)
+        if let unconfigured = unconfigured {
+            panda.copyCallbacks(from: unconfigured)
+            panda.addViewControllers(controllers: unconfigured.viewControllers)
+        }
+        let deviceToken = unconfigured?.deviceToken
+        shared = panda
+        panda.configureAppStoreClient()
+        deviceToken.map(panda.registerDevice(token:))
+        Panda.notificationDispatcher.onApplicationDidBecomeActive = panda.onApplicationDidBecomeActive
+        return panda
     }
 
 }
