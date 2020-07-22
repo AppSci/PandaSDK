@@ -149,6 +149,22 @@ final class UnconfiguredPanda: PandaProtocol {
         controller.viewModel = viewModel
         return controller
     }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) -> Bool {
+        guard SubscriptionStatus.pandaEvent(from: notification) != nil else {
+            return false
+        }
+        completionHandler([.alert])
+        return true
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool {
+        guard SubscriptionStatus.pandaEvent(from: response.notification) != nil else {
+            return false
+        }
+        completionHandler()
+        return true
+    }
 
 }
 

@@ -258,6 +258,29 @@ final public class Panda: PandaProtocol {
         }
     }
     
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) -> Bool {
+        guard SubscriptionStatus.pandaEvent(from: notification) != nil else {
+            return false
+        }
+        completionHandler([.alert])
+        return true
+    }
+    
+    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool {
+        guard let status = SubscriptionStatus.pandaEvent(from: response.notification) else {
+            return false
+        }
+        switch status {
+        case .canceled:
+            if UIApplication.shared.applicationState == .active {
+                showScreen(screenType: .survey)
+            }
+        default: break
+        }
+        completionHandler()
+        return true
+    }
+
 }
 
 

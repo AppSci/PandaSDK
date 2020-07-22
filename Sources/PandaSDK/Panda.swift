@@ -25,13 +25,6 @@ public protocol PandaProtocol: class {
     var isConfigured: Bool {get}
     
     /**
-     Register user for recieving Push Notifications
-     - parameter token: Token that user recieved after succeeded registration to Push Notifications
-     - parameter callback: Optional. Returns If Device Registration was successfull
-     */
-    func registerDevice(token: Data)
-    
-    /**
      Returns screen from Panda Web
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      - parameter callback: Optional. Returns Result for getting screen
@@ -49,6 +42,47 @@ public protocol PandaProtocol: class {
     */
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
     
+    // MARK: - Handle Push Notification
+    
+    /**
+     Register user for recieving Push Notifications
+     - parameter token: Token that user recieved after succeeded registration to Push Notifications
+     - parameter callback: Optional. Returns If Device Registration was successfull
+     */
+    func registerDevice(token: Data)
+    
+    /**
+     Call this method in the corresponding UNUserNotificationCenterDelegate method.
+     - returns: true, if notification presentation was handled by Panda. We'll call completionHanlder in that case. false - you need to process notification presentation and call completionHandler by yourself.
+     ~~~
+     extension AppDelegate: UNUserNotificationCenterDelegate {
+         func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+             if Panda.shared.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler) {
+                 return
+             }
+             completionHandler([])
+         }
+     }
+     ~~~
+     */
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) -> Bool
+    
+    /**
+     Call this method in the corresponding UNUserNotificationCenterDelegate method.
+     - returns: true, if notification presentation was handled by Panda. We'll call completionHanlder in that case. false - you need to process notification presentation and call completionHandler by yourself.
+     ~~~
+     extension AppDelegate: UNUserNotificationCenterDelegate {
+         func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+             if Panda.shared.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler) {
+                 return
+             }
+             completionHandler()
+         }
+     }
+     ~~~
+     */
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool
+
     // MARK: - Handle Purchases
     /**
      Purchase product callback.

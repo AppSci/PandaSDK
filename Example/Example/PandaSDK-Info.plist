@@ -9,9 +9,9 @@
 	<key>POLICY_URL</key>
 	<string>https://policy.com</string>
 	<key>SERVER_URL</key>
-	<string>https://sdk-api.panda.boosters.company</string>
+	<string>https://api.panda-stage.boosters.company</string>
 	<key>SERVER_URL_DEBUG</key>
-	<string>https://sdk-api.panda-stage.boosters.company</string>
+	<string>https://api.panda-stage.boosters.company</string>
 	<key>productIds</key>
 	<array>
 		<string>com.example.1</string>
