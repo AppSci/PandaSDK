@@ -16,34 +16,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        Panda.shared.onPurchase = { result in print("onRestorePurchases: \(result)") }
-        Panda.shared.onRestorePurchases = { result in print("onRestorePurchases: \(result)") }
-        Panda.shared.onError = { result in print("onError: \(result)") }
-        Panda.shared.onDismiss = { print("onDismiss") }
-        // Override point for customization after application launch.
-        Panda.configure(token: "fqT3OgopCeLRDG8jb5EJ843UgSAGAjfH", isDebug: true) { (configured) in
-            print("Configured: \(configured)")
-            if configured {
-                Panda.shared.prefetchScreen(screenId: "5f0a4b61-3460-4c1a-817e-141d0bb5eb03")
+
+        Panda.shared.configure(apiKey: "fqT3OgopCeLRDG8jb5EJ843UgSAGAjfH", isDebug: true) { (status) in
+            print("Configured: \(status)")
+            if status {
+                Panda.shared.prefetchScreen(screenId: nil)
+            }
+        }
+        UNUserNotificationCenter.current().delegate = self
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+
             }
         }
         return true
     }
 
-
-    func applicationDidBecomeActive(_ application: UIApplication) {
-//        Panda.shared.getSubscriptionStatus(statusCallback: { (subscriptionResult) in
-//            switch subscriptionResult {
-//            case .failure(let error):
-//                print("Subscription status failed with error: \(error)")
-//            case .success(let subscriptionStatus):
-//                print("Subscription status is: \(subscriptionStatus.rawValue)")
-//            }
-//        }) { (screenResult) in
-//
-//        }
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        print("REGISTRED \(deviceToken)")
+        Panda.shared.registerDevice(token: deviceToken)
     }
-
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("REGISTRATION ERROR \(error)")
+    }
 }
 
 // MARK: UIApplication extensions
@@ -62,5 +61,22 @@ extension UIApplication {
             return getTopViewController(base: presented)
         }
         return base
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if Panda.shared.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler) {
+            return
+        }
+        completionHandler([])
+    }
+
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if Panda.shared.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler) {
+            return
+        }
+        completionHandler()
     }
 }

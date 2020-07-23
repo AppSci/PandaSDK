@@ -10,6 +10,19 @@ import Foundation
 import UIKit
 
 public protocol PandaProtocol: class {
+    /**
+     Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
+     
+     - parameter apiKey: Required. Your api key.
+     - parameter isDebug: Optional. Please, use `true` for debugging, `false` for production.
+     - parameter callback: Optional. You can do check if Panda SDK in configured.
+     */
+    func configure(apiKey: String, isDebug: Bool, callback: ((Bool) -> Void)?)
+    
+    /**
+     Returns Panda configuration state
+     */
+    var isConfigured: Bool {get}
     
     /**
      Returns screen from Panda Web
@@ -19,26 +32,69 @@ public protocol PandaProtocol: class {
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
     /**
-     Returns promo screen from Panda Web
-     - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
-     - parameter screenType: Optional. TYPE screen. If `nil` - returns default screen from Panda Web
-     - parameter callback: Optional. Returns Result for getting screen
-     */
-    func show(screen screenId: String?, type screenType: ScreenType, callback: ((Result<Bool, Error>) -> Void)?)
-    
-    /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      */
     func prefetchScreen(screenId: String?)
     
+    /**
+     You can call to check subscription status of User
+    */
+    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
+    
+    /**
+        Handle deeplinks
+     */
+    func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any])
+
+    // MARK: - Handle Push Notification
+    
+    /**
+     Register user for recieving Push Notifications
+     - parameter token: Token that user recieved after succeeded registration to Push Notifications
+     - parameter callback: Optional. Returns If Device Registration was successfull
+     */
+    func registerDevice(token: Data)
+    
+    /**
+     Call this method in the corresponding UNUserNotificationCenterDelegate method.
+     - returns: true, if notification presentation was handled by Panda. We'll call completionHanlder in that case. false - you need to process notification presentation and call completionHandler by yourself.
+     ~~~
+     extension AppDelegate: UNUserNotificationCenterDelegate {
+         func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+             if Panda.shared.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler) {
+                 return
+             }
+             completionHandler([])
+         }
+     }
+     ~~~
+     */
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) -> Bool
+    
+    /**
+     Call this method in the corresponding UNUserNotificationCenterDelegate method.
+     - returns: true, if notification presentation was handled by Panda. We'll call completionHanlder in that case. false - you need to process notification presentation and call completionHandler by yourself.
+     ~~~
+     extension AppDelegate: UNUserNotificationCenterDelegate {
+         func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+             if Panda.shared.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler) {
+                 return
+             }
+             completionHandler()
+         }
+     }
+     ~~~
+     */
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool
+
     // MARK: - Handle Purchases
     /**
      Purchase product callback.
      Callback for successful purchase in Panda purchase screen - you can validate & do you own setup in this callback
      - parameter String in callback: Product ID that was purchased.
      */
-     var onPurchase: ((String) -> Void)? { get set }
+    var onPurchase: ((String) -> Void)? { get set }
     
     /**
      Restore purchase callback
@@ -57,365 +113,58 @@ public protocol PandaProtocol: class {
     */
     var onDismiss: (() -> Void)? { get set }
 
-    /**
-     You can call to check subscription status of User
-    */
-    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
-                               screenCallback: ((Result<UIViewController, Error>) -> Void)?)
-    
-    /**
-        Handle deeplinks
-     */
-    func handleApplication(_ app: UIApplication,
-                           open url: URL,
-                           options: [UIApplication.OpenURLOptionsKey: Any])
+
 }
+
 
 public extension Panda {
-    
     /**
-     Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
-     
-     - parameter apiKey: Required. Your api key.
-     - parameter isDebug: Optional. Please, use `true` for debugging, `false` for production. Default is `true`.
-     - parameter callback: Optional. You can do check if Panda SDK in configured.
+     Shared Panda Instance
      */
-    static func configure(token: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
-        guard let unconfigured = shared as? UnconfiguredPanda else {
-            pandaLog("Already configured")
-            callback?(true)
-            return
-        }
-        unconfigured.configure(token: token, isDebug: isDebug) { (result) in
-            switch result {
-            case .success(let panda):
-                shared = panda
-                callback?(true)
-            case .failure:
-                callback?(false)
-            }
-        }
-    }
+    internal(set) static var shared: PandaProtocol = UnconfiguredPanda()
 }
 
-final public class Panda: PandaProtocol {
+extension Panda {
+    static func configure(apiKey: String, isDebug: Bool = true, unconfigured: UnconfiguredPanda?, callback: @escaping (Result<Panda, Error>) -> Void) {
+        if notificationDispatcher == nil {
+            notificationDispatcher = NotificationDispatcher()
+        }
 
-    public internal(set) static var shared: PandaProtocol = UnconfiguredPanda()
-    
-    let networkClient: NetworkClient
-    let cache: ScreenCache = ScreenCache()
-    let user: PandaUser
-    internal let appStoreClient: AppStoreClient
-    private var viewControllers: Set<WeakObject<WebViewController>> = []
-
-    public var onPurchase: ((String) -> Void)?
-    public var onRestorePurchases: (([String]) -> Void)?
-    public var onError: ((Error) -> Void)?
-    public var onDismiss: (() -> Void)?
-    
-    init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, copyCallbacks other: PandaProtocol? = nil) {
-        self.user = user
-        self.networkClient = networkClient
-        self.appStoreClient = appStoreClient
-        other.map(self.copyCallbacks(from:))
-        configureAppStoreClient()
-    }
-    
-    internal func configureAppStoreClient() {
-        appStoreClient.onError = { [weak self] error in
-            self?.onAppStoreClient(error: error)
-        }
-        appStoreClient.onPurchase = { [weak self] productId in
-            self?.onAppStoreClientPurchase(productId: productId)
-        }
-        appStoreClient.onRestore = { [weak self] productIds in
-            self?.onAppStoreClientRestore(productIds: productIds)
-        }
-        appStoreClient.startObserving()
-    }
-    
-    func onAppStoreClient(error: Error) {
-        onError?(error)
-        viewControllers.forEach { $0.value?.onFinishLoad() }
-    }
-    
-    func onAppStoreClientPurchase(productId: String) {
-        let receipt: String
-        switch appStoreClient.receiptBase64String() {
-            case .failure(let error):
-                onError?(Errors.appStoreReceiptError(error))
-                return
-            case .success(let receiptString):
-                receipt = receiptString
-        }
-        networkClient.verifySubscriptions(user: user, receipt: receipt) { [weak self] (result) in
-            defer {
-                self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-            }
-            switch result {
-            case .failure(let error):
-                self?.onError?(Errors.appStoreReceiptError(error))
-            case .success(let verification):
-                print("productId = \(productId)\nid = \(verification.id)")
-                self?.onPurchase?(verification.id)
-            }
-        }
-    }
-    
-    func onAppStoreClientRestore(productIds: [String]) {
-        onRestorePurchases?(productIds)
-        viewControllers.forEach { $0.value?.onFinishLoad() }
-    }
-    
-    public func prefetchScreen(screenId: String?) {
-        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
-            guard let self = self else {
-                pandaLog("Panda is missing!")
-                return
-            }
-            switch result {
-            case .failure(let error):
-                pandaLog("Prefetch \(screenId ?? "default") screen failed: \(error)!")
-            case .success(let screen):
-                self.cache[screenId] = screen
-                pandaLog("Prefetched \(screenId ?? "default")")
-            }
-        }
-    }
-    
-    public func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        if let screen = cache[screenId] {
-            DispatchQueue.main.async {
-                callback?(.success(self.prepareViewController(screen: screen)))
-            }
-            return
-        }
-        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
-            guard let self = self else {
-                callback?(.failure(Errors.message("Panda is missing!")))
-                return
-            }
-            switch result {
-            case .failure(let error):
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
-                    callback?(.failure(error))
-                    return
-                }
-                DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: defaultScreen)))
-                }
-            case .success(let screen):
-                self.cache[screenId] = screen
-                DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: screen)))
-                }
-            }
-        }
-    }
-    
-    public func show(screen screenId: String? = nil, type screenType: ScreenType = .promo, callback: ((Result<Bool, Error>) -> Void)?) {
-        if let screen = cache[screenId] {
-            DispatchQueue.main.async {
-                self.presentOnRoot(with: self.prepareViewController(screen: screen))
-                callback?(.success(true))
-            }
-            return
-        }
-        networkClient.loadScreen(user: user, screenId: screenId, screenType: .promo) { [weak self] result in
-            guard let self = self else {
-                callback?(.failure(Errors.message("Panda is missing!")))
-                return
-            }
-            switch result {
-            case .failure(let error):
-                callback?(.failure(error))
-            case .success(let screen):
-                self.cache[screenId] = screen
-                DispatchQueue.main.async {
-                    self.presentOnRoot(with: self.prepareViewController(screen: screen))
-                    callback?(.success(true))
-                }
-            }
-        }
-    }
-    
-    public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
-        /// appid://panda/promo/product_id
-        if url.host == "panda",
-            let productId = url.pathComponents.last {
-            
-            /// track analytics
-            trackDeepLink(url.absoluteString)
-            
-            /// show screen
-            Panda.shared.show(screen: nil, type: .promo) { (result) in
-                print("deeplink open: \(result) for \(productId)")
-            }
-        }
-    }
-    
-    public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
-                                      screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
-        networkClient.getSubscriptionStatus(user: user) { [weak self] (result) in
-            guard let self = self else {
-                statusCallback?(.failure(Errors.message("Panda is missing!")))
-                return
-            }
-            switch result {
-            case .failure(let error):
-                statusCallback?(.failure(error))
-            case .success(let apiResponse):
-                let apiStatus = apiResponse.state
-                let subscriptionStatus = SubscriptionStatus(with: apiStatus)
-                statusCallback?(.success(subscriptionStatus))
-                switch subscriptionStatus {
-                case .canceled:
-                    self.networkClient.loadScreen(user: self.user, screenId: nil, screenType: .survey) { (screenResult) in
-                        switch screenResult {
-                        case.failure(let error):
-                            screenCallback?(.failure(error))
-                        case .success(let screenData):
-                            DispatchQueue.main.async {
-                                screenCallback?(.success(self.prepareViewController(screen: screenData)))
-                            }
-                        }
-                    }
-                default:
-                    break
-                }
-            }
-        }
-    }
-    
-    func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
-        let updatedVCs = controllers.compactMap {$0.value}
-        updatedVCs.forEach { (vc) in
-            vc.viewModel = createViewModel(screenName: vc.viewModel?.screenName ?? "unknown")
-        }
-        viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
-    }
-    
-    private func prepareViewController(screen: ScreenData) -> WebViewController {
-        let viewModel = createViewModel(screenName: screen.id)
-        let controller = setupWebView(html: screen.html, viewModel: viewModel)
-        viewControllers = viewControllers.filter { $0.value != nil }
-        viewControllers.insert(WeakObject(value: controller))
-        return controller
-    }
-    
-    private func createViewModel(screenName: String) -> WebViewModel {
-        let viewModel = WebViewModel()
-        viewModel.screenName = screenName
-        viewModel.onSurvey = { value in
-            pandaLog("Survey: \(value)")
-        }
-        viewModel.onPurchase = { [appStoreClient] productId, source, _ in
-            guard let productId = productId else {
-                pandaLog("Missing productId with source: \(source)")
-                return
-            }
-            appStoreClient.purchase(productId: productId)
-        }
-        viewModel.onRestorePurchase = { [appStoreClient] _ in
-            pandaLog("Restore")
-            appStoreClient.restore()
+        let networkClient = NetworkClient(apiKey: apiKey, isDebug: isDebug)
+        let appStoreClient = AppStoreClient()
+        
+        if let productIds = ClientConfig.current.productIds {
+            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
         }
         
-        viewModel.onTerms = openTerms
-        viewModel.onPolicy = openPolicy
-        viewModel.onBillingIssue = { view in
-            pandaLog("onBillingIssue")
-            self.openBillingIssue()
-            view.dismiss(animated: true, completion: nil)
+        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
+        if let user = userStorage.fetch() {
+            callback(.success(create(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
+            return
         }
-        viewModel.dismiss = { [weak self] status, view in
-            pandaLog("Dismiss")
-            self?.trackClickDismiss()
-            view.dismiss(animated: true, completion: nil)
-            self?.onDismiss?()
-        }
-        return viewModel
-    }
-    
-    private func presentOnRoot(`with` viewController: UIViewController) {
-        if let root = UIApplication.topViewController() {
-            root.modalPresentationStyle = .fullScreen
-            root.present(viewController, animated: true, completion: nil)
-        }
-    }
-    
-    private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
-        let controller = WebViewController()
-
-        controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
-        controller.modalPresentationStyle = .overFullScreen
-        controller.loadPage(html: html)
-        controller.viewModel = viewModel
-        return controller
-    }
-
-}
-
-
-extension PandaProtocol {
-    func openBillingIssue() {
-        openLink(link: ClientConfig.current.billingUrl) { result in
-            self.trackOpenLink("billing_issue", result)
-        }
-    }
-    
-    func openTerms() {
-        openLink(link: ClientConfig.current.termsUrl) { result in
-            self.trackOpenLink("terms", result)
-        }
-    }
-    
-    func openPolicy() {
-        openLink(link: ClientConfig.current.policyUrl) { result in
-            self.trackOpenLink("policy", result)
-        }
-    }
-    
-    func openLink(link: String, completionHandler completion: ((Bool) -> Void)? = nil) {
-        if let url = URL(string: link), UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: completion)
-        }
-    }
-
-    func trackOpenLink(_ link: String, _ result: Bool) {
-    }
-
-    func trackDeepLink(_ link: String) {
-    }
-    
-    func trackClickDismiss() {
-    }
-}
-
-class ScreenCache {
-    var cache: [String: ScreenData] = [:]
-    let nilKey = "<nil>"
-    
-    subscript(screenId: String?) -> ScreenData? {
-        get {
-            return cache[screenId ?? nilKey]
-        }
-        set(newValue) {
-            guard let newValue = newValue else {
-                cache.removeValue(forKey: screenId ?? nilKey)
-                return
+        networkClient.registerUser() { (result) in
+            switch result {
+            case .success(let user):
+                userStorage.store(user)
+                callback(.success(create(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
+            case .failure(let error):
+                callback(.failure(error))
             }
-            cache[screenId ?? nilKey] = newValue
         }
     }
     
-}
-
-extension PandaProtocol {
-    func copyCallbacks(from other: PandaProtocol) {
-        onPurchase = other.onPurchase
-        onRestorePurchases = other.onRestorePurchases
-        onError = other.onError
-        onDismiss = other.onDismiss
+    static private func create(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, unconfigured: UnconfiguredPanda?) -> Panda {
+        let panda = Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient)
+        if let unconfigured = unconfigured {
+            panda.copyCallbacks(from: unconfigured)
+            panda.addViewControllers(controllers: unconfigured.viewControllers)
+        }
+        let deviceToken = unconfigured?.deviceToken
+        shared = panda
+        panda.configureAppStoreClient()
+        deviceToken.map(panda.registerDevice(token:))
+        Panda.notificationDispatcher.onApplicationDidBecomeActive = panda.onApplicationDidBecomeActive
+        return panda
     }
+
 }
