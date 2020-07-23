@@ -231,10 +231,10 @@ final public class Panda: PandaProtocol {
         return controller
     }
     
-    private func presentOnRoot(`with` viewController: UIViewController, _ completition: (() -> Void)? = nil) {
+    private func presentOnRoot(`with` viewController: UIViewController, _ completion: (() -> Void)? = nil) {
         if let root = UIApplication.getTopViewController() {
             root.modalPresentationStyle = .fullScreen
-            root.present(viewController, animated: true, completion: completition)
+            root.present(viewController, animated: true, completion: completion)
         }
     }
     
