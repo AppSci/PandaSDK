@@ -19,6 +19,14 @@ public protocol PandaProtocol: class {
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
     /**
+     Returns promo screen from Panda Web
+     - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
+     - parameter screenType: Optional. TYPE screen. If `nil` - returns default screen from Panda Web
+     - parameter callback: Optional. Returns Result for getting screen
+     */
+    func show(screen screenId: String?, type screenType: ScreenType, callback: ((Result<Bool, Error>) -> Void)?)
+    
+    /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      */
@@ -54,6 +62,13 @@ public protocol PandaProtocol: class {
     */
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
                                screenCallback: ((Result<UIViewController, Error>) -> Void)?)
+    
+    /**
+        Handle deeplinks
+     */
+    func handleApplication(_ app: UIApplication,
+                           open url: URL,
+                           options: [UIApplication.OpenURLOptionsKey: Any])
 }
 
 public extension Panda {
@@ -90,7 +105,7 @@ final public class Panda: PandaProtocol {
     let networkClient: NetworkClient
     let cache: ScreenCache = ScreenCache()
     let user: PandaUser
-    let appStoreClient: AppStoreClient
+    internal let appStoreClient: AppStoreClient
     private var viewControllers: Set<WeakObject<WebViewController>> = []
 
     public var onPurchase: ((String) -> Void)?
@@ -198,6 +213,47 @@ final public class Panda: PandaProtocol {
         }
     }
     
+    public func show(screen screenId: String? = nil, type screenType: ScreenType = .promo, callback: ((Result<Bool, Error>) -> Void)?) {
+        if let screen = cache[screenId] {
+            DispatchQueue.main.async {
+                self.presentOnRoot(with: self.prepareViewController(screen: screen))
+                callback?(.success(true))
+            }
+            return
+        }
+        networkClient.loadScreen(user: user, screenId: screenId, screenType: .promo) { [weak self] result in
+            guard let self = self else {
+                callback?(.failure(Errors.message("Panda is missing!")))
+                return
+            }
+            switch result {
+            case .failure(let error):
+                callback?(.failure(error))
+            case .success(let screen):
+                self.cache[screenId] = screen
+                DispatchQueue.main.async {
+                    self.presentOnRoot(with: self.prepareViewController(screen: screen))
+                    callback?(.success(true))
+                }
+            }
+        }
+    }
+    
+    public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
+        /// appid://panda/promo/product_id
+        if url.host == "panda",
+            let productId = url.pathComponents.last {
+            
+            /// track analytics
+            trackDeepLink(url.absoluteString)
+            
+            /// show screen
+            Panda.shared.show(screen: nil, type: .promo) { (result) in
+                print("deeplink open: \(result) for \(productId)")
+            }
+        }
+    }
+    
     public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?,
                                       screenCallback: ((Result<UIViewController, Error>) -> Void)?) {
         networkClient.getSubscriptionStatus(user: user) { [weak self] (result) in
@@ -281,6 +337,13 @@ final public class Panda: PandaProtocol {
         return viewModel
     }
     
+    private func presentOnRoot(`with` viewController: UIViewController) {
+        if let root = UIApplication.topViewController() {
+            root.modalPresentationStyle = .fullScreen
+            root.present(viewController, animated: true, completion: nil)
+        }
+    }
+    
     private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
         let controller = WebViewController()
 
@@ -320,6 +383,9 @@ extension PandaProtocol {
     }
 
     func trackOpenLink(_ link: String, _ result: Bool) {
+    }
+
+    func trackDeepLink(_ link: String) {
     }
     
     func trackClickDismiss() {

@@ -92,7 +92,7 @@ public enum SubscriptionStatus: String {
     
 }
 
-enum ScreenType: String, Codable {
+public enum ScreenType: String, Codable {
     case sales
     case promo
     case billing

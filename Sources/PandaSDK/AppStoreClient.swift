@@ -43,7 +43,7 @@ class AppStoreClient: NSObject {
     var onRestore: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     
-    private var products: [String: SKProduct] = [:]
+    internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []
     
     var canMakePayment:Bool {

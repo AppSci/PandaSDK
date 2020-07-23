@@ -21,10 +21,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Panda.shared.onError = { result in print("onError: \(result)") }
         Panda.shared.onDismiss = { print("onDismiss") }
         // Override point for customization after application launch.
-        Panda.configure(token: "V8F4HCl5Wj6EPpiaaa7aVXcAZ3ydQWpS", isDebug: true) { (configured) in
+        Panda.configure(token: "fqT3OgopCeLRDG8jb5EJ843UgSAGAjfH", isDebug: true) { (configured) in
             print("Configured: \(configured)")
             if configured {
-                Panda.shared.prefetchScreen(screenId: "e7ce4093-907e-4be6-8fc5-d689b5265f32")
+                Panda.shared.prefetchScreen(screenId: "5f0a4b61-3460-4c1a-817e-141d0bb5eb03")
             }
         }
         return true

@@ -88,7 +88,8 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     private func load(html: String, baseURL: URL?) {
-        wv.loadHTMLString(html as String, baseURL: baseURL)
+        let html = replaceProductInfo(html: html)
+        wv.loadHTMLString(html, baseURL: baseURL)
     }
     
     private func load(local url: URL) {
@@ -310,5 +311,70 @@ class ScriptMessageHandlerWeakProxy: NSObject, WKScriptMessageHandler {
     
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         handler?.userContentController(userContentController, didReceive: message)
+    }
+}
+
+extension WebViewController {
+    
+    @objc
+    private func replaceProductInfo(html: String) -> String {
+        
+        var html = html
+        
+        guard let panda = (Panda.shared as? Panda) else { return html as String }
+        
+        for product in panda.appStoreClient.products.values {
+            html = html.updatedTrialDuration(product: product)
+            html = html.updatedProductPrice(product: product)
+            html = html.updatedProductDuration(product: product)
+            html = html.updatedProductIntroductoryPrice(product: product)
+            html = html.updatedProductIntroductoryDuration(product: product)
+        }
+        
+        return html
+    }
+}
+
+import StoreKit
+
+fileprivate extension String {
+    
+    func updatedTrialDuration(product: SKProduct) -> String {
+        if let introductoryDiscount = product.introductoryPrice {
+            let introPrice = product.discountDurationString(discount: introductoryDiscount)
+            let macros = "{{trial_duration:\(product.productIdentifier)}}"
+            return replacingOccurrences(of: macros, with: introPrice)
+        }
+        return self
+    }
+    
+    func updatedProductPrice(product: SKProduct) -> String {
+        let replace_string = product.localizedString()
+        let macros = "{{product_price:\(product.productIdentifier)}}"
+        return replacingOccurrences(of: macros, with: replace_string)
+    }
+    
+    func updatedProductDuration(product: SKProduct) -> String {
+        let replace_string = product.regularUnitString()
+        let macros = "{{product_duration:\(product.productIdentifier)}}"
+        return replacingOccurrences(of: macros, with: replace_string)
+    }
+    
+    func updatedProductIntroductoryPrice(product: SKProduct) -> String {
+        if let introductoryPrice = product.introductoryPrice {
+            let introPrice = product.localizedDiscountPrice(discount: introductoryPrice)
+            let macros = "{{offer_price:\(product.productIdentifier)}}"
+            return replacingOccurrences(of: macros, with: introPrice)
+        }
+        return self
+    }
+    
+    func updatedProductIntroductoryDuration(product: SKProduct) -> String {
+        if let introductoryDiscount = product.introductoryPrice {
+            let introPrice = product.discountDurationString(discount: introductoryDiscount)
+            let macros = "{{offer_duration:\(product.productIdentifier)}}"
+            return replacingOccurrences(of: macros, with: introPrice)
+        }
+        return self
     }
 }

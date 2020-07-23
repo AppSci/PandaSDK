@@ -69,6 +69,16 @@ final class UnconfiguredPanda: PandaProtocol {
         }
     }
     
+    func show(screen screenId: String? = nil, type screenType: ScreenType = .promo, callback: ((Result<Bool, Error>) -> Void)?) {
+        DispatchQueue.main.async {
+            callback?(.success(false))
+        }
+    }
+    
+    func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any]) {
+        print("deeplinks handler")
+    }
+    
     private func reconfigure(callback: @escaping (Result<Panda, Error>) -> Void) {
         guard let configAttempt = lastConfigurationAttempt else {
             viewControllers.forEach { $0.value?.onFinishLoad() }
