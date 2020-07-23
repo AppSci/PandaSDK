@@ -157,7 +157,20 @@ final public class Panda: PandaProtocol {
             }
         }
     }
-    
+
+    public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
+        /// appid://panda/promo/product_id
+        if url.host == "panda",
+            let _ = url.pathComponents.last {
+            
+            /// track analytics
+            trackDeepLink(url.absoluteString)
+            
+            /// show screen
+            showScreen(screenType: .promo)
+        }
+    }
+
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}
         updatedVCs.forEach { (vc) in
@@ -218,6 +231,13 @@ final public class Panda: PandaProtocol {
         return controller
     }
     
+    private func presentOnRoot(`with` viewController: UIViewController, _ completion: (() -> Void)? = nil) {
+        if let root = UIApplication.getTopViewController() {
+            root.modalPresentationStyle = .fullScreen
+            root.present(viewController, animated: true, completion: completion)
+        }
+    }
+    
     func onApplicationDidBecomeActive() {
         getSubscriptionStatus { [weak self, settingsStorage] (result) in
             let status: SubscriptionStatus
@@ -246,13 +266,13 @@ final public class Panda: PandaProtocol {
     }
     
     func showScreen(screenType: ScreenType, onShow: (() -> Void)? = nil) {
-        networkClient.loadScreen(user: user, screenId: nil, screenType: .survey) { (screenResult) in
+        networkClient.loadScreen(user: user, screenId: nil, screenType: screenType) { (screenResult) in
             switch screenResult {
             case.failure(let error):
                 pandaLog("ShowScreen Error: \(error)")
             case .success(let screenData):
                 DispatchQueue.main.async {
-                    UIApplication.getTopViewController()?.present(self.prepareViewController(screen: screenData, screenType: screenType), animated: true, completion: onShow)
+                    self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType), onShow)
                 }
             }
         }
@@ -310,6 +330,9 @@ extension PandaProtocol {
     }
 
     func trackOpenLink(_ link: String, _ result: Bool) {
+    }
+    
+    func trackDeepLink(_ link: String) {
     }
     
     func trackClickDismiss() {

@@ -50,7 +50,6 @@ final class UnconfiguredPanda: PandaProtocol {
         }
     }
 
-
     func registerDevice(token: Data) {
         deviceToken = token
     }
@@ -75,6 +74,10 @@ final class UnconfiguredPanda: PandaProtocol {
         DispatchQueue.main.async {
             callback?(.success(self.prepareViewController(screen: defaultScreen)))
         }
+    }
+    
+    func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
     
     private func prepareViewController(screen: ScreenData) -> WebViewController {

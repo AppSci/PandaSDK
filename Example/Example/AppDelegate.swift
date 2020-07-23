@@ -16,6 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+
         Panda.shared.configure(apiKey: "fqT3OgopCeLRDG8jb5EJ843UgSAGAjfH", isDebug: true) { (status) in
             print("Configured: \(status)")
             if status {
@@ -28,6 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 DispatchQueue.main.async {
                     UIApplication.shared.registerForRemoteNotifications()
                 }
+
             }
         }
         return true

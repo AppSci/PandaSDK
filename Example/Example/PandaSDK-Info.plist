@@ -9,7 +9,7 @@
 	<key>POLICY_URL</key>
 	<string>https://policy.com</string>
 	<key>SERVER_URL</key>
-	<string>https://api.panda-stage.boosters.company</string>
+	<string>https://api.panda.boosters.company</string>
 	<key>SERVER_URL_DEBUG</key>
 	<string>https://api.panda-stage.boosters.company</string>
 	<key>productIds</key>

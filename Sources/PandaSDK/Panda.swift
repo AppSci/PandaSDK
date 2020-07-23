@@ -42,6 +42,11 @@ public protocol PandaProtocol: class {
     */
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
     
+    /**
+        Handle deeplinks
+     */
+    func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any])
+
     // MARK: - Handle Push Notification
     
     /**
@@ -108,7 +113,9 @@ public protocol PandaProtocol: class {
     */
     var onDismiss: (() -> Void)? { get set }
 
+
 }
+
 
 public extension Panda {
     /**
