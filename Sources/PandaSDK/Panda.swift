@@ -32,6 +32,14 @@ public protocol PandaProtocol: class {
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
     /**
+     Returns screen with specific product from Panda Web
+     - parameter product: Required. Product ID, could be Subscription or iAP purchase identificator.
+     - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
+     - parameter callback: Optional. Returns Result for showing screen
+     */
+    func showProductScreen(product: String, screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    
+    /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      */

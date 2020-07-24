@@ -57,7 +57,12 @@ final class UnconfiguredPanda: PandaProtocol {
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
-
+    
+    func showProductScreen(product: String, screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        callback?(.failure(Errors.notConfigured))
+    }
+    
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         statusCallback?(.failure(Errors.notConfigured))
@@ -83,7 +88,7 @@ final class UnconfiguredPanda: PandaProtocol {
     private func prepareViewController(screen: ScreenData) -> WebViewController {
         let viewModel = WebViewModel()
         viewModel.screenName = screen.id
-        viewModel.onSurvey = { value in
+        viewModel.onSurvey = { value, screenId in
             pandaLog("Survey: \(value)")
         }
         viewModel.onPurchase = { [weak self] productId, source, view in

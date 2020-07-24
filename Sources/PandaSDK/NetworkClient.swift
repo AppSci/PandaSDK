@@ -28,6 +28,20 @@ internal struct ScreenData: Codable {
     }
 }
 
+internal struct FeedbackData: Codable {
+    let id: String
+    enum CodingKeys: String, CodingKey {
+        case id
+    }
+}
+
+internal struct AnswerData: Codable {
+    let id: String
+    enum CodingKeys: String, CodingKey {
+        case id
+    }
+}
+
 internal struct ReceiptVerificationResult: Codable {
     let id: String
     let active: Bool
@@ -95,6 +109,7 @@ public enum SubscriptionStatus: String {
 public enum ScreenType: String, Codable {
     case sales
     case promo
+    case product
     case billing
     case survey
     case feedback
@@ -143,6 +158,30 @@ internal class NetworkClient {
                                     ],
                                     headers: [
                                         "Accept-Language": Locale.current.languageCode
+                                    ])
+        
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
+    internal func sendFeedback(user: PandaUser, screenId: String?, feedback: String, callback: @escaping ((Result<FeedbackData, Error>) -> Void)) {
+        let request = createRequest(path: "/v1/feedback/answers",
+                                    method: .post,
+                                    query: [
+                                        "user_id": user.id,
+                                        "screen_id": screenId,
+                                        "answer": feedback,
+                                    ])
+        
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
+    internal func sendAnswers(user: PandaUser, screenId: String?, answer: String, callback: @escaping ((Result<FeedbackData, Error>) -> Void)) {
+        let request = createRequest(path: "/v1/survey/answers",
+                                    method: .post,
+                                    query: [
+                                        "user_id": user.id,
+                                        "screen_id": screenId,
+                                        "answer_id": answer,
                                     ])
         
         networkLoader.loadData(with: request, completion: callback)
