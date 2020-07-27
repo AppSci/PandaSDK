@@ -57,10 +57,10 @@ final class UnconfiguredPanda: PandaProtocol {
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
-    
-    func showProductScreen(product: String, screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+
+    func showScreen(screenType: ScreenType, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
-        callback?(.failure(Errors.notConfigured))
+        onShow?(.failure(Errors.notConfigured))
     }
     
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {

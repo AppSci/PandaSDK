@@ -167,39 +167,9 @@ final public class Panda: PandaProtocol {
             
             /// show screen
             if let product = url.pathComponents.last {
-                showProductScreen(product: product)
+                showScreen(screenType: .product, product: product)
             } else {
                 showScreen(screenType: .promo)
-            }
-        }
-    }
-    
-    public func showProductScreen(product: String, screenId: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)? = nil) {
-        if let screen = cache[screenId] {
-            DispatchQueue.main.async {
-                callback?(.success(self.prepareViewController(screen: screen, screenType: .product, product: product)))
-            }
-            return
-        }
-        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
-            guard let self = self else {
-                callback?(.failure(Errors.message("Panda is missing!")))
-                return
-            }
-            switch result {
-            case .failure(let error):
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
-                    callback?(.failure(error))
-                    return
-                }
-                DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: .product, product: product)))
-                }
-            case .success(let screen):
-                self.cache[screenId] = screen
-                DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: screen, screenType: .product, product: product)))
-                }
             }
         }
     }
@@ -295,7 +265,7 @@ final public class Panda: PandaProtocol {
             switch status {
             case .canceled:
                 guard settings.canceledScreenWasShown == false else { break }
-                self?.showScreen(screenType: .survey, onShow: { [settingsStorage] in
+                self?.showScreen(screenType: .survey, onShow: { [settingsStorage] result in
                     settings.canceledScreenWasShown = true
                     settingsStorage.store(settings)
                 })
@@ -308,14 +278,16 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    func showScreen(screenType: ScreenType, onShow: (() -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         networkClient.loadScreen(user: user, screenId: nil, screenType: screenType) { (screenResult) in
             switch screenResult {
             case.failure(let error):
                 pandaLog("ShowScreen Error: \(error)")
             case .success(let screenData):
                 DispatchQueue.main.async {
-                    self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType), onShow)
+                    self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType, product: product)) {
+                        onShow?(.success(true))
+                    }
                 }
             }
         }

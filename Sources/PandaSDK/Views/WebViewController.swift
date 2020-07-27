@@ -345,18 +345,16 @@ fileprivate extension String {
     
     mutating func updatedProductInfo(product: SKProduct) -> String {
         let info = product.productInfoDictionary()
-        if let title = info["title"] {
-            let macros = "{{product_title}}"
-            self = replacingOccurrences(of: macros, with: title)
-        }
-        if let string = info["tryString"] {
-            let macros = "{{introductionary_information}}"
-            self = replacingOccurrences(of: macros, with: string)
-        }
-        if let string = info["thenString"] {
-            let macros = "{{product_pricing_terms}}"
-            self = replacingOccurrences(of: macros, with: string)
-        }
+        
+        let title = info["title"] ?? ""
+        self = replacingOccurrences(of: "{{product_title}}", with: title)
+        
+        let tryString = info["tryString"] ?? ""
+        self = replacingOccurrences(of: "{{introductionary_information}}", with: tryString)
+        
+        let thenString = info["thenString"] ?? ""
+        self = replacingOccurrences(of: "{{product_pricing_terms}}", with: thenString)
+        
         return self
     }
     
