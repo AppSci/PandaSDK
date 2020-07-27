@@ -269,8 +269,8 @@ final public class Panda: PandaProtocol {
 
         controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
         controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
-        controller.loadPage(html: html)
         controller.viewModel = viewModel
+        controller.loadPage(html: html)
         return controller
     }
     
