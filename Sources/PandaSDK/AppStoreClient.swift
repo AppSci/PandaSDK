@@ -42,6 +42,7 @@ class AppStoreClient: NSObject {
     var onPurchase: ((String) -> Void)?
     var onRestore: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
+    var onShouldAddStorePayment: ((_ payment: SKPayment, _ product: SKProduct)->Bool)?
     
     internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []
@@ -157,8 +158,8 @@ extension AppStoreClient: SKPaymentTransactionObserver {
     }
     
     func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
-        pandaLog("")
-        return true
+        pandaLog("ShouldAddStorePayment")
+        return onShouldAddStorePayment?(payment,product) ?? false
     }
     
     private func complete(transaction: SKPaymentTransaction) {

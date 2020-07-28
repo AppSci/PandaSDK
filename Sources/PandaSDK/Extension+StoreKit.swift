@@ -8,6 +8,28 @@
 import Foundation
 import StoreKit
 
+
+extension SKProduct.PeriodUnit {
+    func description(capitalizeFirstLetter: Bool = false, numberOfUnits: Int? = nil) -> String {
+        let period:String = {
+            switch self {
+            case .day: return "day"
+            case .week: return "week"
+            case .month: return "month"
+            case .year: return "year"
+            }
+        }()
+
+        var numUnits = ""
+        var plural = ""
+        if let numberOfUnits = numberOfUnits {
+            numUnits = "\(numberOfUnits) " /// Add space for formatting
+            plural = numberOfUnits > 1 ? "s" : ""
+        }
+        return "\(numUnits)\(capitalizeFirstLetter ? period.capitalized : period)\(plural)"
+    }
+}
+
 extension SKProduct {
     
     func localizedString(with offerID : String? = nil) -> String {
@@ -101,5 +123,73 @@ extension SKProduct {
         numberFormatter.locale = priceLocale
         let priceString = numberFormatter.string(from: discount.price)
         return priceString ?? ""
+    }
+    
+    func productInfoDictionary() -> [String: String] {
+        
+        var tryString = ""
+        var thenString = ""
+        let title = localizedTitle
+        
+        if #available(iOS 12.2, *) {
+            if let offer = introductoryPrice {
+                let isTrial = offer.paymentMode == .freeTrial
+
+                var symbol = "$"
+                let paymentValue = offer.price
+                let period = offer.subscriptionPeriod
+                
+                // due to Apple Bug: http://www.openradar.me/37391667
+                if offer.priceLocale != nil,
+                    let currencySymbol = offer.priceLocale.currencySymbol {
+                    symbol = currencySymbol
+                }
+                
+                let trialPeriod = period.unit.description(capitalizeFirstLetter: true, numberOfUnits: period.numberOfUnits)
+                tryString = "Try \(trialPeriod) for \(isTrial ? "Free" : "\(symbol) \(paymentValue)")."
+            }
+        }
+        
+        var symbol = "$"
+        /// due to Apple Bug: http://www.openradar.me/37391667
+        if priceLocale != nil,
+            let currencySymbol = priceLocale.currencySymbol {
+            symbol = currencySymbol
+        }
+        
+        /// I guessed, that for consumable and non-cunsumable subscriptions,
+        /// `subscriptionPeriod` should be nil, but I was wrong (any documentation about that).
+        /// According to docs: This read-only property is nil if the product is not a subscription.
+        /// That's why I check subsPeriod for 0 days.
+        if let subsPeriod = subscriptionPeriod {
+            
+            let periodNumber = subsPeriod.numberOfUnits
+            if periodNumber == 0 && subsPeriod.unit == .day {
+                /// set string for Lifetime
+                thenString = "for \(symbol) \(price) lifetime"
+            } else {
+                /// set thenString for subscription
+                let periodString = subsPeriod.unit.description(capitalizeFirstLetter: true, numberOfUnits: periodNumber)
+                thenString = "then \(symbol) \(price) per \(periodString)"
+            }
+        
+        } else {
+            /// set string for Lifetime
+            thenString = "for \(symbol) \(price) lifetime"
+        }
+        
+        var result: [String: String] = [:]
+        
+        if !title.trimmingCharacters(in: .whitespaces).isEmpty {
+            result["title"] = title
+        }
+        if !tryString.trimmingCharacters(in: .whitespaces).isEmpty {
+            result["tryString"] = tryString
+        }
+        if !thenString.trimmingCharacters(in: .whitespaces).isEmpty {
+            result["thenString"] = thenString
+        }
+        
+        return result
     }
 }

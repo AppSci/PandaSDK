@@ -160,14 +160,17 @@ final public class Panda: PandaProtocol {
 
     public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
         /// appid://panda/promo/product_id
-        if url.host == "panda",
-            let _ = url.pathComponents.last {
+        if url.host == "panda" {
             
             /// track analytics
             trackDeepLink(url.absoluteString)
             
             /// show screen
-            showScreen(screenType: .promo)
+            if let product = url.pathComponents.last {
+                showScreen(screenType: .product, product: product)
+            } else {
+                showScreen(screenType: .promo)
+            }
         }
     }
 
@@ -179,19 +182,29 @@ final public class Panda: PandaProtocol {
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
-    private func prepareViewController(screen: ScreenData, screenType: ScreenType) -> WebViewController {
-        let viewModel = createViewModel(screenName: screen.id)
+    private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil) -> WebViewController {
+        let viewModel = createViewModel(screenName: screen.id, product: product)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
     }
     
-    private func createViewModel(screenName: String) -> WebViewModel {
+    private func createViewModel(screenName: String, product: String? = nil) -> WebViewModel {
         let viewModel = WebViewModel()
         viewModel.screenName = screenName
-        viewModel.onSurvey = { value in
-            pandaLog("Survey: \(value)")
+        if let product = product {
+            viewModel.product = appStoreClient.products[product]
+        }
+        viewModel.onSurvey = { answer, screenId in
+            pandaLog("AnswerSelected send: \(answer)")
+            self.send(answer: answer, at: screenId)
+        }
+        viewModel.onFeedback = { feedback, screenId in
+            pandaLog("Feedback send: \(String(describing: feedback))")
+            if let text = feedback {
+                self.send(feedback: text, at: screenId)
+            }
         }
         viewModel.onPurchase = { [appStoreClient] productId, source, _ in
             guard let productId = productId else {
@@ -226,8 +239,8 @@ final public class Panda: PandaProtocol {
 
         controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
         controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
-        controller.loadPage(html: html)
         controller.viewModel = viewModel
+        controller.loadPage(html: html)
         return controller
     }
     
@@ -252,7 +265,7 @@ final public class Panda: PandaProtocol {
             switch status {
             case .canceled:
                 guard settings.canceledScreenWasShown == false else { break }
-                self?.showScreen(screenType: .survey, onShow: { [settingsStorage] in
+                self?.showScreen(screenType: .survey, onShow: { [settingsStorage] result in
                     settings.canceledScreenWasShown = true
                     settingsStorage.store(settings)
                 })
@@ -265,14 +278,16 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    func showScreen(screenType: ScreenType, onShow: (() -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         networkClient.loadScreen(user: user, screenId: nil, screenType: screenType) { (screenResult) in
             switch screenResult {
             case.failure(let error):
                 pandaLog("ShowScreen Error: \(error)")
             case .success(let screenData):
                 DispatchQueue.main.async {
-                    self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType), onShow)
+                    self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType, product: product)) {
+                        onShow?(.success(true))
+                    }
                 }
             }
         }
@@ -303,8 +318,32 @@ final public class Panda: PandaProtocol {
 
 }
 
+extension Panda {
+    fileprivate func send(feedback text: String, at screenId: String?) {
+        networkClient.sendFeedback(user: user, screenId: screenId ?? "default", feedback: text) { result in
+            switch result {
+            case .failure(let error):
+                pandaLog("Send Feedback \(text) text failed: \(error)!")
+            case .success(let id):
+                pandaLog("Send Feedback \(id)")
+            }
+        }
+    }
+    
+    fileprivate func send(answer text: String, at screenId: String?) {
+        networkClient.sendAnswers(user: user, screenId: screenId ?? "default", answer: text) { result in
+            switch result {
+            case .failure(let error):
+                pandaLog("Send Answers \(text) text failed: \(error)!")
+            case .success(let id):
+                pandaLog("Send Answers \(id)")
+            }
+        }
+    }
+}
 
 extension PandaProtocol {
+    
     func openBillingIssue() {
         openLink(link: ClientConfig.current.billingUrl) { result in
             self.trackOpenLink("billing_issue", result)

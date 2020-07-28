@@ -230,9 +230,6 @@ extension WebViewController: WKNavigationDelegate {
         case "policy":
             viewModel?.onPolicy?()
             return false
-        case "post_feedback":
-            // handlePostFeedbackTapped(urlComps: urlComps)
-            break
         default:
             break
         }
@@ -246,7 +243,11 @@ extension WebViewController: WKNavigationDelegate {
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(answer)
+            viewModel?.onSurvey?(answer, "")
+        case "feedback_sent":
+            let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
+            viewModel?.onFeedback?(feedback, "")
+            fallthrough
         case "dismiss":
             onFinishLoad()
             viewModel?.dismiss?(true, self)
@@ -273,8 +274,7 @@ extension WebViewController: WKNavigationDelegate {
                 return true
             case "upsale":
                 return handleAction(url: url)
-            case "feedback_sent",
-                 "dismiss":
+            case "dismiss":
                 onFinishLoad()
                 viewModel?.dismiss?(true, self)
                 return false
@@ -321,7 +321,11 @@ extension WebViewController {
         
         var html = html
         
-        guard let panda = (Panda.shared as? Panda) else { return html as String }
+        if let product = viewModel.product {
+            html = html.updatedProductInfo(product: product)
+        }
+        
+        guard let panda = (Panda.shared as? Panda) else { return html }
         
         for product in panda.appStoreClient.products.values {
             html = html.updatedTrialDuration(product: product)
@@ -338,6 +342,21 @@ extension WebViewController {
 import StoreKit
 
 fileprivate extension String {
+    
+    mutating func updatedProductInfo(product: SKProduct) -> String {
+        let info = product.productInfoDictionary()
+        
+        let title = info["title"] ?? ""
+        self = replacingOccurrences(of: "{{product_title}}", with: title)
+        
+        let tryString = info["tryString"] ?? ""
+        self = replacingOccurrences(of: "{{introductionary_information}}", with: tryString)
+        
+        let thenString = info["thenString"] ?? ""
+        self = replacingOccurrences(of: "{{product_pricing_terms}}", with: thenString)
+        
+        return self
+    }
     
     func updatedTrialDuration(product: SKProduct) -> String {
         if let introductoryDiscount = product.introductoryPrice {

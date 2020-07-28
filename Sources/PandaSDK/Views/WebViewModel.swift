@@ -7,13 +7,16 @@
 //
 
 import Foundation
+import StoreKit
+
 protocol WebViewModelProtocol {
     var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController) -> Void)!  { get set }
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)? { get set }
     var onRestorePurchase: ((_ viewController: WebViewController) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
     var onPolicy: (() -> Void)? { get set }
-    var onSurvey: ((_ answer: String) -> Void)? { get set }
+    var onSurvey: ((_ answer: String, _ sceenId: String?) -> Void)? { get set }
+    var onFeedback: ((_ feedback: String?, _ sceenId: String?) -> Void)? { get set }
     var dismiss: ((_ success: Bool, _ viewController: WebViewController) -> Void)? { get set }
 }
 
@@ -24,10 +27,12 @@ class WebViewModel: WebViewModelProtocol {
     var onRestorePurchase: ((_ viewController: WebViewController) -> Void)?
     var onTerms: (() -> Void)?
     var onPolicy: (() -> Void)?
-    var onSurvey: ((_ answer: String) -> Void)?
+    var onSurvey: ((_ answer: String, _ sceenId: String?) -> Void)?
+    var onFeedback: ((_ feedback: String?, _ sceenId: String?) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController) -> Void)?
     
     var screenName: String = ""
+    var product: SKProduct?
     
     
     init() {
