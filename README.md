@@ -151,7 +151,36 @@ You can allow your users to skip all purchase process - when user tap cross on S
 ```swift
 var onDismiss: (() -> Void)? { get set }
 ```
+## Push Notification Support
 
+You can add push motification support from Panda - so your app will react on Apple Subscription Events - e.g. User can recieve notification in case on Subscription Cancellation
+
+To register User for Push notification add this in your AppDelegate
+
+```swift
+func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    Panda.shared.registerDevice(token: deviceToken)
+}
+```
+
+Than add this line in your UNUserNotificationCenterDelegate: 
+
+```swift
+func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    if Panda.shared.userNotificationCenter(center, willPresent: notification, withCompletionHandler: completionHandler) {
+        return
+    }
+    completionHandler([])
+}
+
+
+func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    if Panda.shared.userNotificationCenter(center, didReceive: response, withCompletionHandler: completionHandler) {
+        return
+    }
+    completionHandler()
+}
+```
 ## Having troubles?
 
 If you have any questions or troubles with SDK integration feel free to contact us. We are online.
