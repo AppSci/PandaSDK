@@ -28,6 +28,7 @@ final public class Panda: PandaProtocol {
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
+    public var onSuccesfullPurchase: (() -> Void)?
     public let isConfigured: Bool = true
 
 
@@ -82,6 +83,7 @@ final public class Panda: PandaProtocol {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
                     self?.onPurchase?(verification.id)
+                    self?.onSuccesfullPurchase?()
                 }
             }
         }
@@ -92,6 +94,7 @@ final public class Panda: PandaProtocol {
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
             self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
             self?.onRestorePurchases?(productIds)
+            self?.onSuccesfullPurchase?()
         }
     }
     
@@ -213,7 +216,7 @@ final public class Panda: PandaProtocol {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onPurchase = { [appStoreClient] productId, source, _ in
+        viewModel.onPurchase = { [weak self, appStoreClient] productId, source, _ in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
@@ -410,5 +413,6 @@ extension PandaProtocol {
         onRestorePurchases = other.onRestorePurchases
         onError = other.onError
         onDismiss = other.onDismiss
+        onSuccesfullPurchase = other.onSuccesfullPurchase
     }
 }

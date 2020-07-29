@@ -120,6 +120,11 @@ public protocol PandaProtocol: class {
      Called when user click on Close cross in Panda purchase screen.
     */
     var onDismiss: (() -> Void)? { get set }
+    
+    /**
+     Called on screen close attempt after successful purchase or restore.
+    */
+    var onSuccesfullPurchase: (() -> Void)? { get set }
 
 }
 
