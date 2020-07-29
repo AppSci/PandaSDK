@@ -42,7 +42,7 @@ class AppStoreClient: NSObject {
     var onPurchase: ((String) -> Void)?
     var onRestore: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
-    var onShouldAddStorePayment: ((_ payment: SKPayment, _ product: SKProduct)->Bool)?
+    var onShouldAddStorePayment: ((_ payment: SKPayment, _ product: SKProduct)-> Bool)?
     
     internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []

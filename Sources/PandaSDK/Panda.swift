@@ -121,7 +121,6 @@ public protocol PandaProtocol: class {
     */
     var onDismiss: (() -> Void)? { get set }
 
-
 }
 
 
@@ -133,6 +132,7 @@ public extension Panda {
 }
 
 extension Panda {
+    
     static func configure(apiKey: String, isDebug: Bool = true, unconfigured: UnconfiguredPanda?, callback: @escaping (Result<Panda, Error>) -> Void) {
         if notificationDispatcher == nil {
             notificationDispatcher = NotificationDispatcher()

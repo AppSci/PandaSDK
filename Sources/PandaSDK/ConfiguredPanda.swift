@@ -79,6 +79,7 @@ final public class Panda: PandaProtocol {
             case .success(let verification):
                 print("productId = \(productId)\nid = \(verification.id)")
                 self?.onPurchase?(verification.id)
+                self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
             }
         }
     }
@@ -86,6 +87,7 @@ final public class Panda: PandaProtocol {
     func onAppStoreClientRestore(productIds: [String]) {
         onRestorePurchases?(productIds)
         viewControllers.forEach { $0.value?.onFinishLoad() }
+        viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
     }
     
     public func registerDevice(token: Data) {
