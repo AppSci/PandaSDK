@@ -70,24 +70,29 @@ final public class Panda: PandaProtocol {
                 receipt = receiptString
         }
         networkClient.verifySubscriptions(user: user, receipt: receipt) { [weak self] (result) in
-            defer {
-                self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-            }
             switch result {
             case .failure(let error):
-                self?.onError?(Errors.appStoreReceiptError(error))
+                DispatchQueue.main.async {
+                    self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                    self?.onError?(Errors.appStoreReceiptError(error))
+                }
             case .success(let verification):
                 print("productId = \(productId)\nid = \(verification.id)")
-                self?.onPurchase?(verification.id)
-                self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
+                DispatchQueue.main.async {
+                    self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                    self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
+                    self?.onPurchase?(verification.id)
+                }
             }
         }
     }
     
     func onAppStoreClientRestore(productIds: [String]) {
-        onRestorePurchases?(productIds)
-        viewControllers.forEach { $0.value?.onFinishLoad() }
-        viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
+        DispatchQueue.main.async { [weak self] in
+            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+            self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
+            self?.onRestorePurchases?(productIds)
+        }
     }
     
     public func registerDevice(token: Data) {
