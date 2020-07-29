@@ -349,6 +349,9 @@ fileprivate extension String {
         let title = info["title"] ?? ""
         self = replacingOccurrences(of: "{{product_title}}", with: title)
         
+        let productIdentifier = info["productIdentifier"] ?? ""
+        self = replacingOccurrences(of: "{{product_id}}", with: productIdentifier)
+        
         let tryString = info["tryString"] ?? ""
         self = replacingOccurrences(of: "{{introductionary_information}}", with: tryString)
         
