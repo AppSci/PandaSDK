@@ -291,8 +291,9 @@ final public class Panda: PandaProtocol {
     public func showScreen(screenType: ScreenType, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         networkClient.loadScreen(user: user, screenId: nil, screenType: screenType) { (screenResult) in
             switch screenResult {
-            case.failure(let error):
+            case .failure(let error):
                 pandaLog("ShowScreen Error: \(error)")
+                onShow?(.failure(error))
             case .success(let screenData):
                 DispatchQueue.main.async {
                     self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType, product: product)) {

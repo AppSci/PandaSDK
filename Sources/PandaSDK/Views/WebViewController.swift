@@ -321,7 +321,7 @@ extension WebViewController {
         
         var html = html
         
-        if let product = viewModel.product {
+        if let product = viewModel?.product {
             html = html.updatedProductInfo(product: product)
         }
         
