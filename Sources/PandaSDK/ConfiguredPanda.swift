@@ -216,7 +216,7 @@ final public class Panda: PandaProtocol {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onPurchase = { [weak self, appStoreClient] productId, source, _ in
+        viewModel.onPurchase = { [appStoreClient] productId, source, _ in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
