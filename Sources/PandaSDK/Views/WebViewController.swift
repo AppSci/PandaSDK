@@ -321,7 +321,7 @@ extension WebViewController {
         
         var html = html
         
-        if let product = viewModel.product {
+        if let product = viewModel?.product {
             html = html.updatedProductInfo(product: product)
         }
         
@@ -348,6 +348,9 @@ fileprivate extension String {
         
         let title = info["title"] ?? ""
         self = replacingOccurrences(of: "{{product_title}}", with: title)
+        
+        let productIdentifier = info["productIdentifier"] ?? ""
+        self = replacingOccurrences(of: "{{product_id}}", with: productIdentifier)
         
         let tryString = info["tryString"] ?? ""
         self = replacingOccurrences(of: "{{introductionary_information}}", with: tryString)
