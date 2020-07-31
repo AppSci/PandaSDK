@@ -48,21 +48,12 @@ internal struct ReceiptVerificationResult: Codable {
 }
 
 enum SubscriptionAPIStatus: String, Codable {
-    case success
+    case success = "ok"
     case empty
     case refund
     case canceled
-    case disabledAutoRenew
-    case billing
-    
-    enum CodingKeys: String, CodingKey {
-        case success = "ok"
-        case empty
-        case refund
-        case canceled
-        case disabledAutoRenew = "disabled_auto_renew"
-        case billing = "failed_renew"
-    }
+    case disabledAutoRenew = "disabled_auto_renew"
+    case billing = "failed_renew"
 }
 
 public enum SubscriptionStatus: String {
@@ -71,23 +62,6 @@ public enum SubscriptionStatus: String {
     case refund
     case canceled
     case billing
-    
-    public init?(rawValue: String) {
-        switch rawValue {
-        case "ok":
-            self = .success
-        case "empty":
-            self = .empty
-        case "refund":
-            self = .refund
-        case "canceled", "disabled_auto_renew":
-            self = .canceled
-        case "failed_renew":
-            self = .billing
-        default:
-            return nil
-        }
-    }
     
     init(with subscriptionAPIstatus: SubscriptionAPIStatus) {
         switch subscriptionAPIstatus {
