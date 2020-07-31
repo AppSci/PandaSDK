@@ -150,7 +150,7 @@ extension Panda {
             appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
         }
         
-        let userStorage: Storage<PandaUser> = CodableStorageFactory.userDefaults()
+        let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
         if let user = userStorage.fetch() {
             callback(.success(create(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
             return

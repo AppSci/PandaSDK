@@ -66,6 +66,15 @@ extension Storage {
     }
 }
 
+extension Storage where Element == Data {
+    static func keychain(service: String, key: String) -> Storage {
+        return Storage (store: { KeyChainAccess.save(service: service, key: key, data: $0)},
+                        fetch: { KeyChainAccess.load(service: service, key: key) },
+                        clear: { KeyChainAccess.clear(service: service, key: key) })
+    }
+
+}
+
 extension Storage where Element: Codable {
 
     static func codableUserDefaults(
@@ -75,6 +84,18 @@ extension Storage where Element: Codable {
         decoder: JSONDecoder = JSONDecoder()
     ) -> Storage {
         return Storage<Data>.userDefaults(userDefaults, key: key).map(
+            store: encoder.encode,
+            fetch: { try decoder.decode(Element.self, from: $0) }
+        )
+    }
+
+    static func codableKeychain(
+        service: String,
+        key: String,
+        encoder: JSONEncoder = JSONEncoder(),
+        decoder: JSONDecoder = JSONDecoder()
+    ) -> Storage {
+        return Storage<Data>.keychain(service: service, key: key).map(
             store: encoder.encode,
             fetch: { try decoder.decode(Element.self, from: $0) }
         )
@@ -90,4 +111,11 @@ class CodableStorageFactory<T: Codable> {
         )
     }
     
+    static func keychain() -> Storage<T> {
+        return Storage.codableKeychain(
+            service: "group.com.panda",
+            key: String(describing: T.self)
+        )
+    }
+
 }
