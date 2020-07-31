@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 final public class Panda: PandaProtocol {
 
@@ -57,8 +58,10 @@ final public class Panda: PandaProtocol {
     }
     
     func onAppStoreClient(error: Error) {
-        onError?(error)
-        viewControllers.forEach { $0.value?.onFinishLoad() }
+        DispatchQueue.main.async {
+            self.viewControllers.forEach { $0.value?.onFinishLoad() }
+            self.onError?(error)
+        }
     }
     
     func onAppStoreClientPurchase(productId: String) {
