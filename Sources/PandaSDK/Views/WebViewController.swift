@@ -15,7 +15,7 @@ import NVActivityIndicatorView
 class WebViewController: UIViewController, WKScriptMessageHandler {
     
     var viewModel: WebViewModel!
-    var onFailedByTimeOut: (() -> Void)?
+    var onFailedAfterTimeout: (() -> Void)?
     
     var url: URLComponents?
     
@@ -58,14 +58,13 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }()
     
     internal func loadPage(html: String? = nil) {
-        /// if after 15 seconds webview not appeared, then fail
-        perform(#selector(failedByTimeOut), with: nil, afterDelay: 3.0)
+        /// if after 3 seconds webview not downloaded, just fail
+        perform(#selector(failedAfterTimeout), with: nil, afterDelay: 3.0)
         loadingIndicator.startAnimating()
-        _ = view // trigger viewdidload
+        _ = view // calles viewDidLoad
         wv.alpha = 0
         
-        print("SubscriptionBooster // start loading html \(Date().timeIntervalSince1970) \(Date())")
-        
+        print("Panda // start loading html \(Date().timeIntervalSince1970) \(Date())")
         
         if let html = html {
             load(html: html, baseURL: url?.url)
@@ -78,7 +77,6 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         } else {
             load(url: url)
         }
-        
         
         trackLocationChanges()
     }
@@ -99,7 +97,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     deinit {
         onFinishLoad()
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedAfterTimeout), object: nil)
     }
     
     private func getWKWebViewConfiguration() -> WKWebViewConfiguration {
@@ -160,22 +158,21 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     func handleScreenDidLoad() {
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
-        
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedAfterTimeout), object: nil)
         wv.alpha = 1
         loadingIndicator.stopAnimating()
-        print("SubscriptionBooster // html did load \(Date().timeIntervalSince1970) \(Date())")
+        print("Panda // html did load \(Date().timeIntervalSince1970) \(Date())")
     }
     
-    @objc private func failedByTimeOut() {
+    @objc private func failedAfterTimeout() {
         print("🚨 Timeout error")
         onFinishLoad()
         loadingIndicator.stopAnimating()
-        if let f = onFailedByTimeOut {
-            f()
-        } else {
+        guard let timeoutCallback = onFailedAfterTimeout else {
             viewModel?.dismiss?(false, self)
+            return
         }
+        timeoutCallback()
     }
     
     internal func onStartLoad() {
@@ -204,13 +201,13 @@ extension WebViewController: WKNavigationDelegate {
     
     @discardableResult
     private func handleAction(url: URL) -> Bool {
-        guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
-        guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else { return true }
+        guard let urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
+        guard let action = urlComponents.queryItems?.first(where: { $0.name == "type" })?.value else { return true }
         
         switch action {
         case "purchase":
             onStartLoad()
-            let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
+            let productID = urlComponents.queryItems?.first(where: { $0.name == "product_id" })?.value
             viewModel?.onPurchase(productID, url.lastPathComponent, self)
             return false
         case "restore":
@@ -237,15 +234,15 @@ extension WebViewController: WKNavigationDelegate {
     }
     
     private func handleSurvey(url: URL) {
-        guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else {return}
-        guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else {return}
+        guard let urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) else {return}
+        guard let action = urlComponents.queryItems?.first(where: { $0.name == "type" })?.value else {return}
         
         switch action {
         case "survey":
-            let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
+            let answer = urlComponents.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
             viewModel?.onSurvey?(answer, "")
         case "feedback_sent":
-            let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
+            let feedback = urlComponents.queryItems?.first(where: { $0.name == "feedback_text" })?.value
             viewModel?.onFeedback?(feedback, "")
             fallthrough
         case "dismiss":
@@ -257,7 +254,6 @@ extension WebViewController: WKNavigationDelegate {
     }
     
     func handleNavigationAction(navigationAction: WKNavigationAction) -> Bool {
-        
         if let url = navigationAction.request.url {
             let lastComponent = url.lastPathComponent
             
@@ -318,7 +314,6 @@ extension WebViewController {
     
     @objc
     private func replaceProductInfo(html: String) -> String {
-        
         var html = html
         
         if let product = viewModel?.product {
@@ -336,67 +331,5 @@ extension WebViewController {
         }
         
         return html
-    }
-}
-
-import StoreKit
-
-fileprivate extension String {
-    
-    mutating func updatedProductInfo(product: SKProduct) -> String {
-        let info = product.productInfoDictionary()
-        
-        let title = info["title"] ?? ""
-        self = replacingOccurrences(of: "{{product_title}}", with: title)
-        
-        let productIdentifier = info["productIdentifier"] ?? ""
-        self = replacingOccurrences(of: "{{product_id}}", with: productIdentifier)
-        
-        let tryString = info["tryString"] ?? ""
-        self = replacingOccurrences(of: "{{introductionary_information}}", with: tryString)
-        
-        let thenString = info["thenString"] ?? ""
-        self = replacingOccurrences(of: "{{product_pricing_terms}}", with: thenString)
-        
-        return self
-    }
-    
-    func updatedTrialDuration(product: SKProduct) -> String {
-        if let introductoryDiscount = product.introductoryPrice {
-            let introPrice = product.discountDurationString(discount: introductoryDiscount)
-            let macros = "{{trial_duration:\(product.productIdentifier)}}"
-            return replacingOccurrences(of: macros, with: introPrice)
-        }
-        return self
-    }
-    
-    func updatedProductPrice(product: SKProduct) -> String {
-        let replace_string = product.localizedString()
-        let macros = "{{product_price:\(product.productIdentifier)}}"
-        return replacingOccurrences(of: macros, with: replace_string)
-    }
-    
-    func updatedProductDuration(product: SKProduct) -> String {
-        let replace_string = product.regularUnitString()
-        let macros = "{{product_duration:\(product.productIdentifier)}}"
-        return replacingOccurrences(of: macros, with: replace_string)
-    }
-    
-    func updatedProductIntroductoryPrice(product: SKProduct) -> String {
-        if let introductoryPrice = product.introductoryPrice {
-            let introPrice = product.localizedDiscountPriceString(discount: introductoryPrice)
-            let macros = "{{offer_price:\(product.productIdentifier)}}"
-            return replacingOccurrences(of: macros, with: introPrice)
-        }
-        return self
-    }
-    
-    func updatedProductIntroductoryDuration(product: SKProduct) -> String {
-        if let introductoryDiscount = product.introductoryPrice {
-            let introPrice = product.discountDurationString(discount: introductoryDiscount)
-            let macros = "{{offer_duration:\(product.productIdentifier)}}"
-            return replacingOccurrences(of: macros, with: introPrice)
-        }
-        return self
     }
 }
