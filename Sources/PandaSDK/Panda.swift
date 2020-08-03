@@ -60,7 +60,7 @@ public protocol PandaProtocol: class {
     /**
      Register user for recieving Push Notifications
      - parameter token: Token that user recieved after succeeded registration to Push Notifications
-     - parameter callback: Optional. Returns If Device Registration was successfull
+     - parameter callback: Optional. Returns If Device Registration was successful
      */
     func registerDevice(token: Data)
     
@@ -124,7 +124,7 @@ public protocol PandaProtocol: class {
     /**
      Called on screen close attempt after successful purchase or restore.
     */
-    var onSuccesfullPurchase: (() -> Void)? { get set }
+    var onSuccessfulPurchase: (() -> Void)? { get set }
 
 }
 
