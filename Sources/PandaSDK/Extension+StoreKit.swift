@@ -36,7 +36,7 @@ extension SKProduct {
     func localizedString(with offerID : String? = nil) -> String {
         
         guard let offer = offerID else {
-            return localizedPrice()
+            return localizedPriceString()
         }
         
         guard #available(iOS 12.2, *) else {
@@ -49,81 +49,58 @@ extension SKProduct {
             return ""
         }
         
-        return localizedDiscountPrice(discount: discount)
+        return localizedDiscountPriceString(discount: discount)
     }
     
     private func unitStringFrom(periodUnit : SKProduct.PeriodUnit) -> String {
-        var unit = ""
         switch periodUnit {
-        case .day:
-            unit = "day"
-        case .week:
-            unit = "week"
-        case .month:
-            unit = "month"
-        case .year:
-            unit = "year"
-        default:
-            break
+        case .day: return "day"
+        case .week: return "week"
+        case .month: return "month"
+        case .year: return "year"
+        default: return ""
         }
-        return unit
     }
     
-    //MARK:- Screen extension methods
+    //MARK: - Screen extension methods
     
     func regularUnitString() -> String {
-        
         guard let subscriptionPeriod = subscriptionPeriod else {
             return ""
         }
-        let unit = unitStringFrom(periodUnit: subscriptionPeriod.unit)
-        let unit_count = subscriptionPeriod.numberOfUnits
-        
-        if unit_count > 1 {
-            return "\(unit_count) \(unit)s"
-        } else {
-            return unit
-        }
+        let unitString = unitStringFrom(periodUnit: subscriptionPeriod.unit)
+        let numberOfUnits = subscriptionPeriod.numberOfUnits
+        return numberOfUnits > 1 ? "\(numberOfUnits) \(unitString)s" : unitString
     }
     
-    func discountDurationString(discount: SKProductDiscount) -> String{
-        let periods_count = discount.numberOfPeriods
-        let unit = unitStringFrom(periodUnit: discount.subscriptionPeriod.unit)
-        let unit_count = discount.subscriptionPeriod.numberOfUnits
-        let totalUnits = periods_count * unit_count
-        
-        if totalUnits > 1 {
-            return "\(totalUnits) \(unit)s"
-        } else {
-            return unit
-        }
+    func discountDurationString(discount: SKProductDiscount) -> String {
+        let periodsNumber = discount.numberOfPeriods
+        let unitString = unitStringFrom(periodUnit: discount.subscriptionPeriod.unit)
+        let unitsNumber = discount.subscriptionPeriod.numberOfUnits
+        let totalUnits = periodsNumber * unitsNumber
+        return totalUnits > 1 ? "\(totalUnits) \(unitString)s" : unitString
     }
     
-    func discountUnitString(discount: SKProductDiscount) -> String{
-        let unit = unitStringFrom(periodUnit: discount.subscriptionPeriod.unit)
-        let unit_count = discount.subscriptionPeriod.numberOfUnits
-        
-        if unit_count > 1 {
-            return "\(unit_count) \(unit)s"
-        } else {
-            return unit
-        }
+    func discountUnitString(discount: SKProductDiscount) -> String {
+        let unitString = unitStringFrom(periodUnit: discount.subscriptionPeriod.unit)
+        let unitsNumber = discount.subscriptionPeriod.numberOfUnits
+        return unitsNumber > 1 ? "\(unitsNumber) \(unitString)s" : unitString
     }
     
-    func localizedPrice() -> String {
+    func localizedPriceString() -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .currency
         numberFormatter.locale = priceLocale
-        let priceString = numberFormatter.string(from: price)
-        return priceString ?? ""
+        let stringFromPrice = numberFormatter.string(from: price)
+        return stringFromPrice ?? ""
     }
     
-    func localizedDiscountPrice(discount: SKProductDiscount) -> String {
+    func localizedDiscountPriceString(discount: SKProductDiscount) -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .currency
         numberFormatter.locale = priceLocale
-        let priceString = numberFormatter.string(from: discount.price)
-        return priceString ?? ""
+        let stringFromPrice = numberFormatter.string(from: discount.price)
+        return stringFromPrice ?? ""
     }
     
     func productInfoDictionary() -> [String: String] {

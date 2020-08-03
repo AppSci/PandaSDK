@@ -384,7 +384,7 @@ fileprivate extension String {
     
     func updatedProductIntroductoryPrice(product: SKProduct) -> String {
         if let introductoryPrice = product.introductoryPrice {
-            let introPrice = product.localizedDiscountPrice(discount: introductoryPrice)
+            let introPrice = product.localizedDiscountPriceString(discount: introductoryPrice)
             let macros = "{{offer_price:\(product.productIdentifier)}}"
             return replacingOccurrences(of: macros, with: introPrice)
         }
