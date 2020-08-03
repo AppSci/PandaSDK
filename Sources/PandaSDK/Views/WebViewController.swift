@@ -19,32 +19,19 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     var url: URLComponents?
     
-    private lazy var wv: WKWebView = {
-        let config = getWKWebViewConfiguration()
-        let wv = WKWebView(frame: view.bounds, configuration: config)
-        wv.navigationDelegate = self
-        view.addSubview(wv)
-        wv.allowsLinkPreview = false
-        wv.allowsBackForwardNavigationGestures = false
-        wv.scrollView.layer.masksToBounds = false
-        wv.scrollView.contentInsetAdjustmentBehavior = .never
-        wv.scrollView.isMultipleTouchEnabled = false
-        wv.scrollView.isScrollEnabled = true
-        wv.scrollView.bounces = true
-        wv.scrollView.delegate = self
-        wv.isOpaque = false
-        wv.scrollView.isOpaque = false
-        wv.backgroundColor = UIColor.clear
-        wv.scrollView.backgroundColor = UIColor.clear
-        wv.scrollView.alwaysBounceVertical = false
-        wv.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var webview: WKWebView = {
+        let webview = WebViewController.createWebView(bounds: view.bounds,
+                                                      config: getWKWebViewConfiguration())
+        webview.navigationDelegate = self
+        webview.scrollView.delegate = self
+        view.addSubview(webview)
         NSLayoutConstraint.activate([
-            wv.topAnchor.constraint(equalTo: view.topAnchor),
-            wv.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            wv.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            wv.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            webview.topAnchor.constraint(equalTo: view.topAnchor),
+            webview.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webview.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webview.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
-        return wv
+        return webview
     }()
     
     private lazy var loadingIndicator: UIActivityIndicatorView = {
@@ -58,11 +45,10 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }()
     
     internal func loadPage(html: String? = nil) {
-        /// if after 3 seconds webview not downloaded, just fail
         perform(#selector(failedAfterTimeout), with: nil, afterDelay: 3.0)
         loadingIndicator.startAnimating()
         _ = view // calles viewDidLoad
-        wv.alpha = 0
+        webview.alpha = 0
         
         print("Panda // start loading html \(Date().timeIntervalSince1970) \(Date())")
         
@@ -82,17 +68,17 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     private func load(url: URL) {
-        wv.load(URLRequest(url: url))
+        webview.load(URLRequest(url: url))
     }
     
     private func load(html: String, baseURL: URL?) {
         let html = replaceProductInfo(html: html)
-        wv.loadHTMLString(html, baseURL: baseURL)
+        webview.loadHTMLString(html, baseURL: baseURL)
     }
     
     private func load(local url: URL) {
-        wv.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-        wv.loadFileURL(url, allowingReadAccessTo: url)
+        webview.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        webview.loadFileURL(url, allowingReadAccessTo: url)
     }
     
     deinit {
@@ -150,16 +136,16 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
                         }
                         window.addEventListener('popstate', listener);
                 """
-        wv.evaluateJavaScript(js) { (result, error) in
+        webview.evaluateJavaScript(js) { (result, error) in
             if let res = result {
                 print("location changed to \(res)")
             }
         }
     }
     
-    func handleScreenDidLoad() {
+    func webviewDidFinishNavigation() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedAfterTimeout), object: nil)
-        wv.alpha = 1
+        webview.alpha = 1
         loadingIndicator.stopAnimating()
         print("Panda // html did load \(Date().timeIntervalSince1970) \(Date())")
     }
@@ -189,6 +175,25 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
+    
+    static func createWebView(bounds: CGRect, config: WKWebViewConfiguration) -> WKWebView {
+        let webview = WKWebView(frame: bounds, configuration: config)
+        webview.translatesAutoresizingMaskIntoConstraints = false
+        webview.allowsLinkPreview = false
+        webview.allowsBackForwardNavigationGestures = false
+        webview.isOpaque = false
+        webview.backgroundColor = UIColor.clear
+        webview.scrollView.layer.masksToBounds = false
+        webview.scrollView.contentInsetAdjustmentBehavior = .never
+        webview.scrollView.isMultipleTouchEnabled = false
+        webview.scrollView.isScrollEnabled = true
+        webview.scrollView.bounces = true
+        webview.scrollView.alwaysBounceVertical = false
+        webview.scrollView.isOpaque = false
+        webview.scrollView.backgroundColor = UIColor.clear
+        return webview
+    }
+    
 }
 
 extension WebViewController: UIScrollViewDelegate {
@@ -200,7 +205,7 @@ extension WebViewController: UIScrollViewDelegate {
 extension WebViewController: WKNavigationDelegate {
     
     @discardableResult
-    private func handleAction(url: URL) -> Bool {
+    private func processSalesAction(from url: URL) -> Bool {
         guard let urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
         guard let action = urlComponents.queryItems?.first(where: { $0.name == "type" })?.value else { return true }
         
@@ -233,7 +238,7 @@ extension WebViewController: WKNavigationDelegate {
         return true
     }
     
-    private func handleSurvey(url: URL) {
+    private func processSurveyAction(from url: URL) {
         guard let urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) else {return}
         guard let action = urlComponents.queryItems?.first(where: { $0.name == "type" })?.value else {return}
         
@@ -253,23 +258,23 @@ extension WebViewController: WKNavigationDelegate {
         }
     }
     
-    func handleNavigationAction(navigationAction: WKNavigationAction) -> Bool {
+    func process(navigationAction: WKNavigationAction) -> Bool {
         if let url = navigationAction.request.url {
             let lastComponent = url.lastPathComponent
             
             switch lastComponent {
             case "subscription",
                  "billing_issue":
-                handleAction(url: url)
+                processSalesAction(from: url)
                 return false
             case "feedback":
-                handleSurvey(url: url)
+                processSurveyAction(from: url)
                 return true
             case "subscriptions":
-                handleSurvey(url: url)
+                processSurveyAction(from: url)
                 return true
             case "upsale":
-                return handleAction(url: url)
+                return processSalesAction(from: url)
             case "dismiss":
                 onFinishLoad()
                 viewModel?.dismiss?(true, self)
@@ -282,7 +287,7 @@ extension WebViewController: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        if handleNavigationAction(navigationAction: navigationAction) {
+        if process(navigationAction: navigationAction) {
             decisionHandler(.allow)
         } else {
             decisionHandler(.cancel)
@@ -291,7 +296,7 @@ extension WebViewController: WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("WebViewController // didFinish loading: \(String(describing: webView.url?.absoluteString))")
-        handleScreenDidLoad()
+        webviewDidFinishNavigation()
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
