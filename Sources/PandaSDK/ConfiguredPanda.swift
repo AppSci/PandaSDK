@@ -29,7 +29,7 @@ final public class Panda: PandaProtocol {
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
-    public var onSuccesfullPurchase: (() -> Void)?
+    public var onSuccessfulPurchase: (() -> Void)?
     public let isConfigured: Bool = true
 
 
@@ -86,7 +86,7 @@ final public class Panda: PandaProtocol {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
                     self?.onPurchase?(verification.id)
-                    self?.onSuccesfullPurchase?()
+                    self?.onSuccessfulPurchase?()
                 }
             }
         }
@@ -97,7 +97,7 @@ final public class Panda: PandaProtocol {
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
             self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
             self?.onRestorePurchases?(productIds)
-            self?.onSuccesfullPurchase?()
+            self?.onSuccessfulPurchase?()
         }
     }
     
@@ -417,6 +417,6 @@ extension PandaProtocol {
         onRestorePurchases = other.onRestorePurchases
         onError = other.onError
         onDismiss = other.onDismiss
-        onSuccesfullPurchase = other.onSuccesfullPurchase
+        onSuccessfulPurchase = other.onSuccessfulPurchase
     }
 }

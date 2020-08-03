@@ -14,7 +14,7 @@ final class UnconfiguredPanda: PandaProtocol {
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
-    var onSuccesfullPurchase: (() -> Void)?
+    var onSuccessfulPurchase: (() -> Void)?
     let isConfigured: Bool = false
     
     var viewControllers: Set<WeakObject<WebViewController>> = []
