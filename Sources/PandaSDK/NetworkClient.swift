@@ -140,7 +140,7 @@ internal class NetworkClient {
     internal func sendFeedback(user: PandaUser, screenId: String?, feedback: String, callback: @escaping ((Result<FeedbackData, Error>) -> Void)) {
         let request = createRequest(path: "/v1/feedback/answers",
                                     method: .post,
-                                    query: [
+                                    body: [
                                         "user_id": user.id,
                                         "screen_id": screenId,
                                         "answer": feedback,
@@ -152,7 +152,7 @@ internal class NetworkClient {
     internal func sendAnswers(user: PandaUser, screenId: String?, answer: String, callback: @escaping ((Result<FeedbackData, Error>) -> Void)) {
         let request = createRequest(path: "/v1/survey/answers",
                                     method: .post,
-                                    query: [
+                                    body: [
                                         "user_id": user.id,
                                         "screen_id": screenId,
                                         "answer_id": answer,
