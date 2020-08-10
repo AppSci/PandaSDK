@@ -185,7 +185,7 @@ extension Panda {
         return panda
     }
 
-    static func resetPandaStorage() {
+    static public func resetPandaStorage() {
         let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
         userStorage.clear()
     }
