@@ -131,6 +131,11 @@ public protocol PandaProtocol: class {
      You can call this func only once, on first user session
      */
     func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
+    
+    /**
+     Call this func if you want to clear Panda Keychain Storage - user_id is stored in Keychain
+     */
+    func resetPandaStorage()
 }
 
 
@@ -185,4 +190,8 @@ extension Panda {
         return panda
     }
 
+    static func resetPandaStorage() {
+        let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
+        userStorage.clear()
+    }
 }
