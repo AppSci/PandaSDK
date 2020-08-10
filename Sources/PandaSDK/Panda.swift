@@ -126,6 +126,11 @@ public protocol PandaProtocol: class {
     */
     var onSuccessfulPurchase: (() -> Void)? { get set }
 
+    /**
+     Call this func for users that already purchased subscription BEFORE Panda
+     You can call this func only once, on first user session
+     */
+    func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
 }
 
 

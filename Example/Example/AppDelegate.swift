@@ -32,6 +32,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             }
         }
+        Panda.shared.verifySubscriptions { (result) in
+             switch result {
+             case .failure(let error):
+                 print("Error: \(error)")
+             case .success(let verificationResult):
+                 print("Verification result: \(verificationResult)")
+             }
+         }
         return true
     }
 

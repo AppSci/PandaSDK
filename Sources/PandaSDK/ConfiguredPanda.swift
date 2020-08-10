@@ -186,6 +186,20 @@ final public class Panda: PandaProtocol {
             }
         }
     }
+    
+    public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+        let receipt: String
+        switch appStoreClient.receiptBase64String() {
+            case .failure(let error):
+                callback(.failure(Errors.appStoreReceiptError(error)))
+                return
+            case .success(let receiptString):
+                receipt = receiptString
+        }
+        networkClient.verifySubscriptions(user: user, receipt: receipt) { (result) in
+            callback(result)
+        }
+    }
 
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}

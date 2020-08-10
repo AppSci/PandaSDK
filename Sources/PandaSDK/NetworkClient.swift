@@ -42,7 +42,7 @@ internal struct AnswerData: Codable {
     }
 }
 
-internal struct ReceiptVerificationResult: Codable {
+public struct ReceiptVerificationResult: Codable {
     let id: String
     let active: Bool
 }
