@@ -102,7 +102,7 @@ final public class Panda: PandaProtocol {
     }
     
     public func registerDevice(token: Data) {
-        networkClient.updateUser(pushToken: token.base64EncodedString(), user: user) { (result) in
+        networkClient.updateUser(pushToken: token.hexString(), user: user) { (result) in
             switch result {
             case .failure(let error):
                 pandaLog("Register device error: \(error)")
