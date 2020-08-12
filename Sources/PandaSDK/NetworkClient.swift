@@ -42,7 +42,7 @@ internal struct AnswerData: Codable {
     }
 }
 
-internal struct ReceiptVerificationResult: Codable {
+public struct ReceiptVerificationResult: Codable {
     let id: String
     let active: Bool
 }
@@ -270,4 +270,14 @@ enum DeviceInfo {
     static let osName = UIDevice.current.systemName
     
     static let userAgent = "\(executableName)/\(version) \(osName)/\(osVersion)"
+}
+
+extension Data {
+
+    func hexString() -> String {
+        return reduce("", { (result, element)in
+            result + String(format: "%02.2hhx", element)
+        })
+    }
+
 }

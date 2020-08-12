@@ -85,7 +85,7 @@ final public class Panda: PandaProtocol {
                 DispatchQueue.main.async {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
-                    self?.onPurchase?(verification.id)
+                    self?.onPurchase?(productId)
                     self?.onSuccessfulPurchase?()
                 }
             }
@@ -102,7 +102,7 @@ final public class Panda: PandaProtocol {
     }
     
     public func registerDevice(token: Data) {
-        networkClient.updateUser(pushToken: token.base64EncodedString(), user: user) { (result) in
+        networkClient.updateUser(pushToken: token.hexString(), user: user) { (result) in
             switch result {
             case .failure(let error):
                 pandaLog("Register device error: \(error)")
@@ -184,6 +184,20 @@ final public class Panda: PandaProtocol {
             } else {
                 showScreen(screenType: .promo)
             }
+        }
+    }
+    
+    public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+        let receipt: String
+        switch appStoreClient.receiptBase64String() {
+            case .failure(let error):
+                callback(.failure(Errors.appStoreReceiptError(error)))
+                return
+            case .success(let receiptString):
+                receipt = receiptString
+        }
+        networkClient.verifySubscriptions(user: user, receipt: receipt) { (result) in
+            callback(result)
         }
     }
 

@@ -176,5 +176,9 @@ final class UnconfiguredPanda: PandaProtocol {
         return true
     }
 
+    public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        callback(.failure(Errors.notConfigured))
+    }
 }
 
