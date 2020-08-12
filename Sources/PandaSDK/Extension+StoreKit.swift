@@ -181,8 +181,6 @@ extension SKProduct {
         
         var result: [String: String] = [:]
 
-        result["productIdentifier"] = productIdentifier
-
         if !title.trimmingCharacters(in: .whitespaces).isEmpty {
             result["title"] = title
         }

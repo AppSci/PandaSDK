@@ -333,7 +333,7 @@ extension WebViewController {
             let title = info["title"] ?? ""
             replace(string: "{{product_title}}", with: title)
             
-            let productIdentifier = info["productIdentifier"] ?? ""
+            let productIdentifier = product.productIdentifier
             replace(string: "{{product_id}}", with: productIdentifier)
             
             let tryString = info["tryString"] ?? ""
@@ -446,7 +446,7 @@ fileprivate extension String {
         let title = info["title"] ?? ""
         self = replacingOccurrences(of: "{{product_title}}", with: title)
         
-        let productIdentifier = info["productIdentifier"] ?? ""
+        let productIdentifier = product.productIdentifier
         self = replacingOccurrences(of: "{{product_id}}", with: productIdentifier)
         
         let tryString = info["tryString"] ?? ""
