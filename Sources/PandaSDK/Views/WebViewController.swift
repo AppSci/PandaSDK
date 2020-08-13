@@ -243,10 +243,10 @@ extension WebViewController: WKNavigationDelegate {
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(answer, "")
+            viewModel?.onSurvey?(answer, viewModel?.screenName ?? "")
         case "feedback_sent":
             let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
-            viewModel?.onFeedback?(feedback, "")
+            viewModel?.onFeedback?(feedback, viewModel?.screenName ?? "")
             fallthrough
         case "dismiss":
             onFinishLoad()
@@ -279,7 +279,7 @@ extension WebViewController: WKNavigationDelegate {
                 viewModel?.dismiss?(true, self)
                 return false
             default:
-                return true
+                break
             }
         }
 
@@ -366,7 +366,7 @@ extension WebViewController {
                 """
         wv.evaluateJavaScript(js) { (result, error) in
             if let res = result {
-                print("location changed to \(res)")
+                print("replace(string: '\(string)', with info: '\(info)') \(res)")
             }
         }
     }
