@@ -119,8 +119,10 @@ extension UIApplication {
 
 extension SubscriptionStatus {
     static func pandaEvent(from notification: UNNotification) -> SubscriptionStatus? {
-        return (notification.request.content.userInfo["panda-event"] as? String)
-            .flatMap(SubscriptionStatus.init(rawValue: ))
+        guard let subscriptionAPIStatus = (notification.request.content.userInfo["panda-event"] as? String)
+            .flatMap(SubscriptionAPIStatus.init(rawValue: )) else {
+                return nil
+        }
+        return SubscriptionStatus(with: subscriptionAPIStatus)
     }
-    
 }
