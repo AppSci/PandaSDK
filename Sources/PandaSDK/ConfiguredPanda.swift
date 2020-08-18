@@ -14,8 +14,9 @@ final public class Panda: PandaProtocol {
 
     private struct Settings: Codable {
         var canceledScreenWasShown: Bool
-        
-        static let `default` = Settings(canceledScreenWasShown: false)
+        var billingScreenWasShown: Bool
+        static let `default` = Settings(canceledScreenWasShown: false,
+                                        billingScreenWasShown: false)
     }
     
     let networkClient: NetworkClient
@@ -291,15 +292,24 @@ final public class Panda: PandaProtocol {
             var settings = settingsStorage.fetch() ?? Settings.default
             switch status {
             case .canceled:
+                settings.billingScreenWasShown = false
+                settingsStorage.store(settings)
                 guard settings.canceledScreenWasShown == false else { break }
                 self?.showScreen(screenType: .survey, onShow: { [settingsStorage] result in
                     settings.canceledScreenWasShown = true
                     settingsStorage.store(settings)
                 })
             case .billing:
-                self?.showScreen(screenType: .billing)
+                settings.canceledScreenWasShown = false
+                settingsStorage.store(settings)
+                guard settings.billingScreenWasShown == false else { break }
+                self?.showScreen(screenType: .billing, onShow: { [settingsStorage] result in
+                    settings.billingScreenWasShown = true
+                    settingsStorage.store(settings)
+                })
             default:
                 settings.canceledScreenWasShown = false
+                settings.billingScreenWasShown = false
                 settingsStorage.store(settings)
             }
         }
