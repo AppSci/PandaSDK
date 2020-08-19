@@ -39,6 +39,18 @@ class ProductRequest: NSObject, SKProductsRequestDelegate {
 
 class AppStoreClient: NSObject {
     
+    struct Transactions: Codable {
+        var transactions: Set<String>
+        func contains(_ transactionId: String?) -> Bool {
+            return transactionId.map {transactions.contains($0)} ?? false
+        }
+        
+        mutating func insert(_ transactionId: String?) {
+            guard let transactionId = transactionId else { return }
+            transactions.insert(transactionId)
+        }
+    }
+    
     var onPurchase: ((String) -> Void)?
     var onRestore: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
@@ -46,6 +58,11 @@ class AppStoreClient: NSObject {
     
     internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []
+    let storage: Storage<Transactions>
+    
+    init(storage: Storage<Transactions>) {
+        self.storage = storage
+    }
     
     var canMakePayment:Bool {
       return SKPaymentQueue.canMakePayments()
@@ -118,16 +135,25 @@ class AppStoreClient: NSObject {
 extension AppStoreClient: SKPaymentTransactionObserver {
     
     public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+        var processed = storage.fetch() ?? Transactions(transactions: [])
+        var restored: [SKPaymentTransaction] = []
         for transaction in transactions {
             switch (transaction.transactionState) {
             case .purchased:
-                complete(transaction: transaction)
-                break
+                if processed.contains(transaction.transactionIdentifier) {
+                    SKPaymentQueue.default().finishTransaction(transaction)
+                } else {
+                    complete(transaction: transaction)
+                    processed.insert(transaction.transactionIdentifier)
+                }
             case .failed:
                 fail(transaction: transaction)
-                break
             case .restored:
-                break
+                if processed.contains(transaction.transactionIdentifier) {
+                    SKPaymentQueue.default().finishTransaction(transaction)
+                } else {
+                    restored.append(transaction)
+                }
             case .deferred:
                 break
             case .purchasing:
@@ -136,9 +162,12 @@ extension AppStoreClient: SKPaymentTransactionObserver {
                 break
             }
         }
-        let restored = transactions.filter {$0.transactionState == .restored}
+        defer {
+            storage.store(processed)
+        }
         guard !restored.isEmpty else { return }
         restore(transactions: restored)
+        restored.forEach { processed.insert($0.transactionIdentifier) }
     }
     
     internal func receiptBase64String() -> Result<String, Error> {
