@@ -315,8 +315,8 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    public func showScreen(screenType: ScreenType, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        networkClient.loadScreen(user: user, screenId: nil, screenType: screenType) { (screenResult) in
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { (screenResult) in
             switch screenResult {
             case .failure(let error):
                 pandaLog("ShowScreen Error: \(error)")

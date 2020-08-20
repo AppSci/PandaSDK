@@ -37,7 +37,7 @@ public protocol PandaProtocol: class {
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
      - parameter callback: Optional. Returns Result for showing screen
      */
-    func showScreen(screenType: ScreenType, product: String?, onShow: ((Result<Bool, Error>) -> Void)?)
+    func showScreen(screenType: ScreenType, screenId: String?, product: String?, onShow: ((Result<Bool, Error>) -> Void)?)
     
     /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
@@ -133,6 +133,29 @@ public protocol PandaProtocol: class {
     func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
 }
 
+public extension PandaProtocol {
+    /**
+     Default implementation without callback, screenId, product
+     Returns screen with specific product from Panda Web
+     - parameter screenType: Required. Screen Type.
+     - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
+     - parameter callback: Optional. Returns Result for showing screen
+     */
+    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+        showScreen(screenType: screenType, screenId: screenId, product: product, onShow: onShow)
+    }
+    
+    /**
+     Default implementation without callback & screenId
+     Returns screen from Panda Web
+     - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
+     - parameter callback: Optional. Returns Result for getting screen
+     */
+    func getScreen(screenId: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)? = nil) {
+        getScreen(screenId: screenId, callback: callback)
+    }
+    
+}
 
 public extension Panda {
     /**
