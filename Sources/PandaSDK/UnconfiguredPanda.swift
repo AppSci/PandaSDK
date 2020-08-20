@@ -60,7 +60,7 @@ final class UnconfiguredPanda: PandaProtocol {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
 
-    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         onShow?(.failure(Errors.notConfigured))
     }

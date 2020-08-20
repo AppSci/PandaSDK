@@ -39,6 +39,8 @@ public protocol PandaProtocol: class {
      */
     func showScreen(screenType: ScreenType, screenId: String?, product: String?, onShow: ((Result<Bool, Error>) -> Void)?)
     
+    func showScreen(screenType: ScreenType, screenId: String?, product: String?, autoDismiss: Bool, onShow: ((Result<Bool, Error>) -> Void)?)
+
     /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
@@ -142,7 +144,7 @@ public extension PandaProtocol {
      - parameter callback: Optional. Returns Result for showing screen
      */
     func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        showScreen(screenType: screenType, screenId: screenId, product: product, onShow: onShow)
+        showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, onShow: onShow)
     }
     
     /**

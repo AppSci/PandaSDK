@@ -16,6 +16,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     var viewModel: WebViewModel!
     var onFailedByTimeOut: (() -> Void)?
+    var isAutoDismissable: Bool = true
     
     var url: URLComponents?
     
@@ -185,6 +186,11 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
 
     internal func onFinishLoad() {
         NVActivityIndicatorPresenter.sharedInstance.stopAnimating(nil)
+    }
+    
+    internal func tryAutoDismiss() {
+        guard isAutoDismissable else { return }
+        dismiss(animated: true, completion: nil)
     }
     
     internal func showInternetConnectionAlert() {

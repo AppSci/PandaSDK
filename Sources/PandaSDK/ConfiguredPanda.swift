@@ -96,7 +96,7 @@ final public class Panda: PandaProtocol {
     func onAppStoreClientRestore(productIds: [String]) {
         DispatchQueue.main.async { [weak self] in
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-            self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
+            self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
             self?.onRestorePurchases?(productIds)
             self?.onSuccessfulPurchase?()
         }
@@ -256,7 +256,7 @@ final public class Panda: PandaProtocol {
         viewModel.dismiss = { [weak self] status, view in
             pandaLog("Dismiss")
             self?.trackClickDismiss()
-            view.dismiss(animated: true, completion: nil)
+            view.tryAutoDismiss()
             self?.onDismiss?()
         }
         return viewModel
@@ -315,7 +315,7 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { (screenResult) in
             switch screenResult {
             case .failure(let error):
@@ -323,7 +323,9 @@ final public class Panda: PandaProtocol {
                 onShow?(.failure(error))
             case .success(let screenData):
                 DispatchQueue.main.async {
-                    self.presentOnRoot(with: self.prepareViewController(screen: screenData, screenType: screenType, product: product)) {
+                    let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product)
+                    vc.isAutoDismissable = autoDismiss
+                    self.presentOnRoot(with: vc) {
                         onShow?(.success(true))
                     }
                 }
