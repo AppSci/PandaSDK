@@ -85,7 +85,7 @@ final public class Panda: PandaProtocol {
                 print("productId = \(productId)\nid = \(verification.id)")
                 DispatchQueue.main.async {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                    self?.viewControllers.forEach({ $0.value?.dismiss(animated: true, completion: nil)})
+                    self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
                     self?.onPurchase?(productId)
                     self?.onSuccessfulPurchase?()
                 }
