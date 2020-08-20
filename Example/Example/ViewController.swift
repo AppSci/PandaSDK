@@ -18,7 +18,8 @@ class ViewController: UIViewController {
 
 
     @IBAction func onShowTap(_ sender: Any) {
-        Panda.shared.getScreen(screenId: nil) { [weak self] (result) in
+//        Panda.shared.showScreen(screenType: .product, screenId: "a59d17f7-2eab-4895-a4e2-ef15b6587b66")
+        Panda.shared.getScreen() { [weak self] (result) in
             switch result {
             case .success(let vc):
                 self?.present(vc, animated: true, completion: nil)
@@ -26,6 +27,14 @@ class ViewController: UIViewController {
                 print("Screen: \(error)")
             }
         }
+//        Panda.shared.getScreen(screenId: nil) { [weak self] (result) in
+//            switch result {
+//            case .success(let vc):
+//                self?.present(vc, animated: true, completion: nil)
+//            case .failure(let error):
+//                print("Screen: \(error)")
+//            }
+//        }
     }
 }
 
