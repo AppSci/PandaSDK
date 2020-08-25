@@ -58,6 +58,7 @@ class AppStoreClient: NSObject {
     
     internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []
+    private var activePayments: Set<SKPayment> = []
     let storage: Storage<Transactions>
     
     init(storage: Storage<Transactions>) {
@@ -120,6 +121,7 @@ class AppStoreClient: NSObject {
                 self?.onError?(error)
             case .success(let product):
                 let payment = SKPayment(product: product)
+                self?.activePayments.insert(payment)
                 SKPaymentQueue.default().add(payment)
             }
         }
@@ -140,14 +142,17 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         for transaction in transactions {
             switch (transaction.transactionState) {
             case .purchased:
-                if processed.contains(transaction.transactionIdentifier) {
+                if processed.contains(transaction.transactionIdentifier)
+                    || !activePayments.contains(transaction.payment) {
                     SKPaymentQueue.default().finishTransaction(transaction)
                 } else {
                     complete(transaction: transaction)
-                    processed.insert(transaction.transactionIdentifier)
                 }
+                processed.insert(transaction.transactionIdentifier)
+                activePayments.remove(transaction.payment)
             case .failed:
                 fail(transaction: transaction)
+                activePayments.remove(transaction.payment)
             case .restored:
                 if processed.contains(transaction.transactionIdentifier) {
                     SKPaymentQueue.default().finishTransaction(transaction)
