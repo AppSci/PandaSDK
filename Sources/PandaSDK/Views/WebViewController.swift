@@ -65,7 +65,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         _ = view // trigger viewdidload
         wv.alpha = 0
         
-        print("SubscriptionBooster // start loading html \(Date().timeIntervalSince1970) \(Date())")
+        pandaLog("SubscriptionBooster // start loading html \(Date().timeIntervalSince1970) \(Date())")
         
         
         if let html = html {
@@ -165,11 +165,11 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         
         wv.alpha = 1
         loadingIndicator.stopAnimating()
-        print("SubscriptionBooster // html did load \(Date().timeIntervalSince1970) \(Date())")
+        pandaLog("SubscriptionBooster // html did load \(Date().timeIntervalSince1970) \(Date())")
     }
     
     @objc private func failedByTimeOut() {
-        print("🚨 Timeout error")
+        pandaLog("🚨 Timeout error")
         onFinishLoad()
         loadingIndicator.stopAnimating()
         if let f = onFailedByTimeOut {
@@ -309,13 +309,13 @@ extension WebViewController: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("WebViewController // didFinish loading: \(String(describing: webView.url?.absoluteString))")
+        pandaLog("WebViewController // didFinish loading: \(String(describing: webView.url?.absoluteString))")
         handleScreenDidLoad()
         fillProductInfoWithJS()
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        print("WebViewController // Did fail navigation: \(String(describing: webView.url?.absoluteString)), error: \(error)")
+        pandaLog("WebViewController // Did fail navigation: \(String(describing: webView.url?.absoluteString)), error: \(error)")
     }
 }
 
@@ -372,7 +372,7 @@ extension WebViewController {
                 """
         wv.evaluateJavaScript(js) { (result, error) in
             if let res = result {
-                //print("replace(string: '\(string)', with info: '\(info)') \(res)")
+                // print("replace(string: '\(string)', with info: '\(info)') \(res)")
             }
         }
     }
