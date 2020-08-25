@@ -372,7 +372,7 @@ extension WebViewController {
                 """
         wv.evaluateJavaScript(js) { (result, error) in
             if let res = result {
-                print("replace(string: '\(string)', with info: '\(info)') \(res)")
+                //print("replace(string: '\(string)', with info: '\(info)') \(res)")
             }
         }
     }

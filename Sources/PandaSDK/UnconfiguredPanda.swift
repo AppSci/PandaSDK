@@ -60,7 +60,7 @@ final class UnconfiguredPanda: PandaProtocol {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
 
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, overFullScreen: Bool = false, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         onShow?(.failure(Errors.notConfigured))
     }
@@ -71,6 +71,10 @@ final class UnconfiguredPanda: PandaProtocol {
     }
 
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        getScreen(callback: callback)
+    }
+    
+    func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         let defaultScreen: ScreenData
         do {
             defaultScreen = try NetworkClient.loadScreenFromBundle()

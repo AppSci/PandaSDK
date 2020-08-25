@@ -31,15 +31,17 @@ public protocol PandaProtocol: class {
      */
     func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
+    func getScreen(screenType: ScreenType, screenId: String?, product: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    
     /**
      Returns screen with specific product from Panda Web
      - parameter screenType: Required. Screen Type.
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
-     - parameter callback: Optional. Returns Result for showing screen
+     - parameter onShow: Optional. Returns Result for showing screen
      */
     func showScreen(screenType: ScreenType, screenId: String?, product: String?, onShow: ((Result<Bool, Error>) -> Void)?)
     
-    func showScreen(screenType: ScreenType, screenId: String?, product: String?, autoDismiss: Bool, onShow: ((Result<Bool, Error>) -> Void)?)
+    func showScreen(screenType: ScreenType, screenId: String?, product: String?, autoDismiss: Bool, overFullScreen: Bool, onShow: ((Result<Bool, Error>) -> Void)?)
 
     /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
@@ -144,7 +146,7 @@ public extension PandaProtocol {
      - parameter callback: Optional. Returns Result for showing screen
      */
     func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, onShow: onShow)
+        showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, overFullScreen: false, onShow: onShow)
     }
     
     /**
@@ -153,8 +155,9 @@ public extension PandaProtocol {
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      - parameter callback: Optional. Returns Result for getting screen
      */
-    func getScreen(screenId: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)? = nil) {
-        getScreen(screenId: screenId, callback: callback)
+
+    func getScreen(screenId: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        getScreen(screenType: .sales, screenId: screenId, product: nil, callback: callback)
     }
     
 }

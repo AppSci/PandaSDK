@@ -128,11 +128,11 @@ final public class Panda: PandaProtocol {
             }
         }
     }
-    
-    public func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
+
+    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
-                callback?(.success(self.prepareViewController(screen: screen, screenType: .sales)))
+                callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
             }
             return
         }
@@ -148,12 +148,12 @@ final public class Panda: PandaProtocol {
                     return
                 }
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: .sales)))
+                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product)))
                 }
             case .success(let screen):
                 self.cache[screenId] = screen
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: screen, screenType: .sales)))
+                    callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
                 }
             }
         }
@@ -315,7 +315,7 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, overFullScreen: Bool = false, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { (screenResult) in
             switch screenResult {
             case .failure(let error):
@@ -324,6 +324,7 @@ final public class Panda: PandaProtocol {
             case .success(let screenData):
                 DispatchQueue.main.async {
                     let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product)
+                    vc.modalPresentationStyle = overFullScreen ? .overFullScreen : .pageSheet
                     vc.isAutoDismissable = autoDismiss
                     self.presentOnRoot(with: vc) {
                         onShow?(.success(true))
