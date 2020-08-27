@@ -11,7 +11,6 @@
 		CDB44A4C24B9C92F00D6F9AC /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */; };
 		CDB44A4D24B9C92F00D6F9AC /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A3F24B9C92F00D6F9AC /* Storage.swift */; };
 		CDB44A4F24B9C92F00D6F9AC /* Panda.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4124B9C92F00D6F9AC /* Panda.swift */; };
-		CDB44A5024B9C92F00D6F9AC /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4224B9C92F00D6F9AC /* NetworkService.swift */; };
 		CDB44A5124B9C92F00D6F9AC /* WeakObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4324B9C92F00D6F9AC /* WeakObject.swift */; };
 		CDB44A5224B9C92F00D6F9AC /* PandaHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4424B9C92F00D6F9AC /* PandaHelpers.swift */; };
 		CDB44A5324B9C92F00D6F9AC /* AppStoreClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A4524B9C92F00D6F9AC /* AppStoreClient.swift */; };
@@ -30,7 +29,6 @@
 		CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
 		CDB44A3F24B9C92F00D6F9AC /* Storage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
 		CDB44A4124B9C92F00D6F9AC /* Panda.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Panda.swift; sourceTree = "<group>"; };
-		CDB44A4224B9C92F00D6F9AC /* NetworkService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 		CDB44A4324B9C92F00D6F9AC /* WeakObject.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WeakObject.swift; sourceTree = "<group>"; };
 		CDB44A4424B9C92F00D6F9AC /* PandaHelpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PandaHelpers.swift; sourceTree = "<group>"; };
 		CDB44A4524B9C92F00D6F9AC /* AppStoreClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppStoreClient.swift; sourceTree = "<group>"; };
@@ -87,7 +85,6 @@
 				CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */,
 				CDB44A3F24B9C92F00D6F9AC /* Storage.swift */,
 				CDB44A4124B9C92F00D6F9AC /* Panda.swift */,
-				CDB44A4224B9C92F00D6F9AC /* NetworkService.swift */,
 				CDB44A4324B9C92F00D6F9AC /* WeakObject.swift */,
 				CDB44A4424B9C92F00D6F9AC /* PandaHelpers.swift */,
 				CDB44A4524B9C92F00D6F9AC /* AppStoreClient.swift */,
@@ -206,7 +203,6 @@
 				CDB44A5824B9C92F00D6F9AC /* NetworkLoader.swift in Sources */,
 				CDB44A5724B9C92F00D6F9AC /* WebViewModel.swift in Sources */,
 				CDB44A4D24B9C92F00D6F9AC /* Storage.swift in Sources */,
-				CDB44A5024B9C92F00D6F9AC /* NetworkService.swift in Sources */,
 				CDB44A4F24B9C92F00D6F9AC /* Panda.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

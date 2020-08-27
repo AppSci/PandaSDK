@@ -112,8 +112,8 @@ final class UnconfiguredPanda: PandaProtocol {
                     DispatchQueue.main.async {
                         view.showInternetConnectionAlert()
                         self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.onError?(error)
                     }
-                    self?.onError?(error)
                 }
             })
         }
@@ -129,8 +129,8 @@ final class UnconfiguredPanda: PandaProtocol {
                     DispatchQueue.main.async {
                         view.showInternetConnectionAlert()
                         self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.onError?(error)
                     }
-                    self?.onError?(error)
                 }
             })
         }
