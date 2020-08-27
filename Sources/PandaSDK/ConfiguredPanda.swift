@@ -70,7 +70,7 @@ final public class Panda: PandaProtocol {
         switch appStoreClient.receiptBase64String() {
             case .failure(let error):
                 DispatchQueue.main.async {
-                    onError?(Errors.appStoreReceiptError(error))
+                    self.onError?(Errors.appStoreReceiptError(error))
                 }
                 return
             case .success(let receiptString):
