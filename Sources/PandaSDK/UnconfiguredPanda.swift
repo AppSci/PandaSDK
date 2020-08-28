@@ -79,7 +79,9 @@ final class UnconfiguredPanda: PandaProtocol {
         do {
             defaultScreen = try NetworkClient.loadScreenFromBundle()
         } catch {
-            callback?(.failure(error))
+            DispatchQueue.main.async {
+                callback?(.failure(error))
+            }
             return
         }
         DispatchQueue.main.async {
