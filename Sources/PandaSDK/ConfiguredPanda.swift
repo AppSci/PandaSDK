@@ -69,7 +69,9 @@ final public class Panda: PandaProtocol {
         let receipt: String
         switch appStoreClient.receiptBase64String() {
             case .failure(let error):
-                onError?(Errors.appStoreReceiptError(error))
+                DispatchQueue.main.async {
+                    self.onError?(Errors.appStoreReceiptError(error))
+                }
                 return
             case .success(let receiptString):
                 receipt = receiptString
@@ -138,13 +140,17 @@ final public class Panda: PandaProtocol {
         }
         networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
-                callback?(.failure(Errors.message("Panda is missing!")))
+                DispatchQueue.main.async {
+                    callback?(.failure(Errors.message("Panda is missing!")))
+                }
                 return
             }
             switch result {
             case .failure(let error):
                 guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
-                    callback?(.failure(error))
+                    DispatchQueue.main.async {
+                        callback?(.failure(error))
+                    }
                     return
                 }
                 DispatchQueue.main.async {

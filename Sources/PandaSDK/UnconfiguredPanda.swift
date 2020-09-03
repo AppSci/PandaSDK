@@ -79,7 +79,9 @@ final class UnconfiguredPanda: PandaProtocol {
         do {
             defaultScreen = try NetworkClient.loadScreenFromBundle()
         } catch {
-            callback?(.failure(error))
+            DispatchQueue.main.async {
+                callback?(.failure(error))
+            }
             return
         }
         DispatchQueue.main.async {
@@ -112,8 +114,8 @@ final class UnconfiguredPanda: PandaProtocol {
                     DispatchQueue.main.async {
                         view.showInternetConnectionAlert()
                         self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.onError?(error)
                     }
-                    self?.onError?(error)
                 }
             })
         }
@@ -129,8 +131,8 @@ final class UnconfiguredPanda: PandaProtocol {
                     DispatchQueue.main.async {
                         view.showInternetConnectionAlert()
                         self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.onError?(error)
                     }
-                    self?.onError?(error)
                 }
             })
         }
