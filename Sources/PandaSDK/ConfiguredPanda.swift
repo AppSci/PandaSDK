@@ -96,6 +96,16 @@ final public class Panda: PandaProtocol {
     }
     
     func onAppStoreClientRestore(productIds: [String]) {
+        switch appStoreClient.receiptBase64String() {
+        case .failure(let error):
+            DispatchQueue.main.async {
+                self.viewControllers.forEach { $0.value?.onFinishLoad() }
+                self.onError?(Errors.appStoreReceiptError(error))
+            }
+            return
+        case .success(let receipt):
+            networkClient.verifySubscriptions(user: user, receipt: receipt) { _ in }
+        }
         DispatchQueue.main.async { [weak self] in
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
             self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
@@ -322,20 +332,33 @@ final public class Panda: PandaProtocol {
     }
     
     public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, overFullScreen: Bool = false, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { (screenResult) in
+        if let screen = cache[screenId] {
+            self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, overFullScreen: overFullScreen, onShow: onShow)
+            return
+        }
+        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
             switch screenResult {
             case .failure(let error):
-                pandaLog("ShowScreen Error: \(error)")
-                onShow?(.failure(error))
-            case .success(let screenData):
-                DispatchQueue.main.async {
-                    let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product)
-                    vc.modalPresentationStyle = overFullScreen ? .overFullScreen : .pageSheet
-                    vc.isAutoDismissable = autoDismiss
-                    self.presentOnRoot(with: vc) {
-                        onShow?(.success(true))
-                    }
+                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
+                    pandaLog("ShowScreen Error: \(error)")
+                    onShow?(.failure(error))
+                    return
                 }
+                self?.showPreparedViewController(screenData: defaultScreen, screenType: screenType, product: product, autoDismiss: autoDismiss, overFullScreen: overFullScreen, onShow: onShow)
+            case .success(let screenData):
+                self?.cache[screenId] = screenData
+                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, overFullScreen: overFullScreen, onShow: onShow)
+            }
+        }
+    }
+    
+    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, overFullScreen: Bool, onShow: ((Result<Bool, Error>) -> Void)?) {
+        DispatchQueue.main.async {
+            let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product)
+            vc.modalPresentationStyle = overFullScreen ? .overFullScreen : .pageSheet
+            vc.isAutoDismissable = autoDismiss
+            self.presentOnRoot(with: vc) {
+                onShow?(.success(true))
             }
         }
     }
