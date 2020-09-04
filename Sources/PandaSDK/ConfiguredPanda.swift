@@ -148,7 +148,7 @@ final public class Panda: PandaProtocol {
             }
             return
         }
-        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
+        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] result in
             guard let self = self else {
                 DispatchQueue.main.async {
                     callback?(.failure(Errors.message("Panda is missing!")))
@@ -450,21 +450,21 @@ extension PandaProtocol {
 
 class ScreenCache {
     var cache: [String: ScreenData] = [:]
-    let nilKey = "<nil>"
     
     subscript(screenId: String?) -> ScreenData? {
         get {
-            return cache[screenId ?? nilKey]
+            guard let key = screenId else { return nil }
+            return cache[key]
         }
         set(newValue) {
+            guard let key = screenId else { return }
             guard let newValue = newValue else {
-                cache.removeValue(forKey: screenId ?? nilKey)
+                cache.removeValue(forKey: key)
                 return
             }
-            cache[screenId ?? nilKey] = newValue
+            cache[key] = newValue
         }
     }
-    
 }
 
 extension PandaProtocol {
