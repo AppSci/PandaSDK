@@ -94,12 +94,11 @@ final class UnconfiguredPanda: PandaProtocol {
     }
     
     private func prepareViewController(screen: ScreenData) -> WebViewController {
-        let viewModel = WebViewModel()
-        viewModel.screenName = screen.id
+        let viewModel = WebViewModel(screenId: screen.id)
         viewModel.onSurvey = { value, screenId in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onPurchase = { [weak self] productId, source, view in
+        viewModel.onPurchase = { [weak self] productId, source, view, screenId in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
@@ -108,7 +107,7 @@ final class UnconfiguredPanda: PandaProtocol {
                 switch result {
                 case .success:
                     pandaLog("Reconfigured")
-                    view.viewModel?.onPurchase?(productId, source, view)
+                    view.viewModel?.onPurchase?(productId, source, view, screenId)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {

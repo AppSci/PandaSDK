@@ -169,7 +169,7 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
 
-    func verifySubscriptionsRequest(user: PandaUser, receipt: String, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+    func verifySubscriptionsRequest(user: PandaUser, receipt: String, screenId: String?, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         let request = createRequest(path: "/v1/itunes/verify/\(user.id)",
                                     method: .post,
                                     httpBody: receipt.data(using: .utf8))
@@ -189,9 +189,9 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
     
-    func verifySubscriptions(user: PandaUser, receipt: String, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+    func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
-            self.verifySubscriptionsRequest(user: user, receipt: receipt, callback: onComplete)
+            self.verifySubscriptionsRequest(user: user, receipt: receipt, screenId: source?.screenId, callback: onComplete)
         }, completion: callback)
     }
 

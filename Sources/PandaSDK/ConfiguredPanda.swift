@@ -44,8 +44,8 @@ final public class Panda: PandaProtocol {
         appStoreClient.onError = { [weak self] error in
             self?.onAppStoreClient(error: error)
         }
-        appStoreClient.onPurchase = { [weak self] productId in
-            self?.onAppStoreClientPurchase(productId: productId)
+        appStoreClient.onPurchase = { [weak self] productId, source in
+            self?.onAppStoreClientPurchase(productId: productId, source: source)
         }
         appStoreClient.onRestore = { [weak self] productIds in
             self?.onAppStoreClientRestore(productIds: productIds)
@@ -65,7 +65,7 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    func onAppStoreClientPurchase(productId: String) {
+    func onAppStoreClientPurchase(productId: String, source: PaymentSource) {
         let receipt: String
         switch appStoreClient.receiptBase64String() {
             case .failure(let error):
@@ -76,7 +76,7 @@ final public class Panda: PandaProtocol {
             case .success(let receiptString):
                 receipt = receiptString
         }
-        networkClient.verifySubscriptions(user: user, receipt: receipt) { [weak self] (result) in
+        networkClient.verifySubscriptions(user: user, receipt: receipt, source: source) { [weak self] (result) in
             switch result {
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -104,7 +104,7 @@ final public class Panda: PandaProtocol {
             }
             return
         case .success(let receipt):
-            networkClient.verifySubscriptions(user: user, receipt: receipt) { _ in }
+            networkClient.verifySubscriptions(user: user, receipt: receipt, source: nil) { _ in }
         }
         DispatchQueue.main.async { [weak self] in
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
@@ -213,7 +213,7 @@ final public class Panda: PandaProtocol {
             case .success(let receiptString):
                 receipt = receiptString
         }
-        networkClient.verifySubscriptions(user: user, receipt: receipt) { (result) in
+        networkClient.verifySubscriptions(user: user, receipt: receipt, source: nil) { (result) in
             callback(result)
         }
     }
@@ -221,22 +221,21 @@ final public class Panda: PandaProtocol {
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}
         updatedVCs.forEach { (vc) in
-            vc.viewModel = createViewModel(screenName: vc.viewModel?.screenName ?? "unknown")
+            vc.viewModel = createViewModel(screenId: vc.viewModel?.screenId ?? "unknown")
         }
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
     private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil) -> WebViewController {
-        let viewModel = createViewModel(screenName: screen.id, product: product)
+        let viewModel = createViewModel(screenId: screen.id, product: product)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
     }
     
-    private func createViewModel(screenName: String, product: String? = nil) -> WebViewModel {
-        let viewModel = WebViewModel()
-        viewModel.screenName = screenName
+    private func createViewModel(screenId: String, product: String? = nil) -> WebViewModel {
+        let viewModel = WebViewModel(screenId: screenId)
         if let product = product {
             viewModel.product = appStoreClient.products[product]
         }
@@ -250,12 +249,12 @@ final public class Panda: PandaProtocol {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onPurchase = { [appStoreClient] productId, source, _ in
+        viewModel.onPurchase = { [appStoreClient] productId, source, _, screenId in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
-            appStoreClient.purchase(productId: productId)
+            appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId))
         }
         viewModel.onRestorePurchase = { [appStoreClient] _ in
             pandaLog("Restore")
