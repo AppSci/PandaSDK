@@ -167,7 +167,7 @@ final public class Panda: PandaProtocol {
                     callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product)))
                 }
             case .success(let screen):
-                self.cache[screenId] = screen
+                self.cache[screen.id] = screen
                 DispatchQueue.main.async {
                     callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
                 }
@@ -331,9 +331,9 @@ final public class Panda: PandaProtocol {
         }
     }
     
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, overFullScreen: Bool = false, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         if let screen = cache[screenId] {
-            self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, overFullScreen: overFullScreen, onShow: onShow)
+            self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, onShow: onShow)
             return
         }
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
@@ -344,18 +344,18 @@ final public class Panda: PandaProtocol {
                     onShow?(.failure(error))
                     return
                 }
-                self?.showPreparedViewController(screenData: defaultScreen, screenType: screenType, product: product, autoDismiss: autoDismiss, overFullScreen: overFullScreen, onShow: onShow)
+                self?.showPreparedViewController(screenData: defaultScreen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, onShow: onShow)
             case .success(let screenData):
-                self?.cache[screenId] = screenData
-                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, overFullScreen: overFullScreen, onShow: onShow)
+                self?.cache[screenData.id] = screenData
+                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, onShow: onShow)
             }
         }
     }
     
-    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, overFullScreen: Bool, onShow: ((Result<Bool, Error>) -> Void)?) {
+    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, onShow: ((Result<Bool, Error>) -> Void)?) {
         DispatchQueue.main.async {
             let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product)
-            vc.modalPresentationStyle = overFullScreen ? .overFullScreen : .pageSheet
+            vc.modalPresentationStyle = presentationStyle
             vc.isAutoDismissable = autoDismiss
             self.presentOnRoot(with: vc) {
                 onShow?(.success(true))
