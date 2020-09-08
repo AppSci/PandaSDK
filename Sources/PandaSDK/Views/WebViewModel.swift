@@ -10,7 +10,7 @@ import Foundation
 import StoreKit
 
 protocol WebViewModelProtocol {
-    var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController) -> Void)!  { get set }
+    var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ sceenId: String) -> Void)!  { get set }
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)? { get set }
     var onRestorePurchase: ((_ viewController: WebViewController) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
@@ -22,7 +22,7 @@ protocol WebViewModelProtocol {
 
 class WebViewModel: WebViewModelProtocol {
     
-    @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController) -> Void)!
+    @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ sceenId: String) -> Void)!
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)?
     var onRestorePurchase: ((_ viewController: WebViewController) -> Void)?
     var onTerms: (() -> Void)?
@@ -31,11 +31,12 @@ class WebViewModel: WebViewModelProtocol {
     var onFeedback: ((_ feedback: String?, _ sceenId: String?) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController) -> Void)?
     
-    var screenName: String = ""
+    let screenId: String
     var product: SKProduct?
     
     
-    init() {
+    init(screenId: String) {
+        self.screenId = screenId
         setupObserver()
     }
     

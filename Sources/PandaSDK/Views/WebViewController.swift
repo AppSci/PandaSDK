@@ -121,7 +121,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         
         if message.name == "weekly_offer" {
             print("JavaScript is sending a message \(message.body)")
-            viewModel?.onPurchase(message.name, "js-code", self)
+            viewModel?.onPurchase(message.name, "js-code", self, viewModel?.screenId ?? "")
         }
         if message.name == "locationChanges" {
             print("JavaScript is sending a message \(message.body)")
@@ -217,7 +217,7 @@ extension WebViewController: WKNavigationDelegate {
         case "purchase":
             onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
-            viewModel?.onPurchase(productID, url.lastPathComponent, self)
+            viewModel?.onPurchase(productID, url.lastPathComponent, self, viewModel?.screenId ?? "")
             return false
         case "restore":
             onStartLoad()
@@ -249,10 +249,10 @@ extension WebViewController: WKNavigationDelegate {
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(answer, viewModel?.screenName ?? "")
+            viewModel?.onSurvey?(answer, viewModel?.screenId ?? "")
         case "feedback_sent":
             let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
-            viewModel?.onFeedback?(feedback, viewModel?.screenName ?? "")
+            viewModel?.onFeedback?(feedback, viewModel?.screenId ?? "")
             fallthrough
         case "dismiss":
             onFinishLoad()
