@@ -218,3 +218,17 @@ extension Panda {
         userStorage.clear()
     }
 }
+
+protocol PandaAnalyticsObserver: AnyObject {
+    func subscriptionSelect(screenId: String, screenName: String, productId: String)
+    func purchaseStarted(screenId: String, screenName: String, productId: String)
+    func successfulPurchase(screenId: String, screenName: String, productId: String)
+    func screenDismissed(screenId: String, screenName: String)
+    func surveyAnswerSelect(screenId: String, screenName: String, answerId: String)
+    func surveyPosted(screenId: String, screenName: String, feedbackId: String)
+    func screenShowed(screenId: String, screenName: String)
+    func screenWillShow(screenId: String, screenName: String)
+    func privacyPolicyTap()
+    func termsAndConditionsTap()
+    func billingDetailsTap()
+}
