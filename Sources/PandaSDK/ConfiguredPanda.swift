@@ -241,7 +241,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil) -> WebViewController {
-        send(event: .screenWillShow(screenId: screen.id, screenName: screen.name))
         let viewModel = createViewModel(screenData: screen, product: product)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
