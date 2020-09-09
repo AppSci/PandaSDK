@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-final class UnconfiguredPanda: PandaProtocol {
+final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     var onPurchase: ((String) -> Void)?
     var onRestorePurchases: (([String]) -> Void)?
@@ -25,6 +25,15 @@ final class UnconfiguredPanda: PandaProtocol {
         var isDebug: Bool
     }
     private var lastConfigurationAttempt: LastConfigurationAttempt?
+
+    var observers: [ObjectIdentifier: WeakObserver] = [:]
+    func add(observer: PandaAnalyticsObserver) {
+        observers[ObjectIdentifier(observer)] = WeakObserver(value: observer)
+    }
+    
+    func remove(observer: PandaAnalyticsObserver) {
+        observers.removeValue(forKey: ObjectIdentifier(observer))
+    }
 
     func configure(apiKey: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
         lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug)

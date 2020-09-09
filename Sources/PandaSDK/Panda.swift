@@ -135,6 +135,9 @@ public protocol PandaProtocol: class {
      You can call this func only once, on first user session
      */
     func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
+    
+    func add(observer: PandaAnalyticsObserver)
+    func remove(observer: PandaAnalyticsObserver)
 }
 
 public extension PandaProtocol {
@@ -219,16 +222,54 @@ extension Panda {
     }
 }
 
-protocol PandaAnalyticsObserver: AnyObject {
-    func subscriptionSelect(screenId: String, screenName: String, productId: String)
-    func purchaseStarted(screenId: String, screenName: String, productId: String)
-    func successfulPurchase(screenId: String, screenName: String, productId: String)
-    func screenDismissed(screenId: String, screenName: String)
-    func surveyAnswerSelect(screenId: String, screenName: String, answerId: String)
-    func surveyPosted(screenId: String, screenName: String, feedbackId: String)
-    func screenShowed(screenId: String, screenName: String)
-    func screenWillShow(screenId: String, screenName: String)
-    func privacyPolicyTap()
-    func termsAndConditionsTap()
-    func billingDetailsTap()
+public enum PandaEvent {
+    case subscriptionSelect(screenId: String, screenName: String, productId: String)
+    case purchaseStarted(screenId: String, screenName: String, productId: String)
+    case successfulPurchase(screenId: String, screenName: String, productId: String)
+    case screenDismissed(screenId: String, screenName: String)
+    case surveyAnswerSelect(screenId: String, screenName: String, answerId: String)
+    case surveyPosted(screenId: String, screenName: String, feedbackId: String)
+    case screenShowed(screenId: String, screenName: String)
+    case screenWillShow(screenId: String, screenName: String)
+    case privacyPolicyTap
+    case termsAndConditionsTap
+    case billingDetailsTap
+}
+
+public protocol PandaAnalyticsObserver: AnyObject {
+    func handle(event: PandaEvent)
+}
+
+protocol ObserverSupport: AnyObject {
+    var observers: [ObjectIdentifier: WeakObserver] {get set}
+}
+
+extension ObserverSupport {
+    func send(event: PandaEvent) {
+//        var empty = 0
+        observers.forEach {
+            $0.value.handle(event: event)
+//            if $0.value.isValid { empty += 1 }
+        }
+//        //clean if more than 50% are deleted
+//        if observers.count > 256 && empty > observers.count/2 {
+//            observers = observers.filter { $0.value.value != nil }
+//        }
+    }
+}
+
+class WeakObserver: PandaAnalyticsObserver {
+    
+    private(set) weak var value: PandaAnalyticsObserver?
+    init(value: PandaAnalyticsObserver) {
+        self.value = value
+    }
+    
+    var isValid: Bool {
+        return value != nil
+    }
+
+    func handle(event: PandaEvent) {
+        value?.handle(event: event)
+    }
 }

@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-final public class Panda: PandaProtocol {
+final public class Panda: PandaProtocol, ObserverSupport {
 
     internal static var notificationDispatcher: NotificationDispatcher!
 
@@ -53,6 +53,15 @@ final public class Panda: PandaProtocol {
         appStoreClient.startObserving()
     }
     
+    var observers: [ObjectIdentifier: WeakObserver] = [:]
+    public func add(observer: PandaAnalyticsObserver) {
+        observers[ObjectIdentifier(observer)] = WeakObserver(value: observer)
+    }
+
+    public func remove(observer: PandaAnalyticsObserver) {
+        observers.removeValue(forKey: ObjectIdentifier(observer))
+    }
+
     public func configure(apiKey: String, isDebug: Bool, callback: ((Bool) -> Void)?) {
         pandaLog("Already configured")
         callback?(true)
@@ -411,21 +420,24 @@ extension Panda {
     }
 }
 
-extension PandaProtocol {
+extension PandaProtocol where Self: ObserverSupport {
     
     func openBillingIssue() {
+        send(event: .billingDetailsTap)
         openLink(link: ClientConfig.current.billingUrl) { result in
             self.trackOpenLink("billing_issue", result)
         }
     }
     
     func openTerms() {
+        send(event: .termsAndConditionsTap)
         openLink(link: ClientConfig.current.termsUrl) { result in
             self.trackOpenLink("terms", result)
         }
     }
     
     func openPolicy() {
+        send(event: .privacyPolicyTap)
         openLink(link: ClientConfig.current.policyUrl) { result in
             self.trackOpenLink("policy", result)
         }
@@ -444,6 +456,15 @@ extension PandaProtocol {
     }
     
     func trackClickDismiss() {
+    }
+
+    func copyCallbacks<T: PandaProtocol & ObserverSupport>(from other: T) {
+        onPurchase = other.onPurchase
+        onRestorePurchases = other.onRestorePurchases
+        onError = other.onError
+        onDismiss = other.onDismiss
+        onSuccessfulPurchase = other.onSuccessfulPurchase
+        observers.merge(other.observers, uniquingKeysWith: {(_, new) in new })
     }
 }
 
@@ -466,12 +487,3 @@ class ScreenCache {
     }
 }
 
-extension PandaProtocol {
-    func copyCallbacks(from other: PandaProtocol) {
-        onPurchase = other.onPurchase
-        onRestorePurchases = other.onRestorePurchases
-        onError = other.onError
-        onDismiss = other.onDismiss
-        onSuccessfulPurchase = other.onSuccessfulPurchase
-    }
-}
