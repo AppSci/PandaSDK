@@ -158,7 +158,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
-                self.send(event: .screenShowed(screenId: screen.id, screenName: screen.name))
                 callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
             }
             return
@@ -179,14 +178,11 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     return
                 }
                 DispatchQueue.main.async {
-                    self.send(event: .screenShowed(screenId: ScreenData.default.id,
-                                                   screenName: ScreenData.default.name))
                     callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product)))
                 }
             case .success(let screen):
                 self.cache[screen.id] = screen
                 DispatchQueue.main.async {
-                    self.send(event: .screenShowed(screenId: screen.id, screenName: screen.name))
                     callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
                 }
             }
@@ -306,6 +302,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
         controller.viewModel = viewModel
         controller.loadPage(html: html)
+        send(event: .screenShowed(screenId: viewModel.screenData.id,
+                                        screenName: viewModel.screenData.name)
+        )
         return controller
     }
     
