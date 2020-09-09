@@ -144,7 +144,6 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                 }
             })
         }
-        
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
         viewModel.onBillingIssue = { view in
@@ -159,6 +158,14 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             }
             view.dismiss(animated: true, completion: nil)
             self?.onDismiss?()
+        }
+        viewModel.onViewWillAppear = { [weak self] screenId, screenName in
+            guard let screenId = screenId, let screenName = screenName else { return }
+            self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName))
+        }
+        viewModel.onViewDidAppear = { [weak self] screenId, screenName in
+            guard let screenId = screenId, let screenName = screenName else { return }
+            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName))
         }
         let controller = setupWebView(html: screenData.html, viewModel: viewModel)
         viewControllers = viewControllers.filter { $0.value != nil }

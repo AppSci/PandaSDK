@@ -292,6 +292,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
             view.tryAutoDismiss()
             self?.onDismiss?()
         }
+        viewModel.onViewWillAppear = { [weak self] screenId, screenName in
+            guard let screenId = screenId, let screenName = screenName else { return }
+            self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName))
+        }
+        viewModel.onViewDidAppear = { [weak self] screenId, screenName in
+            guard let screenId = screenId, let screenName = screenName else { return }
+            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName))
+        }
         return viewModel
     }
     
@@ -302,9 +310,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
         controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
         controller.viewModel = viewModel
         controller.loadPage(html: html)
-        send(event: .screenShowed(screenId: viewModel.screenData.id,
-                                        screenName: viewModel.screenData.name)
-        )
         return controller
     }
     

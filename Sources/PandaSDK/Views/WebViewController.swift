@@ -164,6 +164,18 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        viewModel?.onViewWillAppear?(viewModel?.screenData.id ?? "",
+                                    viewModel?.screenData.name ?? ""
+        )
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        viewModel?.onViewDidAppear?(viewModel?.screenData.id ?? "",
+                                   viewModel?.screenData.name ?? ""
+        )
+    }
+    
     func handleScreenDidLoad() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
         
