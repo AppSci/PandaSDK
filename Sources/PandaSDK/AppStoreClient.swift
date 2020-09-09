@@ -38,6 +38,7 @@ class ProductRequest: NSObject, SKProductsRequestDelegate {
 
 public struct PaymentSource {
     let screenId: String
+    let screenName: String
 }
 
 class AppStoreClient: NSObject {

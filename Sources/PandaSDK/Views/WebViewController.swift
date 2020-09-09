@@ -121,7 +121,11 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         
         if message.name == "weekly_offer" {
             print("JavaScript is sending a message \(message.body)")
-            viewModel?.onPurchase(message.name, "js-code", self, viewModel?.screenId ?? "")
+            viewModel?.onPurchase(message.name,
+                                  "js-code",
+                                  self,
+                                  viewModel?.screenData.id ?? "",
+                                  viewModel?.screenData.name ?? "")
         }
         if message.name == "locationChanges" {
             print("JavaScript is sending a message \(message.body)")
@@ -175,7 +179,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         if let f = onFailedByTimeOut {
             f()
         } else {
-            viewModel?.dismiss?(false, self)
+            viewModel?.dismiss?(false, self, nil , nil)
         }
     }
     
@@ -194,7 +198,10 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     internal func showInternetConnectionAlert() {
-        let alert = UIAlertController(title: "Connection error", message: "Please, check you internet connection and try again", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Connection error",
+                                      message: "Please, check you internet connection and try again",
+                                      preferredStyle: .alert
+        )
         alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
@@ -217,7 +224,12 @@ extension WebViewController: WKNavigationDelegate {
         case "purchase":
             onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
-            viewModel?.onPurchase(productID, url.lastPathComponent, self, viewModel?.screenId ?? "")
+            viewModel?.onPurchase(productID,
+                                  url.lastPathComponent,
+                                  self,
+                                  viewModel?.screenData.id ?? "",
+                                  viewModel?.screenData.name ?? ""
+            )
             return false
         case "restore":
             onStartLoad()
@@ -225,7 +237,11 @@ extension WebViewController: WKNavigationDelegate {
             return false
         case "dismiss":
             onFinishLoad()
-            viewModel?.dismiss?(true, self)
+            viewModel?.dismiss?(true,
+                                self,
+                                viewModel?.screenData.id ?? "",
+                                viewModel?.screenData.name ?? ""
+            )
             return false
         case "billing_issue":
             viewModel?.onBillingIssue?(self)
@@ -249,14 +265,24 @@ extension WebViewController: WKNavigationDelegate {
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(answer, viewModel?.screenId ?? "")
+            viewModel?.onSurvey?(answer,
+                                 viewModel?.screenData.id ?? "",
+                                 viewModel?.screenData.name ?? ""
+            )
         case "feedback_sent":
             let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
-            viewModel?.onFeedback?(feedback, viewModel?.screenId ?? "")
+            viewModel?.onFeedback?(feedback,
+                                   viewModel?.screenData.id ?? "",
+                                   viewModel?.screenData.name ?? ""
+            )
             fallthrough
         case "dismiss":
             onFinishLoad()
-            viewModel?.dismiss?(true, self)
+            viewModel?.dismiss?(true,
+                                self,
+                                viewModel?.screenData.id ?? "",
+                                viewModel?.screenData.name ?? ""
+            )
         default:
             break
         }
@@ -282,7 +308,11 @@ extension WebViewController: WKNavigationDelegate {
                 return handleAction(url: url)
             case "dismiss":
                 onFinishLoad()
-                viewModel?.dismiss?(true, self)
+                viewModel?.dismiss?(true,
+                                    self,
+                                    viewModel?.screenData.id ?? "",
+                                    viewModel?.screenData.name ?? ""
+                )
                 return false
             default:
                 break

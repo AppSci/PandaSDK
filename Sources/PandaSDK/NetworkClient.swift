@@ -26,6 +26,8 @@ internal struct ScreenData: Codable {
         case name
         case html = "screen_html"
     }
+    
+    static var `default` = ScreenData(id: "unknown", name: "unknown", html: "unknown")
 }
 
 internal struct FeedbackData: Codable {

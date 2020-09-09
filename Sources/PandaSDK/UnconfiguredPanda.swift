@@ -94,7 +94,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             return
         }
         DispatchQueue.main.async {
-            callback?(.success(self.prepareViewController(screen: defaultScreen)))
+            callback?(.success(self.prepareViewController(screenData: defaultScreen)))
         }
     }
     
@@ -102,12 +102,12 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
     
-    private func prepareViewController(screen: ScreenData) -> WebViewController {
-        let viewModel = WebViewModel(screenId: screen.id)
-        viewModel.onSurvey = { value, screenId in
+    private func prepareViewController(screenData: ScreenData) -> WebViewController {
+        let viewModel = WebViewModel(screenData: screenData)
+        viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onPurchase = { [weak self] productId, source, view, screenId in
+        viewModel.onPurchase = { [weak self] productId, source, view, screenId, screenName in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
@@ -116,7 +116,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                 switch result {
                 case .success:
                     pandaLog("Reconfigured")
-                    view.viewModel?.onPurchase?(productId, source, view, screenId)
+                    view.viewModel?.onPurchase?(productId, source, view, screenId, screenName)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {
@@ -152,13 +152,15 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             self.openBillingIssue()
             view.dismiss(animated: true, completion: nil)
         }
-        viewModel.dismiss = { [weak self] status, view in
+        viewModel.dismiss = { [weak self] status, view, screenId, screenName in
             pandaLog("Dismiss")
-            self?.trackClickDismiss()
+            if let screenID = screenId, let name = screenName {
+                self?.trackClickDismiss(screenId: screenID, screenName: name)
+            }
             view.dismiss(animated: true, completion: nil)
             self?.onDismiss?()
         }
-        let controller = setupWebView(html: screen.html, viewModel: viewModel)
+        let controller = setupWebView(html: screenData.html, viewModel: viewModel)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller

@@ -93,12 +93,17 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     self?.onError?(Errors.appStoreReceiptError(error))
                 }
             case .success(let verification):
+
                 print("productId = \(productId)\nid = \(verification.id)")
                 DispatchQueue.main.async {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
                     self?.onPurchase?(productId)
                     self?.onSuccessfulPurchase?()
+                    self?.send(event: .successfulPurchase(screenId: source.screenId,
+                                                          screenName: source.screenName,
+                                                          productId: productId)
+                    )
                 }
             }
         }
@@ -153,6 +158,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
+                self.send(event: .screenShowed(screenId: screen.id, screenName: screen.name))
                 callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
             }
             return
@@ -173,11 +179,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     return
                 }
                 DispatchQueue.main.async {
+                    self.send(event: .screenShowed(screenId: ScreenData.default.id,
+                                                   screenName: ScreenData.default.name))
                     callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product)))
                 }
             case .success(let screen):
                 self.cache[screen.id] = screen
                 DispatchQueue.main.async {
+                    self.send(event: .screenShowed(screenId: screen.id, screenName: screen.name))
                     callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
                 }
             }
@@ -230,40 +239,42 @@ final public class Panda: PandaProtocol, ObserverSupport {
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}
         updatedVCs.forEach { (vc) in
-            vc.viewModel = createViewModel(screenId: vc.viewModel?.screenId ?? "unknown")
+            vc.viewModel = createViewModel(screenData: vc.viewModel?.screenData ?? ScreenData.default)
         }
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
     private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil) -> WebViewController {
-        let viewModel = createViewModel(screenId: screen.id, product: product)
+        send(event: .screenWillShow(screenId: screen.id, screenName: screen.name))
+        let viewModel = createViewModel(screenData: screen, product: product)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
     }
     
-    private func createViewModel(screenId: String, product: String? = nil) -> WebViewModel {
-        let viewModel = WebViewModel(screenId: screenId)
+    private func createViewModel(screenData: ScreenData, product: String? = nil) -> WebViewModel {
+        let viewModel = WebViewModel(screenData: screenData)
         if let product = product {
             viewModel.product = appStoreClient.products[product]
         }
-        viewModel.onSurvey = { answer, screenId in
+        viewModel.onSurvey = { answer, screenId, screenName in
             pandaLog("AnswerSelected send: \(answer)")
-            self.send(answer: answer, at: screenId)
+            self.send(answer: answer, at: screenId, screenName: screenData.name)
         }
-        viewModel.onFeedback = { feedback, screenId in
+        viewModel.onFeedback = { feedback, screenId, screenName in
             pandaLog("Feedback send: \(String(describing: feedback))")
             if let text = feedback {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onPurchase = { [appStoreClient] productId, source, _, screenId in
+        viewModel.onPurchase = { [appStoreClient, weak self] productId, source, _, screenId, screenName in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
-            appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId))
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId))
+            appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name))
         }
         viewModel.onRestorePurchase = { [appStoreClient] _ in
             pandaLog("Restore")
@@ -277,9 +288,11 @@ final public class Panda: PandaProtocol, ObserverSupport {
             self.openBillingIssue()
             view.dismiss(animated: true, completion: nil)
         }
-        viewModel.dismiss = { [weak self] status, view in
+        viewModel.dismiss = { [weak self] status, view, screenId, screenName in
             pandaLog("Dismiss")
-            self?.trackClickDismiss()
+            if let screenID = screenId, let name = screenName {
+                self?.trackClickDismiss(screenId: screenID, screenName: name)
+            }
             view.tryAutoDismiss()
             self?.onDismiss?()
         }
@@ -408,8 +421,7 @@ extension Panda {
         }
     }
     
-    fileprivate func send(answer text: String, at screenId: String?) {
-        networkClient.sendAnswers(user: user, screenId: screenId ?? "default", answer: text) { result in
+    fileprivate func send(answer text: String, at screenId: String?, screenName: String?) {        networkClient.sendAnswers(user: user, screenId: screenId ?? "default", answer: text) { result in
             switch result {
             case .failure(let error):
                 pandaLog("Send Answers \(text) text failed: \(error)!")
@@ -455,7 +467,8 @@ extension PandaProtocol where Self: ObserverSupport {
     func trackDeepLink(_ link: String) {
     }
     
-    func trackClickDismiss() {
+    func trackClickDismiss(screenId: String, screenName: String) {
+        send(event: .screenDismissed(screenId: screenId, screenName: screenName))
     }
 
     func copyCallbacks<T: PandaProtocol & ObserverSupport>(from other: T) {
