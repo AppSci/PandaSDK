@@ -30,15 +30,15 @@ protocol ObserverSupport: AnyObject {
 
 extension ObserverSupport {
     func send(event: PandaEvent) {
-//        var empty = 0
+        var empty = 0
         observers.forEach {
             $0.value.handle(event: event)
-//            if $0.value.isValid { empty += 1 }
+            if $0.value.isValid { empty += 1 }
         }
-//        //clean if more than 50% are deleted
-//        if observers.count > 256 && empty > observers.count/2 {
-//            observers = observers.filter { $0.value.value != nil }
-//        }
+        //clean if more than 50% are deleted
+        if observers.count > 256 && empty > observers.count/2 {
+            observers = observers.filter { $0.value.value != nil }
+        }
     }
 }
 
