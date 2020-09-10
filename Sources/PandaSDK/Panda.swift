@@ -179,9 +179,8 @@ extension Panda {
         let networkClient = NetworkClient(apiKey: apiKey, isDebug: isDebug)
         let appStoreClient = AppStoreClient(storage: CodableStorageFactory.userDefaults())
         
-        if let productIds = ["words_purchase_0.99"] {
-            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
-        }
+        let productIds = ["words_purchase_0.99"]
+        appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
         
         let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
         if let user = userStorage.fetch() {
