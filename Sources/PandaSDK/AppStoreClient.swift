@@ -115,7 +115,8 @@ class AppStoreClient: NSObject {
     }
     
     func purchase(productId: String) {
-        getProduct(with: productId) { [weak self] result in
+        let prrodId = "words_purchase_0.99"
+        getProduct(with: prrodId) { [weak self] result in
             switch result {
             case .failure(let error):
                 self?.onError?(error)
