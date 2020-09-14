@@ -8,6 +8,8 @@
 
 import UIKit
 import PandaSDK
+import AppTrackingTransparency
+import AdSupport
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -32,6 +34,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             }
         }
+        
+        if #available(iOS 14, *) {
+            ATTrackingManager.requestTrackingAuthorization { (status) in
+                print("Ads status: \(status)")
+                if status == .authorized {
+                    print("Is Ads Enabled: \(ASIdentifierManager.shared().isAdvertisingTrackingEnabled)")
+                    // Get and return IDFA
+                    print("IDFA: \(ASIdentifierManager.shared().advertisingIdentifier.uuidString)")
+                    Panda.shared.updateIDFA()
+                }
+            }
+        }
+        
         Panda.shared.verifySubscriptions { (result) in
              switch result {
              case .failure(let error):

@@ -56,6 +56,10 @@ final class UnconfiguredPanda: PandaProtocol {
         deviceToken = token
     }
     
+    func updateIDFA() {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+    }
+
     func prefetchScreen(screenId: String?) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }

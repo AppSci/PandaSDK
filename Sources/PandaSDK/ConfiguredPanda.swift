@@ -125,6 +125,17 @@ final public class Panda: PandaProtocol {
         }
     }
     
+    public func updateIDFA() {
+        networkClient.updateUserIDFA(user: user) { (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("Update IDFA error: \(error)")
+            case .success:
+                pandaLog("IDFA updated")
+            }
+        }
+    }
+    
     public func prefetchScreen(screenId: String?) {
         networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {

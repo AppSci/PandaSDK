@@ -135,6 +135,12 @@ public protocol PandaProtocol: class {
      You can call this func only once, on first user session
      */
     func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
+    
+    /**
+     Due to new Privacy rules in Apple Inc., IDFA is available ONLY after User allows Track his activity across apps
+     So after User allows Track his activity in Permission Alert, please, call this func to send IDFA to Panda Analytics
+     */
+    func updateIDFA()
 }
 
 public extension PandaProtocol {
