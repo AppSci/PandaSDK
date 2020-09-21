@@ -72,13 +72,17 @@ internal func currentUserParameters(pushToken: String) -> [String: String] {
 }
 
 internal func identifierForAdvertising() -> String? {
-    // Check whether advertising tracking is enabled
-    guard ASIdentifierManager.shared().isAdvertisingTrackingEnabled else {
-        return nil
+    if #available(iOS 14, *) {
+        // Get and return IDFA
+        return ASIdentifierManager.shared().advertisingIdentifier.uuidString
+    } else {
+        // Check whether advertising tracking is enabled
+        guard ASIdentifierManager.shared().isAdvertisingTrackingEnabled else {
+            return nil
+        }
+        // Get and return IDFA
+        return ASIdentifierManager.shared().advertisingIdentifier.uuidString
     }
-
-    // Get and return IDFA
-    return ASIdentifierManager.shared().advertisingIdentifier.uuidString
 }
 
 extension UIDevice {
