@@ -25,6 +25,11 @@ public protocol PandaProtocol: class {
     var isConfigured: Bool {get}
     
     /**
+     - Returns: Current Panda user id or nil if Panda not configured
+     */
+    var pandaUserId: String? {get}
+    
+    /**
      Returns screen from Panda Web
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      - parameter callback: Optional. Returns Result for getting screen
@@ -59,6 +64,11 @@ public protocol PandaProtocol: class {
      */
     func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any])
 
+    /**
+        Set custom user id for curret Panda User Id
+     */
+    func setCustomUserId(id: String)
+    
     // MARK: - Handle Push Notification
     
     /**
@@ -210,6 +220,10 @@ extension Panda {
         panda.configureAppStoreClient()
         deviceToken.map(panda.registerDevice(token:))
         Panda.notificationDispatcher.onApplicationDidBecomeActive = panda.onApplicationDidBecomeActive
+        
+        let customUserId = unconfigured?.customUserId
+        customUserId.map(panda.setCustomUserId(id:))
+        
         return panda
     }
 

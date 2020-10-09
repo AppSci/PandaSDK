@@ -65,9 +65,15 @@ internal func currentDeviceParameters() -> [String: String] {
     return params
 }
 
-internal func currentUserParameters(pushToken: String) -> [String: String] {
+internal func currentUserParameters(pushToken: String? = nil,
+                                    customUserId: String?) -> [String: String] {
     var currentParameters = currentDeviceParameters()
-    currentParameters["push_notifications_token"] = pushToken
+    if let pushToken = pushToken {
+        currentParameters["push_notifications_token"] = pushToken
+    }
+    if let customUserId = customUserId {
+        currentParameters["custom_user_id"] = customUserId
+    }
     return currentParameters
 }
 
