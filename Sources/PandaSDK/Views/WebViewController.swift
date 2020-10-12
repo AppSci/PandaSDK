@@ -121,7 +121,11 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         
         if message.name == "weekly_offer" {
             print("JavaScript is sending a message \(message.body)")
-            viewModel?.onPurchase(message.name, "js-code", self)
+            viewModel?.onPurchase(message.name,
+                                  "js-code",
+                                  self,
+                                  viewModel?.screenData.id ?? "",
+                                  viewModel?.screenData.name ?? "")
         }
         if message.name == "locationChanges" {
             print("JavaScript is sending a message \(message.body)")
@@ -160,6 +164,18 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        viewModel?.onViewWillAppear?(viewModel?.screenData.id ?? "",
+                                    viewModel?.screenData.name ?? ""
+        )
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        viewModel?.onViewDidAppear?(viewModel?.screenData.id ?? "",
+                                   viewModel?.screenData.name ?? ""
+        )
+    }
+    
     func handleScreenDidLoad() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
         
@@ -175,7 +191,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         if let f = onFailedByTimeOut {
             f()
         } else {
-            viewModel?.dismiss?(false, self)
+            viewModel?.dismiss?(false, self, nil , nil)
         }
     }
     
@@ -194,7 +210,10 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     internal func showInternetConnectionAlert() {
-        let alert = UIAlertController(title: "Connection error", message: "Please, check you internet connection and try again", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Connection error",
+                                      message: "Please, check you internet connection and try again",
+                                      preferredStyle: .alert
+        )
         alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
@@ -212,12 +231,20 @@ extension WebViewController: WKNavigationDelegate {
     private func handleAction(url: URL) -> Bool {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
         guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else { return true }
-        
+
+        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+        let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
+
         switch action {
         case "purchase":
             onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
-            viewModel?.onPurchase(productID, url.lastPathComponent, self)
+            viewModel?.onPurchase(productID,
+                                  url.lastPathComponent,
+                                  self,
+                                  screenID,
+                                  screenName
+            )
             return false
         case "restore":
             onStartLoad()
@@ -225,7 +252,11 @@ extension WebViewController: WKNavigationDelegate {
             return false
         case "dismiss":
             onFinishLoad()
-            viewModel?.dismiss?(true, self)
+            viewModel?.dismiss?(true,
+                                self,
+                                screenID,
+                                screenName
+            )
             return false
         case "billing_issue":
             viewModel?.onBillingIssue?(self)
@@ -246,17 +277,30 @@ extension WebViewController: WKNavigationDelegate {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else {return}
         guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else {return}
         
+        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+        let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
+        
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(answer, viewModel?.screenName ?? "")
+            viewModel?.onSurvey?(answer,
+                                 screenID,
+                                 screenName
+            )
         case "feedback_sent":
             let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
-            viewModel?.onFeedback?(feedback, viewModel?.screenName ?? "")
+            viewModel?.onFeedback?(feedback,
+                                   screenID,
+                                   screenName
+            )
             fallthrough
         case "dismiss":
             onFinishLoad()
-            viewModel?.dismiss?(true, self)
+            viewModel?.dismiss?(true,
+                                self,
+                                screenID,
+                                screenName
+            )
         default:
             break
         }
@@ -266,6 +310,10 @@ extension WebViewController: WKNavigationDelegate {
         
         if let url = navigationAction.request.url {
             let lastComponent = url.lastPathComponent
+
+            let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
+            let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+            let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
             
             switch lastComponent {
             case "subscription",
@@ -282,7 +330,11 @@ extension WebViewController: WKNavigationDelegate {
                 return handleAction(url: url)
             case "dismiss":
                 onFinishLoad()
-                viewModel?.dismiss?(true, self)
+                viewModel?.dismiss?(true,
+                                    self,
+                                    screenID,
+                                    screenName
+                )
                 return false
             default:
                 break
@@ -371,7 +423,7 @@ extension WebViewController {
                         document.body.innerHTML = document.body.innerHTML.replace(/\(string)/g, "\(info)");
                 """
         wv.evaluateJavaScript(js) { (result, error) in
-            if let res = result {
+            if let _ = result {
                 // print("replace(string: '\(string)', with info: '\(info)') \(res)")
             }
         }

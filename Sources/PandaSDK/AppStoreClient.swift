@@ -36,6 +36,10 @@ class ProductRequest: NSObject, SKProductsRequestDelegate {
     }
 }
 
+public struct PaymentSource {
+    let screenId: String
+    let screenName: String
+}
 
 class AppStoreClient: NSObject {
     
@@ -51,14 +55,14 @@ class AppStoreClient: NSObject {
         }
     }
     
-    var onPurchase: ((String) -> Void)?
+    var onPurchase: ((String, PaymentSource) -> Void)?
     var onRestore: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onShouldAddStorePayment: ((_ payment: SKPayment, _ product: SKProduct)-> Bool)?
     
     internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []
-    private var activePayments: Set<SKPayment> = []
+    private var activePayments: [SKPayment: PaymentSource] = [:]
     let storage: Storage<Transactions>
     
     init(storage: Storage<Transactions>) {
@@ -114,14 +118,14 @@ class AppStoreClient: NSObject {
         }
     }
     
-    func purchase(productId: String) {
+    func purchase(productId: String, source: PaymentSource) {
         getProduct(with: productId) { [weak self] result in
             switch result {
             case .failure(let error):
                 self?.onError?(error)
             case .success(let product):
                 let payment = SKPayment(product: product)
-                self?.activePayments.insert(payment)
+                self?.activePayments[payment] = source
                 SKPaymentQueue.default().add(payment)
             }
         }
@@ -142,17 +146,17 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         for transaction in transactions {
             switch (transaction.transactionState) {
             case .purchased:
-                if processed.contains(transaction.transactionIdentifier)
-                    || !activePayments.contains(transaction.payment) {
-                    SKPaymentQueue.default().finishTransaction(transaction)
+                if let source = activePayments[transaction.payment],
+                    !processed.contains(transaction.transactionIdentifier) {
+                    complete(transaction: transaction, source: source)
                 } else {
-                    complete(transaction: transaction)
+                    SKPaymentQueue.default().finishTransaction(transaction)
                 }
                 processed.insert(transaction.transactionIdentifier)
-                activePayments.remove(transaction.payment)
+                activePayments.removeValue(forKey: transaction.payment)
             case .failed:
                 fail(transaction: transaction)
-                activePayments.remove(transaction.payment)
+                activePayments.removeValue(forKey: transaction.payment)
             case .restored:
                 if processed.contains(transaction.transactionIdentifier) {
                     SKPaymentQueue.default().finishTransaction(transaction)
@@ -196,10 +200,10 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         return onShouldAddStorePayment?(payment,product) ?? false
     }
     
-    private func complete(transaction: SKPaymentTransaction) {
+    private func complete(transaction: SKPaymentTransaction, source: PaymentSource) {
         let payment = transaction.payment
         pandaLog("Purchased: \(payment)")
-        onPurchase?(payment.productIdentifier)
+        onPurchase?(payment.productIdentifier, source)
         SKPaymentQueue.default().finishTransaction(transaction)
     }
 
