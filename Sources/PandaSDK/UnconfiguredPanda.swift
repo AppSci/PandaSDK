@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-final class UnconfiguredPanda: PandaProtocol {
+final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     var onPurchase: ((String) -> Void)?
     var onRestorePurchases: (([String]) -> Void)?
@@ -25,6 +25,15 @@ final class UnconfiguredPanda: PandaProtocol {
         var isDebug: Bool
     }
     private var lastConfigurationAttempt: LastConfigurationAttempt?
+
+    var observers: [ObjectIdentifier: WeakObserver] = [:]
+    func add(observer: PandaAnalyticsObserver) {
+        observers[ObjectIdentifier(observer)] = WeakObserver(value: observer)
+    }
+    
+    func remove(observer: PandaAnalyticsObserver) {
+        observers.removeValue(forKey: ObjectIdentifier(observer))
+    }
 
     func configure(apiKey: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
         lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug)
@@ -60,7 +69,7 @@ final class UnconfiguredPanda: PandaProtocol {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
 
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, overFullScreen: Bool = false, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         onShow?(.failure(Errors.notConfigured))
     }
@@ -85,7 +94,7 @@ final class UnconfiguredPanda: PandaProtocol {
             return
         }
         DispatchQueue.main.async {
-            callback?(.success(self.prepareViewController(screen: defaultScreen)))
+            callback?(.success(self.prepareViewController(screenData: defaultScreen)))
         }
     }
     
@@ -93,13 +102,12 @@ final class UnconfiguredPanda: PandaProtocol {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
     }
     
-    private func prepareViewController(screen: ScreenData) -> WebViewController {
-        let viewModel = WebViewModel()
-        viewModel.screenName = screen.id
-        viewModel.onSurvey = { value, screenId in
+    private func prepareViewController(screenData: ScreenData) -> WebViewController {
+        let viewModel = WebViewModel(screenData: screenData)
+        viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onPurchase = { [weak self] productId, source, view in
+        viewModel.onPurchase = { [weak self] productId, source, view, screenId, screenName in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
@@ -108,7 +116,7 @@ final class UnconfiguredPanda: PandaProtocol {
                 switch result {
                 case .success:
                     pandaLog("Reconfigured")
-                    view.viewModel?.onPurchase?(productId, source, view)
+                    view.viewModel?.onPurchase?(productId, source, view, screenId, screenName)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {
@@ -136,7 +144,6 @@ final class UnconfiguredPanda: PandaProtocol {
                 }
             })
         }
-        
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
         viewModel.onBillingIssue = { view in
@@ -144,13 +151,23 @@ final class UnconfiguredPanda: PandaProtocol {
             self.openBillingIssue()
             view.dismiss(animated: true, completion: nil)
         }
-        viewModel.dismiss = { [weak self] status, view in
+        viewModel.dismiss = { [weak self] status, view, screenId, screenName in
             pandaLog("Dismiss")
-            self?.trackClickDismiss()
+            if let screenID = screenId, let name = screenName {
+                self?.trackClickDismiss(screenId: screenID, screenName: name)
+            }
             view.dismiss(animated: true, completion: nil)
             self?.onDismiss?()
         }
-        let controller = setupWebView(html: screen.html, viewModel: viewModel)
+        viewModel.onViewWillAppear = { [weak self] screenId, screenName in
+            guard let screenId = screenId, let screenName = screenName else { return }
+            self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName))
+        }
+        viewModel.onViewDidAppear = { [weak self] screenId, screenName in
+            guard let screenId = screenId, let screenName = screenName else { return }
+            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName))
+        }
+        let controller = setupWebView(html: screenData.html, viewModel: viewModel)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
