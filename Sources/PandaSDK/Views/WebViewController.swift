@@ -231,7 +231,10 @@ extension WebViewController: WKNavigationDelegate {
     private func handleAction(url: URL) -> Bool {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
         guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else { return true }
-        
+
+        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+        let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
+
         switch action {
         case "purchase":
             onStartLoad()
@@ -239,8 +242,8 @@ extension WebViewController: WKNavigationDelegate {
             viewModel?.onPurchase(productID,
                                   url.lastPathComponent,
                                   self,
-                                  viewModel?.screenData.id ?? "",
-                                  viewModel?.screenData.name ?? ""
+                                  screenID,
+                                  screenName
             )
             return false
         case "restore":
@@ -251,8 +254,8 @@ extension WebViewController: WKNavigationDelegate {
             onFinishLoad()
             viewModel?.dismiss?(true,
                                 self,
-                                viewModel?.screenData.id ?? "",
-                                viewModel?.screenData.name ?? ""
+                                screenID,
+                                screenName
             )
             return false
         case "billing_issue":
@@ -274,26 +277,29 @@ extension WebViewController: WKNavigationDelegate {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else {return}
         guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else {return}
         
+        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+        let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
+        
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
             viewModel?.onSurvey?(answer,
-                                 viewModel?.screenData.id ?? "",
-                                 viewModel?.screenData.name ?? ""
+                                 screenID,
+                                 screenName
             )
         case "feedback_sent":
             let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
             viewModel?.onFeedback?(feedback,
-                                   viewModel?.screenData.id ?? "",
-                                   viewModel?.screenData.name ?? ""
+                                   screenID,
+                                   screenName
             )
             fallthrough
         case "dismiss":
             onFinishLoad()
             viewModel?.dismiss?(true,
                                 self,
-                                viewModel?.screenData.id ?? "",
-                                viewModel?.screenData.name ?? ""
+                                screenID,
+                                screenName
             )
         default:
             break
@@ -304,6 +310,10 @@ extension WebViewController: WKNavigationDelegate {
         
         if let url = navigationAction.request.url {
             let lastComponent = url.lastPathComponent
+
+            let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
+            let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+            let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
             
             switch lastComponent {
             case "subscription",
@@ -322,8 +332,8 @@ extension WebViewController: WKNavigationDelegate {
                 onFinishLoad()
                 viewModel?.dismiss?(true,
                                     self,
-                                    viewModel?.screenData.id ?? "",
-                                    viewModel?.screenData.name ?? ""
+                                    screenID,
+                                    screenName
                 )
                 return false
             default:
@@ -413,7 +423,7 @@ extension WebViewController {
                         document.body.innerHTML = document.body.innerHTML.replace(/\(string)/g, "\(info)");
                 """
         wv.evaluateJavaScript(js) { (result, error) in
-            if let res = result {
+            if let _ = result {
                 // print("replace(string: '\(string)', with info: '\(info)') \(res)")
             }
         }
