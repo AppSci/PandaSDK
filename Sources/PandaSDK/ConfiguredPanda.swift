@@ -32,12 +32,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public var onDismiss: (() -> Void)?
     public var onSuccessfulPurchase: (() -> Void)?
     public let isConfigured: Bool = true
-
+    public var pandaUserId: String?
 
     init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
+        self.pandaUserId = user.id
     }
     
     internal func configureAppStoreClient() {
@@ -409,7 +410,17 @@ final public class Panda: PandaProtocol, ObserverSupport {
         completionHandler()
         return true
     }
-
+    
+    public func setCustomUserId(id: String) {
+        networkClient.updateUser(user: user, with: id) { result in
+            switch result {
+            case .failure(let error):
+                pandaLog("Error on set custom user id: \(error)")
+            case .success:
+                pandaLog("Set custom id success")
+            }
+        }
+    }
 }
 
 extension Panda {

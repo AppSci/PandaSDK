@@ -191,6 +191,15 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
     
+    func updateUser(user: PandaUser,
+                    with customUserId: String,
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .put,
+                                    body: currentUserParameters(customUserId: customUserId))
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
     func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
             self.verifySubscriptionsRequest(user: user, receipt: receipt, screenId: source?.screenId, callback: onComplete)
