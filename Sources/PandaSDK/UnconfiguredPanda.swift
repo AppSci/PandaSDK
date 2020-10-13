@@ -16,9 +16,11 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var onDismiss: (() -> Void)?
     var onSuccessfulPurchase: (() -> Void)?
     let isConfigured: Bool = false
+    var pandaUserId: String?  = nil
     
     var viewControllers: Set<WeakObject<WebViewController>> = []
     var deviceToken: Data?
+    var customUserId: String?
     
     struct LastConfigurationAttempt {
         var apiKey: String
@@ -202,6 +204,10 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
         callback(.failure(Errors.notConfigured))
+    }
+    
+    func setCustomUserId(id: String) {
+        self.customUserId = id
     }
 }
 
