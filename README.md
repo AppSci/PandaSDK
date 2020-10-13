@@ -100,7 +100,7 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
-You can use Default screen in case of any errors - e.g. no inet connection - if you want, you can embed "Default.html" screen in bundle - name is critical  - it should be named exactly "Default.html" - we will use it for displaying this screen in case of any errors
+You can use Default screen in case of any errors - e.g. no inet connection - if you want, you can embed "PandaSDK-Default.html" screen in bundle - name is critical  - it should be named exactly "PandaSDK-Default.html" - we will use it for displaying this screen in case of any errors
 
 
 ## Plist structure

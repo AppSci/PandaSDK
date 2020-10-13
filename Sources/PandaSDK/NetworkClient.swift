@@ -108,7 +108,7 @@ internal class NetworkClient {
     private init(networkLoader: NetworkLoader, isDebug: Bool = true) {
         self.networkLoader = networkLoader
         self.isDebug = isDebug
-        self.serverAPI = isDebug ? ClientConfig.current.serverDebugUrl : ClientConfig.current.serverUrl
+        self.serverAPI = ClientConfig.current.serverUrl
     }
     
     convenience init(apiKey: String, isDebug: Bool = true) {
@@ -230,7 +230,7 @@ internal class NetworkClient {
         }
     }
 
-    static func loadScreenFromBundle(name: String = "Default") throws -> ScreenData {
+    static func loadScreenFromBundle(name: String = "PandaSDK-Default") throws -> ScreenData {
         guard let fileURL = Bundle.main.url(forResource: name, withExtension: "html"), let fileContents = try? String(contentsOf: fileURL) else {
             throw Errors.message("Cannot find default screen html")
         }
