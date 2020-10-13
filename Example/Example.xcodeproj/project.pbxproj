@@ -14,7 +14,7 @@
 		CDE8257C24AE2D9300824F65 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257A24AE2D9300824F65 /* Main.storyboard */; };
 		CDE8257E24AE2D9500824F65 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257D24AE2D9500824F65 /* Assets.xcassets */; };
 		CDE8258124AE2D9500824F65 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257F24AE2D9500824F65 /* LaunchScreen.storyboard */; };
-		CDED5C4124C5DE17008E0EDE /* Default.html in Resources */ = {isa = PBXBuildFile; fileRef = CDED5C4024C5DE17008E0EDE /* Default.html */; };
+		CDED5C4124C5DE17008E0EDE /* PandaSDK-Default.html in Resources */ = {isa = PBXBuildFile; fileRef = CDED5C4024C5DE17008E0EDE /* PandaSDK-Default.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,14 +22,14 @@
 		3E11BF82863EB9B3A60E39F3 /* libPods-Example.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Example.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8333C30C947FA7703716BED /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
 		CD54BB0F24B4DFAC00F3BA90 /* PandaSDK-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "PandaSDK-Info.plist"; sourceTree = "<group>"; };
-		CDE8257124AE2D9300824F65 /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDE8257124AE2D9300824F65 /* PandaSDK Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PandaSDK Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDE8257424AE2D9300824F65 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CDE8257824AE2D9300824F65 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		CDE8257B24AE2D9300824F65 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CDE8257D24AE2D9500824F65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CDE8258024AE2D9500824F65 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CDE8258224AE2D9500824F65 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CDED5C4024C5DE17008E0EDE /* Default.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Default.html; sourceTree = "<group>"; };
+		CDED5C4024C5DE17008E0EDE /* PandaSDK-Default.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "PandaSDK-Default.html"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +74,7 @@
 		CDE8257224AE2D9300824F65 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CDE8257124AE2D9300824F65 /* Example.app */,
+				CDE8257124AE2D9300824F65 /* PandaSDK Example.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,7 +82,7 @@
 		CDE8257324AE2D9300824F65 /* Example */ = {
 			isa = PBXGroup;
 			children = (
-				CDED5C4024C5DE17008E0EDE /* Default.html */,
+				CDED5C4024C5DE17008E0EDE /* PandaSDK-Default.html */,
 				CD54BB0F24B4DFAC00F3BA90 /* PandaSDK-Info.plist */,
 				CDE8257424AE2D9300824F65 /* AppDelegate.swift */,
 				CDE8257824AE2D9300824F65 /* ViewController.swift */,
@@ -112,7 +112,7 @@
 			);
 			name = Example;
 			productName = Example;
-			productReference = CDE8257124AE2D9300824F65 /* Example.app */;
+			productReference = CDE8257124AE2D9300824F65 /* PandaSDK Example.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -157,7 +157,7 @@
 				CDE8258124AE2D9500824F65 /* LaunchScreen.storyboard in Resources */,
 				CDE8257E24AE2D9500824F65 /* Assets.xcassets in Resources */,
 				CDE8257C24AE2D9300824F65 /* Main.storyboard in Resources */,
-				CDED5C4124C5DE17008E0EDE /* Default.html in Resources */,
+				CDED5C4124C5DE17008E0EDE /* PandaSDK-Default.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,7 +350,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.pandasdk.Example;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "PandaSDK Example";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -370,7 +370,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.pandasdk.Example;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "PandaSDK Example";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
