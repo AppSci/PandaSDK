@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CDE8257024AE2D9300824F65"
-               BuildableName = "Example.app"
+               BuildableName = "PandaSDK Example.app"
                BlueprintName = "Example"
                ReferencedContainer = "container:Example.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CDE8257024AE2D9300824F65"
-            BuildableName = "Example.app"
+            BuildableName = "PandaSDK Example.app"
             BlueprintName = "Example"
             ReferencedContainer = "container:Example.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CDE8257024AE2D9300824F65"
-            BuildableName = "Example.app"
+            BuildableName = "PandaSDK Example.app"
             BlueprintName = "Example"
             ReferencedContainer = "container:Example.xcodeproj">
          </BuildableReference>
