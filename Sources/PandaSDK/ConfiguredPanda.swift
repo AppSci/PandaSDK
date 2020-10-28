@@ -203,19 +203,36 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
 
+
     public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
-        /// appid://panda/promo/product_id
+        
         if url.host == "panda" {
             
             /// track analytics
             trackDeepLink(url.absoluteString)
+
+            /// appid://panda/promo/product_id?screen_id=xxxxxxx-xxxxx-xxxx-xxxxxx
             
-            /// show screen
-            if let product = url.pathComponents.last {
-                showScreen(screenType: .product, product: product)
-            } else {
-                showScreen(screenType: .promo)
+            //get screen type
+            let type = url.pathComponents[safe: 1]
+            
+            /// get product_id safety
+            let product = url.pathComponents[safe: 2]
+            
+            /// get screen_id sefety
+            let screen = url.components?.queryItems?["screen_id"]
+            
+            var screenType = ScreenType.promo
+            
+            switch type {
+            case "sales":
+                screenType = .sales
+            case "product":
+                screenType = .product
+            default:
+                screenType = .promo
             }
+            showScreen(screenType: screenType, product: product, screenId: screen)
         }
     }
     
@@ -476,11 +493,13 @@ extension PandaProtocol where Self: ObserverSupport {
     }
 
     func trackOpenLink(_ link: String, _ result: Bool) {
+        send(event: .trackOpenLink(link: link, result: "\(result)"))
     }
-    
+
     func trackDeepLink(_ link: String) {
+        send(event: .trackDeepLink(link: link))
     }
-    
+
     func trackClickDismiss(screenId: String, screenName: String) {
         send(event: .screenDismissed(screenId: screenId, screenName: screenName))
     }
@@ -513,4 +532,3 @@ class ScreenCache {
         }
     }
 }
-
