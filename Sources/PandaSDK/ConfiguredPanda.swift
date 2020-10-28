@@ -233,7 +233,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             screenType = .promo
         }
 
-        showScreen(screenType: screenType, product: product, screenId: screen)        
+        showScreen(screenType: screenType, screenId: screen, product: product)
     }
     
     public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
