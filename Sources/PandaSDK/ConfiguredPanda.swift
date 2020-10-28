@@ -206,34 +206,34 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
     public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
         
-        if url.host == "panda" {
-            
-            /// track analytics
-            trackDeepLink(url.absoluteString)
+        guard url.host == "panda" else { return }
+        
+        /// track analytics
+        trackDeepLink(url.absoluteString)
 
-            /// appid://panda/promo/product_id?screen_id=xxxxxxx-xxxxx-xxxx-xxxxxx
-            
-            //get screen type
-            let type = url.pathComponents[safe: 1]
-            
-            /// get product_id safety
-            let product = url.pathComponents[safe: 2]
-            
-            /// get screen_id sefety
-            let screen = url.components?.queryItems?["screen_id"]
-            
-            var screenType = ScreenType.promo
-            
-            switch type {
-            case "sales":
-                screenType = .sales
-            case "product":
-                screenType = .product
-            default:
-                screenType = .promo
-            }
-            showScreen(screenType: screenType, product: product, screenId: screen)
+        /// appid://panda/promo/product_id?screen_id=xxxxxxx-xxxxx-xxxx-xxxxxx
+        
+        /// get screen type
+        let type = url.pathComponents[safe: 1]
+        
+        /// get product_id safety
+        let product = url.pathComponents[safe: 2]
+        
+        /// get screen_id sefety
+        let screen = url.components?.queryItems?["screen_id"]
+        
+        var screenType = ScreenType.promo
+        
+        switch type {
+        case "sales":
+            screenType = .sales
+        case "product":
+            screenType = .product
+        default:
+            screenType = .promo
         }
+
+        showScreen(screenType: screenType, product: product, screenId: screen)        
     }
     
     public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
