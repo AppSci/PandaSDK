@@ -269,7 +269,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private func createViewModel(screenData: ScreenData, product: String? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData)
         if let product = product {
-            viewModel.product = appStoreClient.products[product]
+            appStoreClient.getProduct(with: product) { [weak self] result in
+                switch result {
+                case .failure(let error):
+                    pandaLog("\(error.localizedDescription)")
+                case .success(let product):
+                    viewModel.product = product
+                }
+            }
         }
         viewModel.onSurvey = { answer, screenId, screenName in
             pandaLog("AnswerSelected send: \(answer)")
