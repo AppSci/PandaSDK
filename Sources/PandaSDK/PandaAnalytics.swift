@@ -14,6 +14,7 @@ public enum PandaEvent {
     case surveyAnswerSelect(screenId: String, screenName: String, answerId: String)
     case surveyPosted(screenId: String, screenName: String, feedbackId: String)
     case screenShowed(screenId: String, screenName: String)
+    case screenLoaded(screenId: String, screenName: String)
     case screenWillShow(screenId: String, screenName: String)
     case trackOpenLink(link: String, result: String)
     case trackDeepLink(link: String)

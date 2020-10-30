@@ -172,7 +172,7 @@ internal class NetworkClient {
     }
 
     func verifySubscriptionsRequest(user: PandaUser, receipt: String, screenId: String?, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
-        let request = createRequest(path: "/v1/itunes/verify/\(user.id)",
+        let request = createRequest(path: "/v1/itunes/verify/\(user.id)?screen_id=\(screenId ?? "")",
                                     method: .post,
                                     httpBody: receipt.data(using: .utf8))
         networkLoader.loadData(with: request, completion: callback)

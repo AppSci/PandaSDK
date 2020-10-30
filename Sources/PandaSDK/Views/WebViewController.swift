@@ -65,7 +65,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         _ = view // trigger viewdidload
         wv.alpha = 0
         
-        pandaLog("SubscriptionBooster // start loading html \(Date().timeIntervalSince1970) \(Date())")
+        pandaLog("start loading html \(Date().timeIntervalSince1970) \(Date())")
         
         
         if let html = html {
@@ -176,12 +176,23 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         )
     }
     
+    func didFinishLoading(_ url: URL?) {
+        guard let url = url else {
+            viewModel?.onDidFinishLoading?(viewModel?.screenData.id, viewModel?.screenData.name)
+            return
+        }
+        let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
+        let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id
+        let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name
+        viewModel?.onDidFinishLoading?(screenID, screenName)
+    }
+    
     func handleScreenDidLoad() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
         
         wv.alpha = 1
         loadingIndicator.stopAnimating()
-        pandaLog("SubscriptionBooster // html did load \(Date().timeIntervalSince1970) \(Date())")
+        pandaLog("html did load \(Date().timeIntervalSince1970) \(Date())")
     }
     
     @objc private func failedByTimeOut() {
@@ -361,7 +372,8 @@ extension WebViewController: WKNavigationDelegate {
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        pandaLog("WebViewController // didFinish loading: \(String(describing: webView.url?.absoluteString))")
+        pandaLog("WebViewController // didFinish loading: \(String(describing: webView.url))")
+        didFinishLoading(webView.url)
         handleScreenDidLoad()
         fillProductInfoWithJS()
     }

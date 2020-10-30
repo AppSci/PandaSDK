@@ -293,6 +293,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
+            pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
             self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId))
             appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name))
         }
@@ -317,12 +318,16 @@ final public class Panda: PandaProtocol, ObserverSupport {
             self?.onDismiss?()
         }
         viewModel.onViewWillAppear = { [weak self] screenId, screenName in
-            guard let screenId = screenId, let screenName = screenName else { return }
-            self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName))
+            pandaLog("onViewWillAppear \(screenName) \(screenId)")
+            self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
         viewModel.onViewDidAppear = { [weak self] screenId, screenName in
-            guard let screenId = screenId, let screenName = screenName else { return }
-            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName))
+            pandaLog("onViewDidAppear \(screenName) \(screenId)")
+            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? ""))
+        }
+        viewModel.onDidFinishLoading = { [weak self] screenId, screenName in
+            pandaLog("onDidFinishLoading \(screenName) \(screenId)")
+            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
         return viewModel
     }

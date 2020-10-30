@@ -105,7 +105,7 @@ extension UIDevice {
 }
 
 internal func pandaLog(_ message: String, file: String = #file, function: String = #function, line: Int = #line) {
-    print(">>>\(function) \(line) \(file)<<<\n\(message)")
+    print("PandaSDK >>> \(function) \(line) \(file) <<<\nPandaSDK >>> \(message) <<<")
 }
 
 // MARK: UIApplication extensions

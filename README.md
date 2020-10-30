@@ -113,7 +113,6 @@ To have all set, you need to add this info in your `PandaSDK-Info.plist` - you c
 | POLICY_URL       | https://policy.com                           | add your URL for Policy & Privacy page             |
 | TERMS_URL        | https://terms.html                           | add your URL for Terms & Conditions page           |
 | SERVER_URL       | https://sdk-api.panda.boosters.company       | URL of Panda Server - please, do not remove         |
-| SERVER_URL_DEBUG | https://sdk-api.panda-stage.boosters.company | Debug URL of Panda Server - please, do not remove   |
 | productIds       | Array                                        | Array of your Purchase product ids                 |
 
 
