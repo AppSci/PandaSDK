@@ -39,9 +39,11 @@ class WebViewModel: WebViewModelProtocol {
     
     let screenData: ScreenData
     var product: SKProduct?
+    let payload: [String: Any]?
     
-    init(screenData: ScreenData) {
+    init(screenData: ScreenData, payload: [String: Any]? = nil) {
         self.screenData = screenData
+        self.payload = payload
         setupObserver()
     }
     

@@ -44,9 +44,9 @@ public protocol PandaProtocol: class {
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
      - parameter onShow: Optional. Returns Result for showing screen
      */
-    func showScreen(screenType: ScreenType, screenId: String?, product: String?, onShow: ((Result<Bool, Error>) -> Void)?)
+    func showScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
     
-    func showScreen(screenType: ScreenType, screenId: String?, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, onShow: ((Result<Bool, Error>) -> Void)?)
+    func showScreen(screenType: ScreenType, screenId: String?, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
 
     /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
@@ -158,8 +158,8 @@ public extension PandaProtocol {
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
      - parameter callback: Optional. Returns Result for showing screen
      */
-    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, presentationStyle: .pageSheet, onShow: onShow)
+    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+        showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, presentationStyle: .pageSheet, payload: payload, onShow: onShow)
     }
     
     /**

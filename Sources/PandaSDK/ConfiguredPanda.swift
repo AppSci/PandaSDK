@@ -258,18 +258,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
-    private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil) -> WebViewController {
-        let viewModel = createViewModel(screenData: screen, product: product)
+    private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil, payload: [String: Any]? = nil) -> WebViewController {
+        let viewModel = createViewModel(screenData: screen, product: product, payload: payload)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
     }
     
-    private func createViewModel(screenData: ScreenData, product: String? = nil) -> WebViewModel {
-        let viewModel = WebViewModel(screenData: screenData)
+    private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
+        let viewModel = WebViewModel(screenData: screenData, payload: payload)
         if let product = product {
-            appStoreClient.getProduct(with: product) { [weak self] result in
+            appStoreClient.getProduct(with: product) { result in
                 switch result {
                 case .failure(let error):
                     pandaLog("\(error.localizedDescription)")
@@ -318,15 +318,15 @@ final public class Panda: PandaProtocol, ObserverSupport {
             self?.onDismiss?()
         }
         viewModel.onViewWillAppear = { [weak self] screenId, screenName in
-            pandaLog("onViewWillAppear \(screenName) \(screenId)")
+            pandaLog("onViewWillAppear \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
         viewModel.onViewDidAppear = { [weak self] screenId, screenName in
-            pandaLog("onViewDidAppear \(screenName) \(screenId)")
+            pandaLog("onViewDidAppear \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
         viewModel.onDidFinishLoading = { [weak self] screenId, screenName in
-            pandaLog("onDidFinishLoading \(screenName) \(screenId)")
+            pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
         return viewModel
@@ -335,7 +335,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private func setupWebView(html: String, viewModel: WebViewModel, screenType: ScreenType) -> WebViewController {
         let controller = WebViewController()
 
-        controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
+        controller.view.backgroundColor = viewModel.payload?["background"] as? UIColor
         controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
         controller.viewModel = viewModel
         controller.loadPage(html: html)
@@ -385,9 +385,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         if let screen = cache[screenId] {
-            self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, onShow: onShow)
+            self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             return
         }
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
@@ -398,17 +398,17 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     onShow?(.failure(error))
                     return
                 }
-                self?.showPreparedViewController(screenData: defaultScreen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, onShow: onShow)
+                self?.showPreparedViewController(screenData: defaultScreen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             case .success(let screenData):
                 self?.cache[screenData.id] = screenData
-                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, onShow: onShow)
+                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             }
         }
     }
     
-    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, onShow: ((Result<Bool, Error>) -> Void)?) {
+    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)?) {
         DispatchQueue.main.async {
-            let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product)
+            let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product, payload: payload)
             vc.modalPresentationStyle = presentationStyle
             vc.isAutoDismissable = autoDismiss
             self.presentOnRoot(with: vc) {

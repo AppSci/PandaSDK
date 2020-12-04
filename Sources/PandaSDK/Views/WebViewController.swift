@@ -164,6 +164,24 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         }
     }
     
+    private func setPayload() {
+        guard let payload = viewModel.payload?["data"] as? [String: String] else { return }
+        guard let data = try? JSONEncoder().encode(payload) else { return }
+        guard let json = String(data: data, encoding: .utf8) else { return }
+        
+        let js = """
+                    setPayload(\(json));
+                 """
+        wv.evaluateJavaScript(js) { (result, error) in
+            if let e = error {
+                print("error: \(e)")
+            }
+            if let res = result {
+                print("payload \(res)")
+            }
+        }
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         viewModel?.onViewWillAppear?(viewModel?.screenData.id ?? "",
                                     viewModel?.screenData.name ?? ""
@@ -189,6 +207,8 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     func handleScreenDidLoad() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
+        
+        setPayload()
         
         wv.alpha = 1
         loadingIndicator.stopAnimating()
