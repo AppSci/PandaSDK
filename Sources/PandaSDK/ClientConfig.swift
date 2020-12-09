@@ -11,6 +11,7 @@ struct ClientConfig: Codable {
     enum CodingKeys: String, CodingKey {
         case productIds
         case serverUrl = "SERVER_URL"
+        case serverDebugUrl = "SERVER_URL_DEBUG"
         case policyUrl = "POLICY_URL"
         case termsUrl = "TERMS_URL"
         case billingUrl = "BILLING_URL"
@@ -20,6 +21,7 @@ struct ClientConfig: Codable {
     static let `default` = ClientConfig(
         productIds: nil,
         serverUrl: "https://api.panda.boosters.company",
+        serverDebugUrl: "",
         policyUrl: "",
         termsUrl: "",
         billingUrl: "https://apps.apple.com/account/billing")
@@ -37,6 +39,7 @@ struct ClientConfig: Codable {
     let productIds: [String]?
     
     let serverUrl: String
+    let serverDebugUrl: String
     let policyUrl: String
     let termsUrl: String
     let billingUrl: String

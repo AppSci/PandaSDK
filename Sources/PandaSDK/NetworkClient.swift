@@ -108,7 +108,7 @@ internal class NetworkClient {
     private init(networkLoader: NetworkLoader, isDebug: Bool = true) {
         self.networkLoader = networkLoader
         self.isDebug = isDebug
-        self.serverAPI = ClientConfig.current.serverUrl
+        self.serverAPI = isDebug ? ClientConfig.current.serverDebugUrl : ClientConfig.current.serverUrl
     }
     
     convenience init(apiKey: String, isDebug: Bool = true) {
