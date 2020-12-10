@@ -81,11 +81,11 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         statusCallback?(.failure(Errors.notConfigured))
     }
 
-    func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        getScreen(callback: callback)
+    func getScreen(screenId: String?, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        getScreen(screenId: screenId, payload: payload, callback: callback)
     }
     
-    func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+    func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         let defaultScreen: ScreenData
         do {
             defaultScreen = try NetworkClient.loadScreenFromBundle()

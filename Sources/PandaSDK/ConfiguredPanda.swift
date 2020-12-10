@@ -156,10 +156,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
 
-    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
-                callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
+                callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product, payload: payload)))
             }
             return
         }
@@ -179,12 +179,12 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     return
                 }
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product)))
+                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product, payload: payload)))
                 }
             case .success(let screen):
                 self.cache[screen.id] = screen
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product)))
+                    callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product, payload: payload)))
                 }
             }
         }

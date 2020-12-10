@@ -34,9 +34,9 @@ public protocol PandaProtocol: class {
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      - parameter callback: Optional. Returns Result for getting screen
      */
-    func getScreen(screenId: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    func getScreen(screenId: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
-    func getScreen(screenType: ScreenType, screenId: String?, product: String?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    func getScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
     /**
      Returns screen with specific product from Panda Web
@@ -169,8 +169,8 @@ public extension PandaProtocol {
      - parameter callback: Optional. Returns Result for getting screen
      */
 
-    func getScreen(screenId: String? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        getScreen(screenType: .sales, screenId: screenId, product: nil, callback: callback)
+    func getScreen(screenId: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        getScreen(screenType: .sales, screenId: screenId, product: nil, payload: payload, callback: callback)
     }
     
 }
