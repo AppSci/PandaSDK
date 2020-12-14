@@ -227,12 +227,16 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     internal func onStartLoad() {
-        let activityData = ActivityData()
-        NVActivityIndicatorPresenter.sharedInstance.startAnimating(activityData, nil)
+        DispatchQueue.main.async {
+            let activityData = ActivityData()
+            NVActivityIndicatorPresenter.sharedInstance.startAnimating(activityData, nil)
+        }
     }
 
     internal func onFinishLoad() {
-        NVActivityIndicatorPresenter.sharedInstance.stopAnimating(nil)
+        DispatchQueue.main.async {
+            NVActivityIndicatorPresenter.sharedInstance.stopAnimating(nil)
+        }
     }
     
     internal func tryAutoDismiss() {
