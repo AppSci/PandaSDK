@@ -82,7 +82,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
 
     func getScreen(screenId: String?, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        getScreen(screenId: screenId, payload: payload, callback: callback)
+        getScreen(screenType: .sales, screenId: screenId, payload: payload, callback: callback)
     }
     
     func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
