@@ -195,6 +195,11 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         onError?(error)
     }
     
+    func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
+        pandaLog("paymentQueueRestoreCompletedTransactionsFinished: \(queue)")
+        onRestore?([])
+    }
+    
     func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
         pandaLog("ShouldAddStorePayment")
         return onShouldAddStorePayment?(payment,product) ?? false
