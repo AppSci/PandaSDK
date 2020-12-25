@@ -8,7 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		320263A0FC1022665AC5C0FC /* libPods-Example.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E11BF82863EB9B3A60E39F3 /* libPods-Example.a */; };
+		A8D9DA013CA174DC5082F2AB /* libPods-PandaSDKTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D3A514AD4FAF293FD0B83C4B /* libPods-PandaSDKTests.a */; };
 		CD54BB1024B4DFAC00F3BA90 /* PandaSDK-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CD54BB0F24B4DFAC00F3BA90 /* PandaSDK-Info.plist */; };
+		CD63B3652596427200A7B833 /* PandaSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD63B3642596427200A7B833 /* PandaSDKTests.swift */; };
+		CD63B37E2596430200A7B833 /* Simple.storekit in Resources */ = {isa = PBXBuildFile; fileRef = CD63B37D2596430200A7B833 /* Simple.storekit */; };
 		CDE8257524AE2D9300824F65 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE8257424AE2D9300824F65 /* AppDelegate.swift */; };
 		CDE8257924AE2D9300824F65 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE8257824AE2D9300824F65 /* ViewController.swift */; };
 		CDE8257C24AE2D9300824F65 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDE8257A24AE2D9300824F65 /* Main.storyboard */; };
@@ -17,11 +20,27 @@
 		CDED5C4124C5DE17008E0EDE /* PandaSDK-Default.html in Resources */ = {isa = PBXBuildFile; fileRef = CDED5C4024C5DE17008E0EDE /* PandaSDK-Default.html */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		CD63B3672596427200A7B833 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE8256924AE2D9300824F65 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDE8257024AE2D9300824F65;
+			remoteInfo = Example;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		10A1F12D0D843B11564BFEFC /* Pods-PandaSDKTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PandaSDKTests.debug.xcconfig"; path = "Target Support Files/Pods-PandaSDKTests/Pods-PandaSDKTests.debug.xcconfig"; sourceTree = "<group>"; };
 		1196ABF48ADE9D306D74C393 /* Pods-Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.debug.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.debug.xcconfig"; sourceTree = "<group>"; };
+		3382E81C01CEC4C02A0045E5 /* Pods-PandaSDKTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PandaSDKTests.release.xcconfig"; path = "Target Support Files/Pods-PandaSDKTests/Pods-PandaSDKTests.release.xcconfig"; sourceTree = "<group>"; };
 		3E11BF82863EB9B3A60E39F3 /* libPods-Example.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Example.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8333C30C947FA7703716BED /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
 		CD54BB0F24B4DFAC00F3BA90 /* PandaSDK-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "PandaSDK-Info.plist"; sourceTree = "<group>"; };
+		CD63B3622596427200A7B833 /* PandaSDKTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PandaSDKTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD63B3642596427200A7B833 /* PandaSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PandaSDKTests.swift; sourceTree = "<group>"; };
+		CD63B3662596427200A7B833 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CD63B37D2596430200A7B833 /* Simple.storekit */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Simple.storekit; sourceTree = "<group>"; };
 		CDE8257124AE2D9300824F65 /* PandaSDK Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PandaSDK Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDE8257424AE2D9300824F65 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CDE8257824AE2D9300824F65 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -30,9 +49,18 @@
 		CDE8258024AE2D9500824F65 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CDE8258224AE2D9500824F65 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CDED5C4024C5DE17008E0EDE /* PandaSDK-Default.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "PandaSDK-Default.html"; sourceTree = "<group>"; };
+		D3A514AD4FAF293FD0B83C4B /* libPods-PandaSDKTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PandaSDKTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CD63B35F2596427200A7B833 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A8D9DA013CA174DC5082F2AB /* libPods-PandaSDKTests.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CDE8256E24AE2D9300824F65 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -49,6 +77,8 @@
 			children = (
 				1196ABF48ADE9D306D74C393 /* Pods-Example.debug.xcconfig */,
 				B8333C30C947FA7703716BED /* Pods-Example.release.xcconfig */,
+				10A1F12D0D843B11564BFEFC /* Pods-PandaSDKTests.debug.xcconfig */,
+				3382E81C01CEC4C02A0045E5 /* Pods-PandaSDKTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -57,14 +87,26 @@
 			isa = PBXGroup;
 			children = (
 				3E11BF82863EB9B3A60E39F3 /* libPods-Example.a */,
+				D3A514AD4FAF293FD0B83C4B /* libPods-PandaSDKTests.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		CD63B3632596427200A7B833 /* PandaSDKTests */ = {
+			isa = PBXGroup;
+			children = (
+				CD63B3642596427200A7B833 /* PandaSDKTests.swift */,
+				CD63B37D2596430200A7B833 /* Simple.storekit */,
+				CD63B3662596427200A7B833 /* Info.plist */,
+			);
+			path = PandaSDKTests;
 			sourceTree = "<group>";
 		};
 		CDE8256824AE2D9300824F65 = {
 			isa = PBXGroup;
 			children = (
 				CDE8257324AE2D9300824F65 /* Example */,
+				CD63B3632596427200A7B833 /* PandaSDKTests */,
 				CDE8257224AE2D9300824F65 /* Products */,
 				36D8546FDA971D187310A11F /* Pods */,
 				410AA84BE0896B16537AB712 /* Frameworks */,
@@ -75,6 +117,7 @@
 			isa = PBXGroup;
 			children = (
 				CDE8257124AE2D9300824F65 /* PandaSDK Example.app */,
+				CD63B3622596427200A7B833 /* PandaSDKTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -97,6 +140,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		CD63B3612596427200A7B833 /* PandaSDKTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CD63B36B2596427200A7B833 /* Build configuration list for PBXNativeTarget "PandaSDKTests" */;
+			buildPhases = (
+				A96BDC8C04D75CE800D62939 /* [CP] Check Pods Manifest.lock */,
+				CD63B35E2596427200A7B833 /* Sources */,
+				CD63B35F2596427200A7B833 /* Frameworks */,
+				CD63B3602596427200A7B833 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CD63B3682596427200A7B833 /* PBXTargetDependency */,
+			);
+			name = PandaSDKTests;
+			productName = PandaSDKTests;
+			productReference = CD63B3622596427200A7B833 /* PandaSDKTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		CDE8257024AE2D9300824F65 /* Example */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CDE8258524AE2D9500824F65 /* Build configuration list for PBXNativeTarget "Example" */;
@@ -121,10 +183,14 @@
 		CDE8256924AE2D9300824F65 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1150;
+				LastSwiftUpdateCheck = 1230;
 				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = PandaSDK;
 				TargetAttributes = {
+					CD63B3612596427200A7B833 = {
+						CreatedOnToolsVersion = 12.3;
+						TestTargetID = CDE8257024AE2D9300824F65;
+					};
 					CDE8257024AE2D9300824F65 = {
 						CreatedOnToolsVersion = 11.5;
 					};
@@ -144,11 +210,20 @@
 			projectRoot = "";
 			targets = (
 				CDE8257024AE2D9300824F65 /* Example */,
+				CD63B3612596427200A7B833 /* PandaSDKTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		CD63B3602596427200A7B833 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD63B37E2596430200A7B833 /* Simple.storekit in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CDE8256F24AE2D9300824F65 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -164,6 +239,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		A96BDC8C04D75CE800D62939 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PandaSDKTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		C47E88CA03E58EE4C385AA2A /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -189,6 +286,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CD63B35E2596427200A7B833 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CD63B3652596427200A7B833 /* PandaSDKTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CDE8256D24AE2D9300824F65 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -199,6 +304,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CD63B3682596427200A7B833 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDE8257024AE2D9300824F65 /* Example */;
+			targetProxy = CD63B3672596427200A7B833 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		CDE8257A24AE2D9300824F65 /* Main.storyboard */ = {
@@ -220,6 +333,48 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		CD63B3692596427200A7B833 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 10A1F12D0D843B11564BFEFC /* Pods-PandaSDKTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PandaSDKTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = test.PandaSDKTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PandaSDK Example.app/PandaSDK Example";
+			};
+			name = Debug;
+		};
+		CD63B36A2596427200A7B833 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3382E81C01CEC4C02A0045E5 /* Pods-PandaSDKTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PandaSDKTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = test.PandaSDKTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PandaSDK Example.app/PandaSDK Example";
+			};
+			name = Release;
+		};
 		CDE8258324AE2D9500824F65 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -379,6 +534,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CD63B36B2596427200A7B833 /* Build configuration list for PBXNativeTarget "PandaSDKTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD63B3692596427200A7B833 /* Debug */,
+				CD63B36A2596427200A7B833 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CDE8256C24AE2D9300824F65 /* Build configuration list for PBXProject "Example" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

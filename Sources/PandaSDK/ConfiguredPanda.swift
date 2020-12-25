@@ -8,6 +8,10 @@
 import Foundation
 import UIKit
 
+protocol VerificationClient {
+    func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
+}
+
 final public class Panda: PandaProtocol, ObserverSupport {
 
     internal static var notificationDispatcher: NotificationDispatcher!
@@ -23,6 +27,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     let cache: ScreenCache = ScreenCache()
     let user: PandaUser
     let appStoreClient: AppStoreClient
+    var verificationClient: VerificationClient
     private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
     private var viewControllers: Set<WeakObject<WebViewController>> = []
 
@@ -38,6 +43,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
+        self.verificationClient = networkClient
         self.pandaUserId = user.id
     }
     
@@ -86,7 +92,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .success(let receiptString):
                 receipt = receiptString
         }
-        networkClient.verifySubscriptions(user: user, receipt: receipt, source: source) { [weak self] (result) in
+        verificationClient.verifySubscriptions(user: user, receipt: receipt, source: source, retries: 1) { [weak self] (result) in
             switch result {
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -119,7 +125,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             return
         case .success(let receipt):
-            networkClient.verifySubscriptions(user: user, receipt: receipt, source: nil) { _ in }
+            verificationClient.verifySubscriptions(user: user, receipt: receipt, source: nil, retries: 1) { _ in }
         }
         DispatchQueue.main.async { [weak self] in
             self?.viewControllers.forEach { $0.value?.onFinishLoad() }
@@ -245,7 +251,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .success(let receiptString):
                 receipt = receiptString
         }
-        networkClient.verifySubscriptions(user: user, receipt: receipt, source: nil) { (result) in
+        verificationClient.verifySubscriptions(user: user, receipt: receipt, source: nil, retries: 1) { (result) in
             callback(result)
         }
     }
@@ -543,4 +549,8 @@ class ScreenCache {
             cache[key] = newValue
         }
     }
+}
+
+extension NetworkClient: VerificationClient {
+    
 }
