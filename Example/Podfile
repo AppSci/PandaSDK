@@ -7,5 +7,7 @@ target 'Example' do
 
   # Pods for Example
   pod 'PandaSDK', :path => '../'
-
+  target 'PandaSDKTests' do
+    inherit! :search_paths
+  end
 end
