@@ -225,5 +225,9 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         onError?(error)
         SKPaymentQueue.default().finishTransaction(transaction)
     }
+    
+    internal func clearProcessedStorage() {
+        storage.clear()
+    }
 
 }
