@@ -146,6 +146,17 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
+    public func registerAppsFlyer(id: String) {
+        networkClient.updateUser(appsFlyerId: id, user: user) { (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("Appsflyer not configured error: \(error)")
+            case .success:
+                pandaLog("Appsflyer configured")
+            }
+        }
+    }
+    
     public func prefetchScreen(screenId: String?) {
         networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {

@@ -185,10 +185,21 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
     
-    func updateUser(pushToken: String, user: PandaUser, callback: @escaping (Result<PandaUser, Error>) -> Void) {
+    func updateUser(pushToken: String,
+                    user: PandaUser,
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
                                     body: currentUserParameters(pushToken: pushToken))
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
+    func updateUser(appsFlyerId: String,
+                    user: PandaUser,
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .put,
+                                    body: currentUserParameters(appsFlyerId: appsFlyerId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
