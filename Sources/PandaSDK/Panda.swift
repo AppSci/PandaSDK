@@ -148,6 +148,12 @@ public protocol PandaProtocol: class {
     
     func add(observer: PandaAnalyticsObserver)
     func remove(observer: PandaAnalyticsObserver)
+    
+    /**
+     Register user for AppsFlyer
+     - parameter appsFlyerId: id that user recieved after succeeded registration for AppsFlyer
+     */
+    func registerAppsFlyer(id: String)
 }
 
 public extension PandaProtocol {

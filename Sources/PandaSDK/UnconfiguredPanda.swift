@@ -21,7 +21,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var viewControllers: Set<WeakObject<WebViewController>> = []
     var deviceToken: Data?
     var customUserId: String?
-    
+    var appsFlyerId: String?
+
     struct LastConfigurationAttempt {
         var apiKey: String
         var isDebug: Bool
@@ -65,6 +66,10 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
 
     func registerDevice(token: Data) {
         deviceToken = token
+    }
+    
+    func registerAppsFlyer(id: String) {
+        appsFlyerId = id
     }
     
     func prefetchScreen(screenId: String?) {
