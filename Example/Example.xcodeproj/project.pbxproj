@@ -22,6 +22,8 @@
 		CD76D44925BB515100558AE3 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD3CCC9525BB0FC7008E34B8 /* libcrypto.a */; };
 		CD76D44A25BB515100558AE3 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CD3CCC9625BB0FC7008E34B8 /* libssl.a */; };
 		CD76D47425BD6FDE00558AE3 /* AppleIncRootCertificate.cer in Resources */ = {isa = PBXBuildFile; fileRef = CD76D47325BD6FDE00558AE3 /* AppleIncRootCertificate.cer */; };
+		CD7DBA4625C4114700454DD5 /* Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7DBA4525C4114700454DD5 /* Test.swift */; };
+		CD7DBA4A25C4117700454DD5 /* response.json in Resources */ = {isa = PBXBuildFile; fileRef = CD7DBA4925C4117700454DD5 /* response.json */; };
 		CD81113025BB3EB9006F6B02 /* StoreKitTestCertificate.cer in Resources */ = {isa = PBXBuildFile; fileRef = CD81112F25BB3EB9006F6B02 /* StoreKitTestCertificate.cer */; };
 		CDE8257524AE2D9300824F65 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE8257424AE2D9300824F65 /* AppDelegate.swift */; };
 		CDE8257924AE2D9300824F65 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE8257824AE2D9300824F65 /* ViewController.swift */; };
@@ -165,6 +167,8 @@
 		CD63B3662596427200A7B833 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CD63B37D2596430200A7B833 /* Simple.storekit */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Simple.storekit; sourceTree = "<group>"; };
 		CD76D47325BD6FDE00558AE3 /* AppleIncRootCertificate.cer */ = {isa = PBXFileReference; lastKnownFileType = file; path = AppleIncRootCertificate.cer; sourceTree = "<group>"; };
+		CD7DBA4525C4114700454DD5 /* Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test.swift; sourceTree = "<group>"; };
+		CD7DBA4925C4117700454DD5 /* response.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = response.json; sourceTree = "<group>"; };
 		CD81112F25BB3EB9006F6B02 /* StoreKitTestCertificate.cer */ = {isa = PBXFileReference; lastKnownFileType = file; path = StoreKitTestCertificate.cer; sourceTree = "<group>"; };
 		CDE8257124AE2D9300824F65 /* PandaSDK Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "PandaSDK Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDE8257424AE2D9300824F65 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -385,6 +389,8 @@
 				CD63B37D2596430200A7B833 /* Simple.storekit */,
 				CD81112F25BB3EB9006F6B02 /* StoreKitTestCertificate.cer */,
 				CD63B3662596427200A7B833 /* Info.plist */,
+				CD7DBA4525C4114700454DD5 /* Test.swift */,
+				CD7DBA4925C4117700454DD5 /* response.json */,
 			);
 			path = PandaSDKTests;
 			sourceTree = "<group>";
@@ -509,6 +515,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD7DBA4A25C4117700454DD5 /* response.json in Resources */,
 				CD63B37E2596430200A7B833 /* Simple.storekit in Resources */,
 				CD76D47425BD6FDE00558AE3 /* AppleIncRootCertificate.cer in Resources */,
 				CD81113025BB3EB9006F6B02 /* StoreKitTestCertificate.cer in Resources */,
@@ -584,6 +591,7 @@
 			files = (
 				CD3CCCAD25BB3A92008E34B8 /* IAPReceipt.swift in Sources */,
 				CD3CCCAC25BB3A92008E34B8 /* Reciept.swift in Sources */,
+				CD7DBA4625C4114700454DD5 /* Test.swift in Sources */,
 				CD3CCCAE25BB3A92008E34B8 /* ASN1Helpers.swift in Sources */,
 				CD63B3652596427200A7B833 /* PandaSDKTests.swift in Sources */,
 			);

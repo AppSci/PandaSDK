@@ -1,0 +1,105 @@
+{
+    "state": "ok",
+    "date": "",
+    "subscriptions": {
+        "android": [{
+            "subscription_id": "46",
+            "duration": "1 hours",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "price_currency_code": "UAH",
+            "payment_type": "subscription",
+            "purchase_time": "2020-12-15T13:05:39Z",
+            "expiry_time": "2020-12-14T20:54:06Z",
+            "product_id": "wb_6m_49.99",
+            "order_id": "GPA.3304-6507-8282-76528",
+            "price": 1399.99,
+            "state": "canceled"
+        }, {
+            "subscription_id": "22",
+            "duration": "",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "payment_type": "lifetime",
+            "purchase_time": "2020-11-20T12:40:57Z",
+            "product_id": "tenwords_lifetime_19.99",
+            "order_id": "",
+            "price": 1399.99,
+            "state": "ok"
+        }],
+        "ios": [{
+            "subscription_id": "113547",
+            "duration": "3 minutes",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "is_expired": true,
+            "payment_type": "subscription",
+            "purchase_time": "2020-10-19T11:26:41Z",
+            "expiry_time": "2020-10-19T11:29:41Z",
+            "product_id": "tenwords_1w_9.99_offer",
+            "order_id": "1000000731546647",
+            "price": 1399.99,
+            "state": "failed_renew"
+        }, {
+            "subscription_id": "1066",
+            "duration": "",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "payment_type": "lifetime",
+            "purchase_time": "2020-09-11T09:12:43Z",
+            "product_id": "tenwords_lifetime_limited_49.99",
+            "order_id": "1000000717441112",
+            "price": 1399.99,
+            "state": "ok"
+        }, {
+            "subscription_id": "113541",
+            "duration": "3 minutes",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "is_expired": true,
+            "payment_type": "subscription",
+            "purchase_time": "2020-10-19T07:40:07Z",
+            "expiry_time": "2020-10-19T07:43:07Z",
+            "product_id": "tenwords_1w_7.99_7free",
+            "order_id": "1000000731439690",
+            "price": 1399.99,
+            "state": "failed_renew"
+        }, {
+            "subscription_id": "1053",
+            "duration": "",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "payment_type": "lifetime",
+            "purchase_time": "2020-08-26T09:26:44Z",
+            "product_id": "words_lifetime_19.99",
+            "order_id": "1000000710964374",
+            "price": 1399.99,
+            "state": "ok"
+        }],
+        "web": [{
+            "subscription_id": "empty",
+            "duration": "monthly",
+            "is_trial_period": false,
+            "payment_status": "pending",
+            "price_currency_code": "USD",
+            "payment_type": "subscription",
+            "purchase_time": "2020-11-09T11:42:31.468Z",
+            "product_id": "SUBSCRIPTION_MONTH_1499_7DAY_0_TRIAL",
+            "order_id": "0e0ea643-a83b-4c18-a7f5-f725d2ccc794",
+            "price": 1499,
+            "state": "empty"
+        }, {
+            "subscription_id": "empty",
+            "duration": "",
+            "is_trial_period": false,
+            "payment_status": "ok",
+            "price_currency_code": "USD",
+            "payment_type": "lifetime",
+            "purchase_time": "2020-12-11T08:53:53.456Z",
+            "product_id": "INITIAL_PRICE",
+            "order_id": "23711478-7686-45c6-95a2-3b81c07aaa9c",
+            "price": 2999,
+            "state": "ok"
+        }]
+    }
+}
