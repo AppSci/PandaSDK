@@ -54,7 +54,7 @@ enum SubscriptionAPIStatus: String, Codable {
     case billing = "failed_renew"
 }
 
-public enum SubscriptionStatus: String {
+public enum SubscriptionState: String {
     case success
     case empty
     case refund
@@ -76,6 +76,18 @@ public enum SubscriptionStatus: String {
         }
     }
     
+}
+
+public struct SubscriptionStatus {
+    public let state: SubscriptionState
+    public let date: Date?
+    public let subscriptions: [SubscriptionType: [SubscriptionInfo]]?
+    
+    init(with subscriptionResponse: SubscriptionStatusResponse) {
+        self.date = subscriptionResponse.date
+        self.subscriptions = subscriptionResponse.subscriptions
+        self.state = SubscriptionState(with: subscriptionResponse.state)
+    }
 }
 
 public enum ScreenType: String, Codable {

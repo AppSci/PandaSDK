@@ -213,8 +213,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .failure(let error):
                 statusCallback?(.failure(error))
             case .success(let apiResponse):
-                let apiStatus = apiResponse.state
-                let subscriptionStatus = SubscriptionStatus(with: apiStatus)
+                let subscriptionStatus = SubscriptionStatus(with: apiResponse)
                 statusCallback?(.success(subscriptionStatus))
             }
         }
@@ -368,13 +367,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
     
     func onApplicationDidBecomeActive() {
         getSubscriptionStatus { [weak self, settingsStorage] (result) in
-            let status: SubscriptionStatus
+            let status: SubscriptionState
             switch result {
             case .failure(let error):
                 pandaLog("SubscriptionStatus Error: \(error)")
                 return
             case .success(let value):
-                status = value
+                status = value.state
             }
             var settings = settingsStorage.fetch() ?? Settings.default
             switch status {
