@@ -16,7 +16,7 @@ public enum SubscriptionType: String, Codable {
 internal struct SubscriptionStatusResponse: Encodable {
     let state: SubscriptionAPIStatus
     let date: Date?
-    let subscriptions: [SubscriptionType: [SubscriptionInfo]]
+    let subscriptions: [SubscriptionType: [SubscriptionInfo]]?
     
     enum CodingKeys: String, CodingKey {
         case state
@@ -30,19 +30,19 @@ extension SubscriptionStatusResponse: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         state = try container.decode(SubscriptionAPIStatus.self, forKey: CodingKeys.state)
-        let dateString = try container.decode(String.self, forKey: CodingKeys.date)
-        date = Int(dateString).flatMap { Date(timeIntervalSince1970: TimeInterval($0)) }
+        let dateString = try container.decodeIfPresent(String.self, forKey: CodingKeys.date)
+        date = dateString.flatMap { Int($0) }.flatMap { Date(timeIntervalSince1970: TimeInterval($0)) }
  
-        let stringDictionary = try container.decode([String: [SubscriptionInfo]].self, forKey: CodingKeys.subscriptions)
+        let stringDictionary = try container.decodeIfPresent([String: [SubscriptionInfo]].self, forKey: CodingKeys.subscriptions)
         
-        let sequence = stringDictionary.compactMap { keyValue -> (SubscriptionType, [SubscriptionInfo])? in
+        let sequence = stringDictionary?.compactMap { keyValue -> (SubscriptionType, [SubscriptionInfo])? in
             guard let key = SubscriptionType(rawValue: keyValue.key) else {
                 print("Unknown key: \(keyValue.key)")
                 return nil
             }
             return (key, keyValue.value)
         }
-        subscriptions = Dictionary(sequence, uniquingKeysWith: {l, _ in l})
+        subscriptions = sequence.map { Dictionary($0, uniquingKeysWith: {l, _ in l}) }
     }
 
 }
