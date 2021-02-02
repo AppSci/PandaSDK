@@ -15,7 +15,7 @@ enum SubscriptionType: String, Codable {
 
 internal struct SubscriptionStatusResponse: Encodable {
     let state: SubscriptionAPIStatus
-    let date: Date
+    let date: Date?
     let subscriptions: [SubscriptionType: [SubscriptionInfo]]
     
     enum CodingKeys: String, CodingKey {
@@ -30,8 +30,9 @@ extension SubscriptionStatusResponse: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         state = try container.decode(SubscriptionAPIStatus.self, forKey: CodingKeys.state)
-        let dateInt = try container.decode(Int.self, forKey: CodingKeys.date)
-        date  = Date(timeIntervalSince1970: TimeInterval(dateInt))
+        let dateString = try container.decode(String.self, forKey: CodingKeys.date)
+        date = Int(dateString).flatMap { Date(timeIntervalSince1970: TimeInterval($0)) }
+ 
         let stringDictionary = try container.decode([String: [SubscriptionInfo]].self, forKey: CodingKeys.subscriptions)
         
         let sequence = stringDictionary.compactMap { keyValue -> (SubscriptionType, [SubscriptionInfo])? in
