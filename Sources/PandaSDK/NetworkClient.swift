@@ -13,10 +13,6 @@ internal struct PandaUser: Codable {
     let id: String
 }
 
-internal struct SubscriptionStatusResponse: Codable {
-    let state: SubscriptionAPIStatus
-}
-
 internal struct ScreenData: Codable {
     let id: String
     let name: String
