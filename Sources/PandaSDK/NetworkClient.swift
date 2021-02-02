@@ -79,9 +79,9 @@ public enum SubscriptionState: String {
 }
 
 public struct SubscriptionStatus {
-    let state: SubscriptionState
-    let date: Date?
-    let subscriptions: [SubscriptionType: [SubscriptionInfo]]
+    public let state: SubscriptionState
+    public let date: Date?
+    public let subscriptions: [SubscriptionType: [SubscriptionInfo]]
     
     init(with subscriptionResponse: SubscriptionStatusResponse) {
         self.date = subscriptionResponse.date

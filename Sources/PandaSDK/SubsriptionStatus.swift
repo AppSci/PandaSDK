@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum SubscriptionType: String, Codable {
+public enum SubscriptionType: String, Codable {
     case ios
     case android
     case web
@@ -47,7 +47,7 @@ extension SubscriptionStatusResponse: Decodable {
 
 }
 
-internal struct SubscriptionInfo: Codable {
+public struct SubscriptionInfo: Codable {
     let productID: String
     let isTrial: Bool
     let price: Double?
