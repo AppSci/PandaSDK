@@ -54,7 +54,7 @@ enum SubscriptionAPIStatus: String, Codable {
     case billing = "failed_renew"
 }
 
-enum SubscriptionState: String {
+public enum SubscriptionState: String {
     case success
     case empty
     case refund
