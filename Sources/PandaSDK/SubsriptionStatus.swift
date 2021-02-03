@@ -48,9 +48,9 @@ extension SubscriptionStatusResponse: Decodable {
 }
 
 public struct SubscriptionInfo: Codable {
-    let productID: String
-    let isTrial: Bool
-    let price: Double?
+    public let productID: String
+    public let isTrial: Bool
+    public let price: Double?
     let state: SubscriptionAPIStatus
     
     enum CodingKeys: String, CodingKey {
