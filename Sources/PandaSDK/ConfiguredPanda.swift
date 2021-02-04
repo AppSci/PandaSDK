@@ -29,6 +29,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     let appStoreClient: AppStoreClient
     var verificationClient: VerificationClient
     private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
+    private let deviceStorage: Storage<DeviceSettings> = CodableStorageFactory.userDefaults()
     private var viewControllers: Set<WeakObject<WebViewController>> = []
 
     public var onPurchase: ((String) -> Void)?
@@ -132,28 +133,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
             self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
             self?.onRestorePurchases?(productIds)
             self?.onSuccessfulPurchase?()
-        }
-    }
-    
-    public func registerDevice(token: Data) {
-        networkClient.updateUser(pushToken: token.hexString(), user: user) { (result) in
-            switch result {
-            case .failure(let error):
-                pandaLog("Register device error: \(error)")
-            case .success:
-                pandaLog("Device registred")
-            }
-        }
-    }
-    
-    public func registerAppsFlyer(id: String) {
-        networkClient.updateUser(appsFlyerId: id, user: user) { (result) in
-            switch result {
-            case .failure(let error):
-                pandaLog("Appsflyer not configured error: \(error)")
-            case .success:
-                pandaLog("Appsflyer configured")
-            }
         }
     }
     
@@ -457,12 +436,55 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func setCustomUserId(id: String) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.customUserId != id else {
+            print("Already sent custom user id")
+            return
+        }
+        device.customUserId = id
+        deviceStorage.store(device)
         networkClient.updateUser(user: user, with: id) { result in
             switch result {
             case .failure(let error):
                 pandaLog("Error on set custom user id: \(error)")
             case .success:
                 pandaLog("Set custom id success")
+            }
+        }
+    }
+    
+    public func registerDevice(token: Data) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.pushToken != token.hexString() else {
+            print("Already sent apnsToken")
+            return
+        }
+        device.pushToken = token.hexString()
+        deviceStorage.store(device)
+        networkClient.updateUser(pushToken: token.hexString(), user: user) { (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("Register device error: \(error)")
+            case .success:
+                pandaLog("Device registred")
+            }
+        }
+    }
+    
+    public func registerAppsFlyer(id: String) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.appsFlyerId != id else {
+            print("Already sent apnsToken")
+            return
+        }
+        device.appsFlyerId = id
+        deviceStorage.store(device)
+        networkClient.updateUser(appsFlyerId: id, user: user) { (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("Appsflyer not configured error: \(error)")
+            case .success:
+                pandaLog("Appsflyer configured")
             }
         }
     }
