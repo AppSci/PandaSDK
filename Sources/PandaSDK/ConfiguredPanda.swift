@@ -204,7 +204,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         guard url.host == "panda" else { return }
         
         /// track analytics
-        trackDeepLink(url.absoluteString)
+        trackDeepLink(url.relativeString)
 
         /// appid://panda/promo/product_id?screen_id=xxxxxxx-xxxxx-xxxx-xxxxxx
         
