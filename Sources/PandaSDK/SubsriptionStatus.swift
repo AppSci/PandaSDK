@@ -50,12 +50,14 @@ extension SubscriptionStatusResponse: Decodable {
 public struct SubscriptionInfo: Codable {
     public let productID: String
     public let isTrial: Bool
+    public let isIntro: Bool?
     public let price: Double?
     let state: SubscriptionAPIStatus
     
     enum CodingKeys: String, CodingKey {
         case productID = "product_id"
         case isTrial  = "is_trial_period"
+        case isIntro = "is_intro_offer"
         case price
         case state
     }
