@@ -82,6 +82,12 @@ public struct SubscriptionStatus {
     public let state: SubscriptionState
     public let date: Date?
     public let subscriptions: [SubscriptionType: [SubscriptionInfo]]?
+
+    public init(state: SubscriptionState, date: Date?, subscriptions: [SubscriptionType: [SubscriptionInfo]]?) {
+        self.state = state
+        self.date = date
+        self.subscriptions = subscriptions
+    }
     
     init(with subscriptionResponse: SubscriptionStatusResponse) {
         self.date = subscriptionResponse.date
