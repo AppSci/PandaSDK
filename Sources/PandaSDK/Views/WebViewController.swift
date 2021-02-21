@@ -66,8 +66,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         wv.alpha = 0
         
         pandaLog("start loading html \(Date().timeIntervalSince1970) \(Date())")
-        
-        
+
         if let html = html {
             load(html: html, baseURL: url?.url)
             return
@@ -79,9 +78,6 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         } else {
             load(url: url)
         }
-        
-        
-        trackLocationChanges()
     }
     
     private func load(url: URL) {
@@ -105,7 +101,10 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     private func getWKWebViewConfiguration() -> WKWebViewConfiguration {
         let userController = WKUserContentController()
-        userController.add(ScriptMessageHandlerWeakProxy(handler: self), name: "locationChanges")
+        userController.add(ScriptMessageHandlerWeakProxy(handler: self), name: "onPurchase")
+        // register the bridge script that listens for the output
+        userController.add(ScriptMessageHandlerWeakProxy(handler: self), name: "logHandler")
+        
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = .audio
@@ -119,18 +118,23 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     ) {
         print("JavaScript is sending a message \(message)")
         
-        if message.name == "weekly_offer" {
-            print("JavaScript is sending a message \(message.body)")
-            viewModel?.onPurchase(message.name,
-                                  "js-code",
-                                  self,
-                                  viewModel?.screenData.id ?? "",
-                                  viewModel?.screenData.name ?? "")
-        }
-        if message.name == "locationChanges" {
-            print("JavaScript is sending a message \(message.body)")
+        if message.name == "onPurchase" {
+            if let data = message.body as? [String: String],
+                let productID = data["productID"] {
+                viewModel?.onPurchase(productID,
+                                      "WKScriptMessage",
+                                      self,
+                                      viewModel?.screenData.id ?? "",
+                                      viewModel?.screenData.name ?? ""
+                )
+            }
             
         }
+
+        if message.name == "logHandler" {
+            pandaLog("LOG: \(message.body)")
+        }
+        
         if let data = message.body as? [String: String],
             let name = data["name"], let email = data["email"] {
             showUser(email: email, name: name)
@@ -148,20 +152,6 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
             UIAlertAction(title: "OK", style: .default)
         )
         present(alertController, animated: true)
-    }
-    
-    private func trackLocationChanges() {
-        let js = """
-                        function listener() {
-                            window.webkit.messageHandlers.locationChanges.postMessage(window.location)
-                        }
-                        window.addEventListener('popstate', listener);
-                """
-        wv.evaluateJavaScript(js) { (result, error) in
-            if let res = result {
-                print("location changed to \(res)")
-            }
-        }
     }
     
     private func setPayload() {
