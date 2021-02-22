@@ -79,6 +79,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         DispatchQueue.main.async {
             self.viewControllers.forEach { $0.value?.onFinishLoad() }
             self.onError?(error)
+            self.send(event: .purchaseError(error: error))
         }
     }
     
@@ -88,6 +89,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .failure(let error):
                 DispatchQueue.main.async {
                     self.onError?(Errors.appStoreReceiptError(error))
+                    self.send(event: .purchaseError(error: error))
                 }
                 return
             case .success(let receiptString):
@@ -99,6 +101,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 DispatchQueue.main.async {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.onError?(Errors.appStoreReceiptError(error))
+                    self?.send(event: .purchaseError(error: error))
                 }
             case .success(let verification):
 
@@ -123,6 +126,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             DispatchQueue.main.async {
                 self.viewControllers.forEach { $0.value?.onFinishLoad() }
                 self.onError?(Errors.appStoreReceiptError(error))
+                self.send(event: .purchaseError(error: error))
             }
             return
         case .success(let receipt):

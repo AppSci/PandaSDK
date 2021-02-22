@@ -10,6 +10,7 @@ public enum PandaEvent {
     case subscriptionSelect(screenId: String, screenName: String, productId: String)
     case purchaseStarted(screenId: String, screenName: String, productId: String)
     case successfulPurchase(screenId: String, screenName: String, productId: String)
+    case purchaseError(error: Error)
     case screenDismissed(screenId: String, screenName: String)
     case surveyAnswerSelect(screenId: String, screenName: String, answerId: String)
     case surveyPosted(screenId: String, screenName: String, feedbackId: String)
