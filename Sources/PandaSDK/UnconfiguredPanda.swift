@@ -211,6 +211,14 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         callback(.failure(Errors.notConfigured))
     }
     
+    func purchase(productID: String) {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+    }
+    
+    func restorePurchase() {
+        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+    }
+    
     func setCustomUserId(id: String) {
         self.customUserId = id
     }
