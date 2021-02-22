@@ -146,6 +146,17 @@ public protocol PandaProtocol: class {
      */
     func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
     
+    /*
+     Call this func for manual purchasing
+     - parameter productID: ProductID for Product that you want to purchase
+     */
+    func purchase(productID: String)
+    
+    /*
+     Call this func for manual purchase restoring
+     */
+    func restorePurchase()
+    
     func add(observer: PandaAnalyticsObserver)
     func remove(observer: PandaAnalyticsObserver)
     

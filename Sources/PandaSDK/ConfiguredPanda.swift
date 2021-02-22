@@ -244,6 +244,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
             callback(result)
         }
     }
+    
+    public func purchase(productID: String) {
+        appStoreClient.purchase(productId: productID, source: PaymentSource(screenId: "manual purchase", screenName: "manual purchase"))
+    }
+    
+    public func restorePurchase() {
+        appStoreClient.restore()
+    }
 
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}
