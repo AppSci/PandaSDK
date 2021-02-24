@@ -250,7 +250,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func purchase(productID: String) {
-        appStoreClient.purchase(productId: productID, source: PaymentSource(screenId: "manual purchase", screenName: "manual purchase"))
+        appStoreClient.purchase(productId: productID, source: PaymentSource(screenId: "", screenName: "manual purchase"))
     }
     
     public func restorePurchase() {
