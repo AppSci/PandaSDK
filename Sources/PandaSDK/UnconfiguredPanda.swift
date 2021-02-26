@@ -22,6 +22,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var deviceToken: Data?
     var customUserId: String?
     var appsFlyerId: String?
+    var advertisementId: String?
 
     struct LastConfigurationAttempt {
         var apiKey: String
@@ -70,6 +71,10 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     func registerAppsFlyer(id: String) {
         appsFlyerId = id
+    }
+    
+    func registerIDFA(id: String) {
+        advertisementId = id
     }
     
     func prefetchScreen(screenId: String?) {
