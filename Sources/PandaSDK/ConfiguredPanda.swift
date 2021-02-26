@@ -500,6 +500,24 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
         }
     }
+    
+    public func registerIDFA(id: String) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.advertisementIdentifier != id else {
+            print("Already sent advertisementIdentifier")
+            return
+        }
+        device.advertisementIdentifier = id
+        deviceStorage.store(device)
+        networkClient.updateUser(advertisementId: id, user: user) { (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("ATTrackingManager not configured error: \(error)")
+            case .success:
+                pandaLog("ATTrackingManager configured")
+            }
+        }
+    }
 }
 
 extension Panda {

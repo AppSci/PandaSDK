@@ -162,9 +162,16 @@ public protocol PandaProtocol: class {
     
     /**
      Register user for AppsFlyer
-     - parameter appsFlyerId: id that user recieved after succeeded registration for AppsFlyer
+     - parameter id: id that user recieved after succeeded registration for AppsFlyer
      */
     func registerAppsFlyer(id: String)
+    
+    /**
+     Register IDFA for user when user Granted Permission for tracking
+     Call this method after user granted permission for Tracking in ATTrackingManager
+     - parameter id: id that user recieved after succeeded registration in ATTrackingManager
+     */
+    func registerIDFA(id: String)
 }
 
 public extension PandaProtocol {

@@ -217,6 +217,15 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
     
+    func updateUser(advertisementId: String,
+                    user: PandaUser,
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .put,
+                                    body: currentUserParameters(advertisementId: advertisementId))
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
     func updateUser(user: PandaUser,
                     with customUserId: String,
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
