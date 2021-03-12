@@ -18,6 +18,7 @@ protocol WebViewModelProtocol {
     var onRestorePurchase: ((_ viewController: WebViewController) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
     var onPolicy: (() -> Void)? { get set }
+    var onSubscriptionTerms: (() -> Void)? { get set }
     var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
@@ -33,6 +34,7 @@ class WebViewModel: WebViewModelProtocol {
     var onRestorePurchase: ((_ viewController: WebViewController) -> Void)?
     var onTerms: (() -> Void)?
     var onPolicy: (() -> Void)?
+    var onSubscriptionTerms: (() -> Void)?
     var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)?
     var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?

@@ -22,6 +22,7 @@ public enum PandaEvent {
     case privacyPolicyTap
     case termsAndConditionsTap
     case billingDetailsTap
+    case subscriptionTermsTap
 }
 
 public protocol PandaAnalyticsObserver: AnyObject {

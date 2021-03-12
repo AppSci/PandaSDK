@@ -292,6 +292,9 @@ extension WebViewController: WKNavigationDelegate {
         case "policy":
             viewModel?.onPolicy?()
             return false
+        case "subscription_terms":
+            viewModel?.onSubscriptionTerms?()
+            return false
         default:
             break
         }

@@ -14,6 +14,7 @@ struct ClientConfig: Codable {
         case serverDebugUrl = "SERVER_URL_DEBUG"
         case policyUrl = "POLICY_URL"
         case termsUrl = "TERMS_URL"
+        case subscriptionUrl = "SUBSCRIPTION_TERMS"
         case billingUrl = "BILLING_URL"
     }
     
@@ -24,6 +25,7 @@ struct ClientConfig: Codable {
         serverDebugUrl: "",
         policyUrl: "",
         termsUrl: "",
+        subscriptionUrl: "",
         billingUrl: "https://apps.apple.com/account/billing")
     
     static func loadPlist(name: String) -> ClientConfig? {
@@ -42,5 +44,6 @@ struct ClientConfig: Codable {
     let serverDebugUrl: String
     let policyUrl: String
     let termsUrl: String
+    let subscriptionUrl: String
     let billingUrl: String
 }

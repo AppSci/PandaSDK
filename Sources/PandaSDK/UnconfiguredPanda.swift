@@ -158,6 +158,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         }
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
+        viewModel.onSubscriptionTerms = openSubscriptionTerms
         viewModel.onBillingIssue = { view in
             pandaLog("onBillingIssue")
             self.openBillingIssue()

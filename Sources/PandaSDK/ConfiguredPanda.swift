@@ -311,6 +311,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
+        viewModel.onSubscriptionTerms = openSubscriptionTerms
         viewModel.onBillingIssue = { view in
             pandaLog("onBillingIssue")
             self.openBillingIssue()
@@ -563,6 +564,13 @@ extension PandaProtocol where Self: ObserverSupport {
         send(event: .privacyPolicyTap)
         openLink(link: ClientConfig.current.policyUrl) { result in
             self.trackOpenLink("policy", result)
+        }
+    }
+    
+    func openSubscriptionTerms() {
+        send(event: .subscriptionTermsTap)
+        openLink(link: ClientConfig.current.subscriptionUrl) { result in
+            self.trackOpenLink("subscription terms", result)
         }
     }
     
