@@ -130,13 +130,22 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             return
         case .success(let receipt):
-            verificationClient.verifySubscriptions(user: user, receipt: receipt, source: nil, retries: 1) { _ in }
-        }
-        DispatchQueue.main.async { [weak self] in
-            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-            self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-            self?.onRestorePurchases?(productIds)
-            self?.onSuccessfulPurchase?()
+            verificationClient.verifySubscriptions(user: user, receipt: receipt, source: nil, retries: 1) { [weak self] (result) in
+                switch result {
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.onError?(Errors.appStoreReceiptError(error))
+                        self?.send(event: .purchaseError(error: error))
+                    }
+                case .success(let verification):
+                    DispatchQueue.main.async { [weak self] in
+                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+                        self?.onRestorePurchases?(productIds)
+                    }
+                }
+            }
         }
     }
     

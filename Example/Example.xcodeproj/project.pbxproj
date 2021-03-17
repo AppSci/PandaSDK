@@ -479,7 +479,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1230;
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1240;
 				ORGANIZATIONNAME = PandaSDK;
 				TargetAttributes = {
 					CD63B3612596427200A7B833 = {
@@ -812,7 +812,7 @@
 				DEVELOPMENT_TEAM = 2KWDA2KJF4;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Example/Libraries/OpenSSL/include";
 				INFOPLIST_FILE = Example/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -838,7 +838,7 @@
 				DEVELOPMENT_TEAM = 2KWDA2KJF4;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/Example/Libraries/OpenSSL/include";
 				INFOPLIST_FILE = Example/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

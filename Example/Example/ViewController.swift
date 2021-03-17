@@ -18,11 +18,12 @@ class ViewController: UIViewController {
 
 
     @IBAction func onShowTap(_ sender: Any) {
-        getScreen()
+        Panda.shared.showScreen(screenType: .survey, screenId: "a1fc1e19-6d20-4b73-b95f-3b66e53e1b51")
+//        getScreen()
     }
     
     func showScreen() {
-        Panda.shared.showScreen(screenType: .product, screenId: "a59d17f7-2eab-4895-a4e2-ef15b6587b66")
+        Panda.shared.showScreen(screenType: .survey, screenId: "a1fc1e19-6d20-4b73-b95f-3b66e53e1b51")
     }
     
     func getScreen() {

@@ -21,10 +21,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PandaAnalyticsObserver {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         Panda.shared.add(observer: self)
-        Panda.shared.configure(apiKey: "fqT3OgopCeLRDG8jb5EJ843UgSAGAjfH", isDebug: true) { (status) in
+        Panda.shared.configure(apiKey: "9QBqG5Kcxyvo2F8Pzwz27xrPsf1miVZ6", isDebug: false) { (status) in
             print("Configured: \(status)")
             if status {
-                Panda.shared.prefetchScreen(screenId: nil)
+                Panda.shared.prefetchScreen(screenId: "a1fc1e19-6d20-4b73-b95f-3b66e53e1b51")
             }
         }
         UNUserNotificationCenter.current().delegate = self
