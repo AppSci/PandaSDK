@@ -410,6 +410,11 @@ final public class Panda: PandaProtocol, ObserverSupport {
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
             switch screenResult {
             case .failure(let error):
+                guard screenType == .sales || screenType == .product || screenType == .promo else {
+                    pandaLog("ShowScreen Error: \(error)")
+                    onShow?(.failure(error))
+                    return
+                }
                 guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))
