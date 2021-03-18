@@ -140,9 +140,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     }
                 case .success(let verification):
                     DispatchQueue.main.async { [weak self] in
-                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                        self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-                        self?.onRestorePurchases?(productIds)
+                        if verification.active {
+                            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                            self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+                            self?.onRestorePurchases?(productIds)
+                        } else {
+                            DispatchQueue.main.async {
+                                let error = Errors.message("Subscription isn't active")
+                                self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                                self?.onError?(error)
+                                self?.send(event: .purchaseError(error: error))
+                            }
+                        }
                     }
                 }
             }
