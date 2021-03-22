@@ -23,6 +23,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var customUserId: String?
     var appsFlyerId: String?
     var advertisementId: String?
+    
+    private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
     struct LastConfigurationAttempt {
         var apiKey: String
@@ -78,16 +80,16 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func prefetchScreen(screenId: String?) {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
     }
 
     public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
         onShow?(.failure(Errors.notConfigured))
     }
     
     func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
         statusCallback?(.failure(Errors.notConfigured))
     }
 
@@ -111,7 +113,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
     }
     
     private func prepareViewController(screenData: ScreenData) -> WebViewController {
@@ -213,16 +215,16 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
 
     public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
         callback(.failure(Errors.notConfigured))
     }
     
     func purchase(productID: String) {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
     }
     
     func restorePurchase() {
-        pandaLog("Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\")")
+        pandaLog(UnconfiguredPanda.configError)
     }
     
     func setCustomUserId(id: String) {
