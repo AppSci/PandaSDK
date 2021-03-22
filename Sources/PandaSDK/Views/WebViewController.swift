@@ -116,7 +116,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
        _ userContentController: WKUserContentController,
        didReceive message: WKScriptMessage
     ) {
-        print("JavaScript is sending a message \(message)")
+        pandaLog("JavaScript messageHandler: `\(message.name)` is sending a message:")
         
         if message.name == "onPurchase" {
             if let data = message.body as? [String: String],
@@ -134,24 +134,6 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         if message.name == "logHandler" {
             pandaLog("LOG: \(message.body)")
         }
-        
-        if let data = message.body as? [String: String],
-            let name = data["name"], let email = data["email"] {
-            showUser(email: email, name: name)
-        }
-    }
-    
-    private func showUser(email: String, name: String) {
-        let userDescription = "\(email) \(name)"
-        let alertController = UIAlertController(
-           title: "User",
-           message: userDescription,
-           preferredStyle: .alert
-        )
-        alertController.addAction(
-            UIAlertAction(title: "OK", style: .default)
-        )
-        present(alertController, animated: true)
     }
     
     private func setPayload() {
@@ -164,10 +146,10 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
                  """
         wv.evaluateJavaScript(js) { (result, error) in
             if let e = error {
-                print("error: \(e)")
+                pandaLog("error: \(e)")
             }
             if let res = result {
-                print("payload \(res)")
+                pandaLog("payload \(res)")
             }
         }
     }

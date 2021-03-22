@@ -105,7 +105,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 }
             case .success(let verification):
 
-                print("productId = \(productId)\nid = \(verification.id)")
+                pandaLog("productId = \(productId)\nid = \(verification.id)")
                 DispatchQueue.main.async {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
@@ -474,7 +474,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public func setCustomUserId(id: String) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
         guard device.customUserId != id else {
-            print("Already sent custom user id")
+            pandaLog("Already sent custom user id")
             return
         }
         device.customUserId = id
@@ -492,7 +492,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public func registerDevice(token: Data) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
         guard device.pushToken != token.hexString() else {
-            print("Already sent apnsToken")
+            pandaLog("Already sent apnsToken")
             return
         }
         device.pushToken = token.hexString()
@@ -510,7 +510,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public func registerAppsFlyer(id: String) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
         guard device.appsFlyerId != id else {
-            print("Already sent apnsToken")
+            pandaLog("Already sent apnsToken")
             return
         }
         device.appsFlyerId = id
@@ -528,7 +528,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public func registerIDFA(id: String) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
         guard device.advertisementIdentifier != id else {
-            print("Already sent advertisementIdentifier")
+            pandaLog("Already sent advertisementIdentifier")
             return
         }
         device.advertisementIdentifier = id

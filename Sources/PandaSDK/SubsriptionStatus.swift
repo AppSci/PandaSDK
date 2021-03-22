@@ -37,7 +37,7 @@ extension SubscriptionStatusResponse: Decodable {
         
         let sequence = stringDictionary?.compactMap { keyValue -> (SubscriptionType, [SubscriptionInfo])? in
             guard let key = SubscriptionType(rawValue: keyValue.key) else {
-                print("Unknown key: \(keyValue.key)")
+                pandaLog("Unknown key: \(keyValue.key)")
                 return nil
             }
             return (key, keyValue.value)

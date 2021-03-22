@@ -40,12 +40,12 @@ extension SKProduct {
         }
         
         guard #available(iOS 12.2, *) else {
-            print("Minimum iOS 12.2 required for offerID [\(offer)] at product [\(productIdentifier)]")
+            pandaLog("Minimum iOS 12.2 required for offerID [\(offer)] at product [\(productIdentifier)]")
             return ""
         }
         
         guard let discount = discounts.first(where: {$0.identifier == offerID!}) else {
-            print("Couldn't find [\(offer)] at [\(productIdentifier)]")
+            pandaLog("Couldn't find [\(offer)] at [\(productIdentifier)]")
             return ""
         }
         
