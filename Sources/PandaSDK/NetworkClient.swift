@@ -297,7 +297,7 @@ func retry<T>(_ attempts: Int,
                 completion(result)
                 return
             }
-            print("retries left \(attempts) and error = \(error)")
+            pandaLog("retries left \(attempts) and error = \(error)")
             DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
                 retry(attempts - 1, interval: interval, task: task, completion: completion)
             }

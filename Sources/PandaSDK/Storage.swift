@@ -33,14 +33,14 @@ extension StorageProtocol {
                 do {
                     store(try map(value))
                 } catch {
-                    print("failed to map while storing \(value)")
+                    pandaLog("failed to map while storing \(value)")
                 }
             },
             fetch: { [fetch] in
                 do {
                     return try fetch().map(pullback)
                 } catch {
-                    print("failed to map while reading \(T.self)")
+                    pandaLog("failed to map while reading \(T.self)")
                     return nil
                 }
             },
