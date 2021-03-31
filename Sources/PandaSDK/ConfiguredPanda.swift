@@ -125,7 +125,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         case .failure(let error):
             DispatchQueue.main.async {
                 self.viewControllers.forEach { $0.value?.onFinishLoad() }
-                self.onError?(Errors.appStoreReceiptError(error))
+                self.onError?(Errors.appStoreReceiptRestoreError(error))
                 self.send(event: .purchaseError(error: error))
             }
             return
@@ -135,7 +135,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 case .failure(let error):
                     DispatchQueue.main.async {
                         self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                        self?.onError?(Errors.appStoreReceiptError(error))
+                        self?.onError?(Errors.appStoreRestoreError(error))
                         self?.send(event: .purchaseError(error: error))
                     }
                 case .success(let verification):
@@ -146,7 +146,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             self?.onRestorePurchases?(productIds)
                         } else {
                             DispatchQueue.main.async {
-                                let error = Errors.message("Subscription isn't active")
+                                let e = Errors.message("Subscription isn't active")
+                                let error = Errors.appStoreRestoreError(e)
                                 self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                                 self?.onError?(error)
                                 self?.send(event: .purchaseError(error: error))

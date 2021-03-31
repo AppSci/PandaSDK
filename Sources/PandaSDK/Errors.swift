@@ -13,6 +13,8 @@ enum Errors: Error {
     case notConfigured
     
     case appStoreReceiptError(Error)
+    case appStoreReceiptRestoreError(Error)
+    case appStoreRestoreError(Error)
     case invalidProductId(String)
     case unknownStoreError
     case unknownNetworkError
