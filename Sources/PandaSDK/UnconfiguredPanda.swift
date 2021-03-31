@@ -108,7 +108,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             return
         }
         DispatchQueue.main.async {
-            callback?(.success(self.prepareViewController(screenData: defaultScreen)))
+            callback?(.success(self.prepareViewController(screenData: defaultScreen, screenType: screenType, product: product, payload: payload)))
         }
     }
     
@@ -116,8 +116,16 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         pandaLog(UnconfiguredPanda.configError)
     }
     
-    private func prepareViewController(screenData: ScreenData) -> WebViewController {
-        let viewModel = WebViewModel(screenData: screenData)
+    private func prepareViewController(screenData: ScreenData, screenType: ScreenType, product: String? = nil, payload: [String: Any]? = nil) -> WebViewController {
+        let viewModel = createViewModel(screenData: screenData, product: product, payload: payload)
+        let controller = setupWebView(html: screenData.html, viewModel: viewModel)
+        viewControllers = viewControllers.filter { $0.value != nil }
+        viewControllers.insert(WeakObject(value: controller))
+        return controller
+    }
+    
+    private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
+        let viewModel = WebViewModel(screenData: screenData, payload: payload)
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
@@ -182,16 +190,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             guard let screenId = screenId, let screenName = screenName else { return }
             self?.send(event: .screenShowed(screenId: screenId, screenName: screenName))
         }
-        let controller = setupWebView(html: screenData.html, viewModel: viewModel)
-        viewControllers = viewControllers.filter { $0.value != nil }
-        viewControllers.insert(WeakObject(value: controller))
-        return controller
+        return viewModel
     }
     
     private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
         let controller = WebViewController()
 
-        controller.view.backgroundColor = .init(red: 91/255, green: 191/255, blue: 186/244, alpha: 1)
+        controller.view.backgroundColor = viewModel.payload?["background"] as? UIColor
         controller.modalPresentationStyle = .overFullScreen
         controller.loadPage(html: html)
         controller.viewModel = viewModel
