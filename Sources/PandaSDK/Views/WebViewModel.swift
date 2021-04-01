@@ -15,7 +15,7 @@ protocol WebViewModelProtocol {
     var onViewDidAppear: ((_ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)? { get set }
-    var onRestorePurchase: ((_ viewController: WebViewController) -> Void)? { get set }
+    var onRestorePurchase: ((_ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
     var onPolicy: (() -> Void)? { get set }
     var onSubscriptionTerms: (() -> Void)? { get set }
@@ -31,7 +31,7 @@ class WebViewModel: WebViewModelProtocol {
     var onViewDidAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
     var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?) -> Void)?
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)?
-    var onRestorePurchase: ((_ viewController: WebViewController) -> Void)?
+    var onRestorePurchase: ((_ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
     var onTerms: (() -> Void)?
     var onPolicy: (() -> Void)?
     var onSubscriptionTerms: (() -> Void)?
