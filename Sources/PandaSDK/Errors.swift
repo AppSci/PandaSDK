@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum Errors: Error {
+public enum Errors: Error {
     case message(String)
     case notConfigured
     
