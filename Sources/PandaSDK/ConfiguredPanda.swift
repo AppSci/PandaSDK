@@ -557,7 +557,8 @@ extension Panda {
         }
     }
     
-    fileprivate func send(answer text: String, at screenId: String?, screenName: String?) {        networkClient.sendAnswers(user: user, screenId: screenId ?? "default", answer: text) { result in
+    fileprivate func send(answer text: String, at screenId: String?, screenName: String?) {
+        networkClient.sendAnswers(user: user, screenId: screenId ?? "default", answer: text) { result in
             switch result {
             case .failure(let error):
                 pandaLog("Send Answers \(text) text failed: \(error)!")
