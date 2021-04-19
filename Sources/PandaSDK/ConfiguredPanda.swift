@@ -55,8 +55,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
         appStoreClient.onPurchase = { [weak self] productId, source in
             self?.onAppStoreClientPurchase(productId: productId, source: source)
         }
-        appStoreClient.onRestore = { [weak self] productIds in
-            self?.onAppStoreClientRestore(productIds: productIds)
+        appStoreClient.onRestore = { [weak self] productIds, source in
+            self?.onAppStoreClientRestore(productIds: productIds, source: source)
         }
         appStoreClient.startObserving()
     }
@@ -120,7 +120,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    func onAppStoreClientRestore(productIds: [String]) {
+    func onAppStoreClientRestore(productIds: [String], source: PaymentSource) {
         switch appStoreClient.receiptBase64String() {
         case .failure(let error):
             DispatchQueue.main.async {
@@ -130,7 +130,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             return
         case .success(let receipt):
-            verificationClient.verifySubscriptions(user: user, receipt: receipt, source: nil, retries: 1) { [weak self] (result) in
+            verificationClient.verifySubscriptions(user: user, receipt: receipt, source: source, retries: 1) { [weak self] (result) in
                 switch result {
                 case .failure(let error):
                     DispatchQueue.main.async {
@@ -273,7 +273,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func restorePurchase() {
-        appStoreClient.restore()
+        appStoreClient.restore(with: PaymentSource(screenId: "", screenName: "manual restore"))
     }
 
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
@@ -323,9 +323,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
             self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId))
             appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name))
         }
-        viewModel.onRestorePurchase = { [appStoreClient] _ in
+        viewModel.onRestorePurchase = { [appStoreClient] _, screenId, screenName in
             pandaLog("Restore")
-            appStoreClient.restore()
+            appStoreClient.restore(with: PaymentSource(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
         
         viewModel.onTerms = openTerms

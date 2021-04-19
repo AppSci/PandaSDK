@@ -255,7 +255,9 @@ extension WebViewController: WKNavigationDelegate {
             return false
         case "restore":
             onStartLoad()
-            viewModel?.onRestorePurchase?(self)
+            viewModel?.onRestorePurchase?(self,
+                                          screenID,
+                                          screenName)
             return false
         case "dismiss":
             onFinishLoad()

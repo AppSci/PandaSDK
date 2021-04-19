@@ -149,13 +149,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                 }
             })
         }
-        viewModel.onRestorePurchase = { [weak self] view in
+        viewModel.onRestorePurchase = { [weak self] view, screenId, screenName in
             pandaLog("Restore")
             self?.reconfigure(callback: { (result) in
                 switch result {
                 case .success:
                     pandaLog("Reconfigured")
-                    view.viewModel?.onRestorePurchase?(view)
+                    view.viewModel?.onRestorePurchase?(view, screenId, screenName)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {

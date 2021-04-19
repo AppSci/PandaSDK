@@ -56,13 +56,14 @@ class AppStoreClient: NSObject {
     }
     
     var onPurchase: ((String, PaymentSource) -> Void)?
-    var onRestore: (([String]) -> Void)?
+    var onRestore: (([String], PaymentSource) -> Void)?
     var onError: ((Error) -> Void)?
     var onShouldAddStorePayment: ((_ payment: SKPayment, _ product: SKProduct)-> Bool)?
     
     internal var products: [String: SKProduct] = [:]
     private var activeRequests: Set<ProductRequest> = []
     private var activePayments: [SKPayment: PaymentSource] = [:]
+    private var restoreSource: PaymentSource?
     let storage: Storage<Transactions>
     
     init(storage: Storage<Transactions>) {
@@ -132,7 +133,8 @@ class AppStoreClient: NSObject {
         
     }
     
-    func restore() {
+    func restore(with source: PaymentSource) {
+        self.restoreSource = source
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
@@ -175,7 +177,7 @@ extension AppStoreClient: SKPaymentTransactionObserver {
             storage.store(processed)
         }
         guard !restored.isEmpty else { return }
-        restore(transactions: restored)
+        restore(transactions: restored, source: restoreSource ?? .init(screenId: "", screenName: ""))
         restored.forEach { processed.insert($0.transactionIdentifier) }
     }
     
@@ -197,7 +199,6 @@ extension AppStoreClient: SKPaymentTransactionObserver {
     
     func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
         pandaLog("paymentQueueRestoreCompletedTransactionsFinished: \(queue)")
-        onRestore?([])
     }
     
     func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
@@ -212,10 +213,11 @@ extension AppStoreClient: SKPaymentTransactionObserver {
         SKPaymentQueue.default().finishTransaction(transaction)
     }
 
-    private func restore(transactions: [SKPaymentTransaction]) {
+    private func restore(transactions: [SKPaymentTransaction], source: PaymentSource) {
         let payments = transactions.map { return $0.original?.payment ?? $0.payment }
         pandaLog("Restored: \(payments)")
-        onRestore?(payments.map {$0.productIdentifier})
+        onRestore?(payments.map {$0.productIdentifier}, source)
+        self.restoreSource = nil
         transactions.forEach {SKPaymentQueue.default().finishTransaction($0)}
     }
 
