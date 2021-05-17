@@ -65,9 +65,14 @@ public protocol PandaProtocol: class {
     func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any])
 
     /**
-        Set custom user id for curret Panda User Id
+        Set custom user id for current Panda User Id
      */
     func setCustomUserId(id: String)
+    
+    /**
+        Set Facebook Browser ID and Click ID Panda User Id for current Panda User Id
+     */
+    func setFBIds(fbp: String, fbc: String)
     
     // MARK: - Handle Push Notification
     
@@ -250,6 +255,10 @@ extension Panda {
         
         let customUserId = unconfigured?.customUserId
         customUserId.map(panda.setCustomUserId(id:))
+        
+        let fbp = unconfigured?.fbp
+        let fbc = unconfigured?.fbc
+        customUserId.map(panda.setFBIds(fbp:, fbc:)
         
         return panda
     }

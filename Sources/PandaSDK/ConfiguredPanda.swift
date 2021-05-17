@@ -425,7 +425,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     onShow?(.failure(error))
                     return
                 }
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
+                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle(id: screenId) else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))
                     return
@@ -540,6 +540,25 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 pandaLog("ATTrackingManager not configured error: \(error)")
             case .success:
                 pandaLog("ATTrackingManager configured")
+            }
+        }
+    }
+    
+    public func setFBIds(fbp: String, fbc: String) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.fbp != fbp || device.fbc != fbc else {
+            pandaLog("Already sent Facebook Browser ID and Click ID")
+            return
+        }
+        device.fbc = fbc
+        device.fbp = fbp
+        deviceStorage.store(device)
+        networkClient.updateUser(user: user, with: id) { result in
+            switch result {
+            case .failure(let error):
+                pandaLog("Error on set Facebook Browser ID or Click ID: \(error)")
+            case .success:
+                pandaLog("Set Facebook Browser ID and Click ID success")
             }
         }
     }
