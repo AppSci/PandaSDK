@@ -68,7 +68,8 @@ internal func currentDeviceParameters() -> [String: String] {
 internal func currentUserParameters(pushToken: String? = nil,
                                     customUserId: String? = nil,
                                     appsFlyerId: String? = nil,
-                                    advertisementId: String? = nil) -> [String: String] {
+                                    advertisementId: String? = nil,
+                                    facebookIds: FacebookIds? = nil) -> [String: String] {
     var currentParameters = currentDeviceParameters()
     if let pushToken = pushToken {
         currentParameters["push_notifications_token"] = pushToken
@@ -81,6 +82,12 @@ internal func currentUserParameters(pushToken: String? = nil,
     }
     if let advertisementId = advertisementId {
         currentParameters["idfa"] = advertisementId
+    }
+    if let fbc = facebookIds?[.fbc] {
+        currentParameters["fbc"] = fbc
+    }
+    if let fbp = facebookIds?[.fbp] {
+        currentParameters["fbp"] = fbp
     }
     return currentParameters
 }

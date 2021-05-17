@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		44C8D3472652CD5D00658FB3 /* PandaFacebookHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44C8D3462652CD5D00658FB3 /* PandaFacebookHelpers.swift */; };
 		CDB44A3B24B9C89800D6F9AC /* PandaSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = CDB44A3924B9C89800D6F9AC /* PandaSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDB44A4C24B9C92F00D6F9AC /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A3E24B9C92F00D6F9AC /* NetworkClient.swift */; };
 		CDB44A4D24B9C92F00D6F9AC /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB44A3F24B9C92F00D6F9AC /* Storage.swift */; };
@@ -24,6 +25,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		44C8D3462652CD5D00658FB3 /* PandaFacebookHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PandaFacebookHelpers.swift; sourceTree = "<group>"; };
 		CDB44A2D24B9C78100D6F9AC /* PandaSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PandaSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDB44A3924B9C89800D6F9AC /* PandaSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PandaSDK.h; sourceTree = "<group>"; };
 		CDB44A3A24B9C89800D6F9AC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				CDB44A4724B9C92F00D6F9AC /* ClientConfig.swift */,
 				CDB44A4824B9C92F00D6F9AC /* Views */,
 				CDB44A4B24B9C92F00D6F9AC /* NetworkLoader.swift */,
+				44C8D3462652CD5D00658FB3 /* PandaFacebookHelpers.swift */,
 			);
 			name = PandaSDK;
 			path = Sources/PandaSDK;
@@ -200,6 +203,7 @@
 				CDB44A4C24B9C92F00D6F9AC /* NetworkClient.swift in Sources */,
 				CDB44A5524B9C92F00D6F9AC /* ClientConfig.swift in Sources */,
 				CDB44A5624B9C92F00D6F9AC /* WebViewController.swift in Sources */,
+				44C8D3472652CD5D00658FB3 /* PandaFacebookHelpers.swift in Sources */,
 				CDB44A5124B9C92F00D6F9AC /* WeakObject.swift in Sources */,
 				CDB44A5224B9C92F00D6F9AC /* PandaHelpers.swift in Sources */,
 				CDB44A5424B9C92F00D6F9AC /* Errors.swift in Sources */,

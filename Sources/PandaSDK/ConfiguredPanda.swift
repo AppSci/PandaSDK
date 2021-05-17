@@ -425,7 +425,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     onShow?(.failure(error))
                     return
                 }
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle(id: screenId) else {
+                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))
                     return
@@ -544,16 +544,15 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func setFBIds(fbp: String, fbc: String) {
+    public func setFBIds(facebookIds: FacebookIds) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.fbp != fbp || device.fbc != fbc else {
+        guard device.facebookIds != facebookIds else {
             pandaLog("Already sent Facebook Browser ID and Click ID")
             return
         }
-        device.fbc = fbc
-        device.fbp = fbp
+        device.facebookIds = facebookIds
         deviceStorage.store(device)
-        networkClient.updateUser(user: user, with: id) { result in
+        networkClient.updateUser(user: user, facebookIds: facebookIds) { result in
             switch result {
             case .failure(let error):
                 pandaLog("Error on set Facebook Browser ID or Click ID: \(error)")
