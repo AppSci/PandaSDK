@@ -23,8 +23,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var customUserId: String?
     var appsFlyerId: String?
     var advertisementId: String?
-    var fbp: String?
-    var fbc: String?
+    var facebookIds: FacebookIds?
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
@@ -238,9 +237,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         self.customUserId = id
     }
     
-    func setFBIds(fbp: String, fbc: String) {
-        self.fbp = fbp
-        self.fbc = fbc
+    public func setFBIds(facebookIds: FacebookIds) {
+        self.facebookIds = facebookIds
     }
 }
 
