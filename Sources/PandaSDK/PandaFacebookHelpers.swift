@@ -16,8 +16,11 @@ public enum FacebookKey: String, Codable {
 public typealias FacebookIds = [FacebookKey: String]
 
 public extension FacebookIds {
-    static func instance(with fbcValue: String, fbpValue: String?) -> FacebookIds {
-        var result: FacebookIds = [.fbc: fbcValue]
+    static func instance(with fbcValue: String?, fbpValue: String?) -> FacebookIds {
+        var result: FacebookIds = [:]
+        if let fbcValue = fbcValue {
+            result[.fbc] = fbcValue
+        }
         if let fbpValue = fbpValue {
             result[.fbp] = fbpValue
         }
