@@ -18,5 +18,5 @@ struct DeviceSettings: Codable {
                                           advertisementIdentifier: "",
                                           appsFlyerId: "",
                                           customUserId: "",
-                                          facebookIds: [.fbc: "", .fbp: ""])
+                                          facebookIds: [:])
 }
