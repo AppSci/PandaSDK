@@ -137,8 +137,8 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     private func setPayload() {
-        guard let payload = viewModel.payload?["data"] as? [String: String] else { return }
-        guard let data = try? JSONEncoder().encode(payload) else { return }
+        guard let payload = viewModel.payload?["data"] else { return }
+        guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []) else { return }
         guard let json = String(data: data, encoding: .utf8) else { return }
         
         let js = """
