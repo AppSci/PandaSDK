@@ -101,9 +101,14 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     private func getWKWebViewConfiguration() -> WKWebViewConfiguration {
         let userController = WKUserContentController()
-        userController.add(ScriptMessageHandlerWeakProxy(handler: self), name: "onPurchase")
+        userController.add(ScriptMessageHandlerWeakProxy(handler: self),
+                           name: "onPurchase")
         // register the bridge script that listens for the output
-        userController.add(ScriptMessageHandlerWeakProxy(handler: self), name: "logHandler")
+        userController.add(ScriptMessageHandlerWeakProxy(handler: self),
+                           name: "logHandler")
+        // register script that listen for lessons feeback sent
+        userController.add(ScriptMessageHandlerWeakProxy(handler: self),
+                           name: "onLessonFeedbackSent")
         
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
@@ -133,6 +138,18 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
 
         if message.name == "logHandler" {
             pandaLog("LOG: \(message.body)")
+        }
+        
+        if message.name == "onLessonFeedbackSent",
+           let data = message.body as? [String: String],
+           let feedbackText = data["feedback_text"],
+           let screenId = data["screen_id"],
+           let screenName = data["screen_name"] {
+            viewModel?.onFeedback?(
+                feedbackText,
+                screenId,
+                screenName
+            )
         }
     }
     
