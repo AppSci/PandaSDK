@@ -21,6 +21,7 @@ protocol WebViewModelProtocol {
     var onSubscriptionTerms: (() -> Void)? { get set }
     var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
+    var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)? { get set }
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
 }
 
@@ -37,6 +38,7 @@ class WebViewModel: WebViewModelProtocol {
     var onSubscriptionTerms: (() -> Void)?
     var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)?
     var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)?
+    var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
     
     let screenData: ScreenData

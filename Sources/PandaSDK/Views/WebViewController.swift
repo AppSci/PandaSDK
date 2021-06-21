@@ -101,14 +101,11 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     private func getWKWebViewConfiguration() -> WKWebViewConfiguration {
         let userController = WKUserContentController()
-        userController.add(ScriptMessageHandlerWeakProxy(handler: self),
-                           name: "onPurchase")
-        // register the bridge script that listens for the output
-        userController.add(ScriptMessageHandlerWeakProxy(handler: self),
-                           name: "logHandler")
-        // register script that listen for lessons feeback sent
-        userController.add(ScriptMessageHandlerWeakProxy(handler: self),
-                           name: "onLessonFeedbackSent")
+        
+        PandaJSMessagesNames.allCases.forEach {
+            userController.add(ScriptMessageHandlerWeakProxy(handler: self),
+                               name: $0.rawValue)
+        }
         
         let configuration = WKWebViewConfiguration()
         configuration.allowsInlineMediaPlayback = true
@@ -123,7 +120,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     ) {
         pandaLog("JavaScript messageHandler: `\(message.name)` is sending a message:")
         
-        if message.name == "onPurchase" {
+        if message.name == PandaJSMessagesNames.onPurchase.rawValue {
             if let data = message.body as? [String: String],
                 let productID = data["productID"] {
                 viewModel?.onPurchase(productID,
@@ -136,11 +133,11 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
             
         }
 
-        if message.name == "logHandler" {
+        if message.name == PandaJSMessagesNames.logHandler.rawValue {
             pandaLog("LOG: \(message.body)")
         }
         
-        if message.name == "onLessonFeedbackSent",
+        if message.name == PandaJSMessagesNames.onLessonFeedbackSent.rawValue,
            let data = message.body as? [String: String],
            let feedbackText = data["feedback_text"],
            let screenId = data["screen_id"],
@@ -151,6 +148,21 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
                 screenName
             )
         }
+        
+        if message.name == PandaJSMessagesNames.onCustomEventSent.rawValue,
+           let data = message.body as? [String: String] {
+            handleAndSendCustomEventIfPossible(with: data)
+        }
+    }
+    
+    private func handleAndSendCustomEventIfPossible(with data: [String: String]) {
+        guard let name = data["name"] else {
+            pandaLog("No name for custom event!")
+            return
+        }
+        
+        let parameters = data.filter { $0.key != "name" }
+        viewModel?.onCustomEvent?(name, parameters)
     }
     
     private func setPayload() {
@@ -575,5 +587,14 @@ fileprivate extension String {
             return replacingOccurrences(of: info.macros, with: info.value)
         }
         return self
+    }
+}
+
+extension WebViewController {
+    private enum PandaJSMessagesNames: String, CaseIterable {
+        case onPurchase
+        case logHandler
+        case onLessonFeedbackSent
+        case onCustomEventSent
     }
 }

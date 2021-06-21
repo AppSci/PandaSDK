@@ -327,6 +327,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("Restore")
             appStoreClient.restore(with: PaymentSource(screenId: screenId ?? "", screenName: screenName ?? ""))
         }
+        viewModel.onCustomEvent = { [weak self] eventName, eventParameters in
+            self?.send(event: .customEvent(name: eventName, parameters: eventParameters))
+        }
         
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
