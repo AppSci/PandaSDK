@@ -163,7 +163,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func prefetchScreen(screenId: String?) {
+    public func prefetchScreen(screenId: String?, payload: [String: Any]?) {
+        self.payload = payload
         networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
                 pandaLog("Panda is missing!")

@@ -80,7 +80,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         advertisementId = id
     }
     
-    func prefetchScreen(screenId: String?) {
+    func prefetchScreen(screenId: String?, payload: [String:Any]?) {
         pandaLog(UnconfiguredPanda.configError)
     }
 

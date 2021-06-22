@@ -51,8 +51,9 @@ public protocol PandaProtocol: class {
     /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
+     - parameter payload: Optional. You can pass any needed info
      */
-    func prefetchScreen(screenId: String?)
+    func prefetchScreen(screenId: String?, payload: [String: Any]?)
     
     /**
      You can call to check subscription status of User
