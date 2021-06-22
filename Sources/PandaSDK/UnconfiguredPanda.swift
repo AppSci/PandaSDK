@@ -127,6 +127,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
+        let extraValues = viewModel.payload?["extra_event_values"] as? [String: String]
+        let source = extraValues?["entry_point"]
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
@@ -178,18 +180,18 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         viewModel.dismiss = { [weak self] status, view, screenId, screenName in
             pandaLog("Dismiss")
             if let screenID = screenId, let name = screenName {
-                self?.trackClickDismiss(screenId: screenID, screenName: name)
+                self?.trackClickDismiss(screenId: screenID, screenName: name, source: source)
             }
             view.dismiss(animated: true, completion: nil)
             self?.onDismiss?()
         }
         viewModel.onViewWillAppear = { [weak self] screenId, screenName in
             guard let screenId = screenId, let screenName = screenName else { return }
-            self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName))
+            self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName, source: source))
         }
         viewModel.onViewDidAppear = { [weak self] screenId, screenName in
             guard let screenId = screenId, let screenName = screenName else { return }
-            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName))
+            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName, source: source))
         }
         viewModel.onCustomEvent = { [weak self] eventName, eventParameters in
             self?.send(event: .customEvent(name: eventName, parameters: eventParameters))
