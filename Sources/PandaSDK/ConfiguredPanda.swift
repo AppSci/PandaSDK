@@ -172,6 +172,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             switch result {
             case .failure(let error):
+                self.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: nil))
                 pandaLog("Prefetch \(screenId ?? "default") screen failed: \(error)!")
             case .success(let screen):
                 self.cache[screenId] = screen
@@ -197,6 +198,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             switch result {
             case .failure(let error):
+                self.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
                 guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
                     DispatchQueue.main.async {
                         callback?(.failure(error))
@@ -433,6 +435,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
             switch screenResult {
             case .failure(let error):
+                self?.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
                 guard screenType == .sales || screenType == .product || screenType == .promo else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))

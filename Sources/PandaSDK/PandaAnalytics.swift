@@ -17,6 +17,7 @@ public enum PandaEvent {
     case screenShowed(screenId: String, screenName: String, source: String?)
     case screenLoaded(screenId: String, screenName: String, source: String?)
     case screenWillShow(screenId: String, screenName: String, source: String?)
+    case screenShowFailed(screenId: String, screenType: String?)
     case trackOpenLink(link: String, result: String)
     case trackDeepLink(link: String)
     case privacyPolicyTap
