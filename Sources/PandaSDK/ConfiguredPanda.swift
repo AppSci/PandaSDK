@@ -31,7 +31,11 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
     private let deviceStorage: Storage<DeviceSettings> = CodableStorageFactory.userDefaults()
     private var viewControllers: Set<WeakObject<WebViewController>> = []
-
+    private var payload: [String: Any]?
+    private var entryPoint: String? {
+        return (payload?["extra_event_values"] as? [String: String])?["entry_point"]
+    }
+    
     public var onPurchase: ((String) -> Void)?
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
@@ -79,7 +83,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         DispatchQueue.main.async {
             self.viewControllers.forEach { $0.value?.onFinishLoad() }
             self.onError?(error)
-            self.send(event: .purchaseError(error: error))
+            self.send(event: .purchaseError(error: error, source: self.entryPoint))
         }
     }
     
@@ -89,7 +93,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .failure(let error):
                 DispatchQueue.main.async {
                     self.onError?(Errors.appStoreReceiptError(error))
-                    self.send(event: .purchaseError(error: error))
+                    self.send(event: .purchaseError(error: error, source: self.entryPoint))
                 }
                 return
             case .success(let receiptString):
@@ -101,7 +105,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 DispatchQueue.main.async {
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.onError?(Errors.appStoreReceiptError(error))
-                    self?.send(event: .purchaseError(error: error))
+                    self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
                 }
             case .success(let verification):
 
@@ -113,7 +117,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     self?.onSuccessfulPurchase?()
                     self?.send(event: .successfulPurchase(screenId: source.screenId,
                                                           screenName: source.screenName,
-                                                          productId: productId)
+                                                          productId: productId, source: self?.entryPoint)
                     )
                 }
             }
@@ -126,7 +130,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             DispatchQueue.main.async {
                 self.viewControllers.forEach { $0.value?.onFinishLoad() }
                 self.onError?(Errors.appStoreReceiptRestoreError(error))
-                self.send(event: .purchaseError(error: error))
+                self.send(event: .purchaseError(error: error, source: self.entryPoint))
             }
             return
         case .success(let receipt):
@@ -136,7 +140,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     DispatchQueue.main.async {
                         self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                         self?.onError?(Errors.appStoreRestoreError(error))
-                        self?.send(event: .purchaseError(error: error))
+                        self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
                     }
                 case .success(let verification):
                     DispatchQueue.main.async { [weak self] in
@@ -150,7 +154,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                                 let error = Errors.appStoreRestoreError(e)
                                 self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                                 self?.onError?(error)
-                                self?.send(event: .purchaseError(error: error))
+                                self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
                             }
                         }
                     }
@@ -159,7 +163,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func prefetchScreen(screenId: String?) {
+    public func prefetchScreen(screenId: String?, payload: [String: Any]?) {
+        self.payload = payload
         networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
             guard let self = self else {
                 pandaLog("Panda is missing!")
@@ -167,6 +172,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             switch result {
             case .failure(let error):
+                self.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: nil))
                 pandaLog("Prefetch \(screenId ?? "default") screen failed: \(error)!")
             case .success(let screen):
                 self.cache[screenId] = screen
@@ -176,6 +182,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
 
     public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        self.payload = payload
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
                 callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product, payload: payload)))
@@ -191,6 +198,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             switch result {
             case .failure(let error):
+                self.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
                 guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
                     DispatchQueue.main.async {
                         callback?(.failure(error))
@@ -294,6 +302,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
     
     private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
+        let extraValues = viewModel.payload?["extra_event_values"] as? [String: String]
+        let source = extraValues?["entry_point"]
+
         if let product = product {
             appStoreClient.getProduct(with: product) { result in
                 switch result {
@@ -342,22 +353,22 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewModel.dismiss = { [weak self] status, view, screenId, screenName in
             pandaLog("Dismiss")
             if let screenID = screenId, let name = screenName {
-                self?.trackClickDismiss(screenId: screenID, screenName: name)
+                self?.trackClickDismiss(screenId: screenID, screenName: name, source: source)
             }
             view.tryAutoDismiss()
             self?.onDismiss?()
         }
         viewModel.onViewWillAppear = { [weak self] screenId, screenName in
             pandaLog("onViewWillAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? ""))
+            self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? "", source: source))
         }
         viewModel.onViewDidAppear = { [weak self] screenId, screenName in
             pandaLog("onViewDidAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? ""))
+            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: source))
         }
         viewModel.onDidFinishLoading = { [weak self] screenId, screenName in
             pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? ""))
+            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: source))
         }
         return viewModel
     }
@@ -416,6 +427,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+        self.payload = payload
         if let screen = cache[screenId] {
             self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             return
@@ -423,6 +435,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
             switch screenResult {
             case .failure(let error):
+                self?.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
                 guard screenType == .sales || screenType == .product || screenType == .promo else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))
@@ -634,8 +647,8 @@ extension PandaProtocol where Self: ObserverSupport {
         send(event: .trackDeepLink(link: link))
     }
 
-    func trackClickDismiss(screenId: String, screenName: String) {
-        send(event: .screenDismissed(screenId: screenId, screenName: screenName))
+    func trackClickDismiss(screenId: String, screenName: String, source: String?) {
+        send(event: .screenDismissed(screenId: screenId, screenName: screenName, source: source))
     }
 
     func copyCallbacks<T: PandaProtocol & ObserverSupport>(from other: T) {
