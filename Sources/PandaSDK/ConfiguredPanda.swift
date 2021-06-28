@@ -331,7 +331,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 return
             }
             pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId))
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: source))
             appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name))
         }
         viewModel.onRestorePurchase = { [appStoreClient] _, screenId, screenName in
