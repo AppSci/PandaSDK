@@ -303,7 +303,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
         let extraValues = viewModel.payload?["extra_event_values"] as? [String: String]
-        let source = extraValues?["entry_point"]
+        let entryPoint = extraValues?["entry_point"]
 
         if let product = product {
             appStoreClient.getProduct(with: product) { result in
@@ -331,7 +331,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 return
             }
             pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: source))
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: entryPoint))
             appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name))
         }
         viewModel.onRestorePurchase = { [appStoreClient] _, screenId, screenName in
@@ -353,22 +353,22 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewModel.dismiss = { [weak self] status, view, screenId, screenName in
             pandaLog("Dismiss")
             if let screenID = screenId, let name = screenName {
-                self?.trackClickDismiss(screenId: screenID, screenName: name, source: source)
+                self?.trackClickDismiss(screenId: screenID, screenName: name, source: entryPoint)
             }
             view.tryAutoDismiss()
             self?.onDismiss?()
         }
         viewModel.onViewWillAppear = { [weak self] screenId, screenName in
             pandaLog("onViewWillAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? "", source: source))
+            self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
         viewModel.onViewDidAppear = { [weak self] screenId, screenName in
             pandaLog("onViewDidAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: source))
+            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
         viewModel.onDidFinishLoading = { [weak self] screenId, screenName in
             pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: source))
+            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
         return viewModel
     }
