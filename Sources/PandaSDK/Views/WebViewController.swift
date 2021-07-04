@@ -60,12 +60,13 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     internal func loadPage(html: String? = nil) {
         /// if after 15 seconds webview not appeared, then fail
-        perform(#selector(failedByTimeOut), with: nil, afterDelay: 3.0)
+        pandaLog("start loading html \(Date().timeIntervalSince1970) \(Date())")
+        let timeout = (viewModel.payload?["timeout"] as? TimeInterval) ?? 3.0
+        perform(#selector(failedByTimeOut), with: nil, afterDelay: timeout)
         loadingIndicator.startAnimating()
         _ = view // trigger viewdidload
         wv.alpha = 0
         
-        pandaLog("start loading html \(Date().timeIntervalSince1970) \(Date())")
 
         if let html = html {
             load(html: html, baseURL: url?.url)
@@ -217,7 +218,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     @objc private func failedByTimeOut() {
-        pandaLog("🚨 Timeout error")
+        pandaLog("🚨 Timeout error \(Date().timeIntervalSince1970) \(Date())")
         onFinishLoad()
         loadingIndicator.stopAnimating()
         if let f = onFailedByTimeOut {
