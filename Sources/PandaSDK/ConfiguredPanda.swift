@@ -548,13 +548,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("Already sent advertisementIdentifier")
             return
         }
-        device.advertisementIdentifier = id
-        deviceStorage.store(device)
-        networkClient.updateUser(advertisementId: id, user: user) { (result) in
+        networkClient.updateUser(advertisementId: id, user: user) { [weak self] (result) in
             switch result {
             case .failure(let error):
                 pandaLog("ATTrackingManager not configured error: \(error)")
             case .success:
+                device.advertisementIdentifier = id
+                self?.deviceStorage.store(device)
                 pandaLog("ATTrackingManager configured")
             }
         }
