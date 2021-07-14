@@ -530,13 +530,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("Already sent apnsToken")
             return
         }
-        device.appsFlyerId = id
-        deviceStorage.store(device)
-        networkClient.updateUser(appsFlyerId: id, user: user) { (result) in
+        networkClient.updateUser(appsFlyerId: id, user: user) { [weak self] (result) in
             switch result {
             case .failure(let error):
                 pandaLog("Appsflyer not configured error: \(error)")
             case .success:
+                device.appsFlyerId = id
+                self?.deviceStorage.store(device)
                 pandaLog("Appsflyer configured")
             }
         }
