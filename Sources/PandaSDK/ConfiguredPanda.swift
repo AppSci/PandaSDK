@@ -494,13 +494,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("Already sent custom user id")
             return
         }
-        device.customUserId = id
-        deviceStorage.store(device)
-        networkClient.updateUser(user: user, with: id) { result in
+        networkClient.updateUser(user: user, with: id) { [weak self] result in
             switch result {
             case .failure(let error):
                 pandaLog("Error on set custom user id: \(error)")
             case .success:
+                device.customUserId = id
+                self?.deviceStorage.store(device)
                 pandaLog("Set custom id success")
             }
         }
@@ -512,13 +512,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("Already sent apnsToken")
             return
         }
-        device.pushToken = token.hexString()
-        deviceStorage.store(device)
-        networkClient.updateUser(pushToken: token.hexString(), user: user) { (result) in
+        networkClient.updateUser(pushToken: token.hexString(), user: user) { [weak self] (result) in
             switch result {
             case .failure(let error):
                 pandaLog("Register device error: \(error)")
             case .success:
+                device.pushToken = token.hexString()
+                self?.deviceStorage.store(device)
                 pandaLog("Device registred")
             }
         }
@@ -566,13 +566,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("Already sent Facebook Browser ID and Click ID")
             return
         }
-        device.facebookIds = facebookIds
-        deviceStorage.store(device)
-        networkClient.updateUser(user: user, facebookIds: facebookIds) { result in
+        networkClient.updateUser(user: user, facebookIds: facebookIds) { [weak self] result in
             switch result {
             case .failure(let error):
                 pandaLog("Error on set Facebook Browser ID or Click ID: \(error)")
             case .success:
+                device.facebookIds = facebookIds
+                self?.deviceStorage.store(device)
                 pandaLog("Set Facebook Browser ID and Click ID success")
             }
         }
