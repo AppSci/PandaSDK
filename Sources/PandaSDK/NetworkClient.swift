@@ -52,6 +52,10 @@ enum SubscriptionAPIStatus: String, Codable {
     case canceled
     case disabledAutoRenew = "disabled_auto_renew"
     case billing = "failed_renew"
+    
+    public init(from decoder: Decoder) throws {
+        self = try SubscriptionAPIStatus(rawValue: decoder.singleValueContainer().decode(RawValue.self)) ?? .empty
+    }
 }
 
 public enum SubscriptionState: String {

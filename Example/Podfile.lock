@@ -2,7 +2,7 @@ PODS:
   - NVActivityIndicatorView (4.8.0):
     - NVActivityIndicatorView/Presenter (= 4.8.0)
   - NVActivityIndicatorView/Presenter (4.8.0)
-  - PandaSDK (0.0.55):
+  - PandaSDK (0.0.57):
     - NVActivityIndicatorView (~> 4.8.0)
 
 DEPENDENCIES:
@@ -18,7 +18,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   NVActivityIndicatorView: d24b7ebcf80af5dcd994adb650e2b6c93379270f
-  PandaSDK: c19e035a2fade21c7786dfcea29094980603cbb4
+  PandaSDK: b0c9c1ec1e1917f3a252e45d1800349e1aa8a169
 
 PODFILE CHECKSUM: f019dbde3781effb4af1f9f143ffa62cb6733f7c
 
