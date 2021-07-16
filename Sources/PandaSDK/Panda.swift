@@ -33,6 +33,14 @@ public protocol PandaProtocol: class {
      Returns screen from Panda Web
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      - parameter callback: Optional. Returns Result for getting screen
+     - parameter payload: Optional. You can pass any needed info
+            e.g. "data" in payload is any info that you can pass directly on screen
+                    "data": [
+                        "target_language": targetLanguage.code.rawValue
+                        ]
+                "extra_event_values" - any info for analytics
+                    "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
+                "background" - color of Screen
      */
     func getScreen(screenId: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
@@ -43,6 +51,14 @@ public protocol PandaProtocol: class {
      - parameter screenType: Required. Screen Type.
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
      - parameter onShow: Optional. Returns Result for showing screen
+     - parameter payload: Optional. You can pass any needed info
+            e.g. "data" in payload is any info that you can pass directly on screen
+                    "data": [
+                        "target_language": targetLanguage.code.rawValue
+                        ]
+                "extra_event_values" - any info for analytics
+                    "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
+                "background" - color of Screen
      */
     func showScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
     
@@ -52,6 +68,13 @@ public protocol PandaProtocol: class {
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
      - parameter screenId: Optional. ID screen. If `nil` - returns default screen from Panda Web
      - parameter payload: Optional. You can pass any needed info
+            e.g. "data" in payload is any info that you can pass directly on screen
+                    "data": [
+                        "target_language": targetLanguage.code.rawValue
+                        ]
+                "extra_event_values" - any info for analytics
+                    "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
+                "background" - color of Screen
      */
     func prefetchScreen(screenId: String?, payload: [String: Any]?)
     
