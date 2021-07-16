@@ -542,9 +542,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func registerIDFA(id: String) {
+    public func registerIDFA(id: String, force: Bool) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.advertisementIdentifier != id else {
+        guard device.advertisementIdentifier != id || force else {
             pandaLog("Already sent advertisementIdentifier")
             return
         }

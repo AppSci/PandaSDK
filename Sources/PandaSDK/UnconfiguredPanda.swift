@@ -76,7 +76,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         appsFlyerId = id
     }
     
-    func registerIDFA(id: String) {
+    func registerIDFA(id: String, force: Bool) {
         advertisementId = id
     }
     

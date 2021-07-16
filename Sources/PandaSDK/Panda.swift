@@ -199,9 +199,11 @@ public protocol PandaProtocol: class {
     /**
      Register IDFA for user when user Granted Permission for tracking
      Call this method after user granted permission for Tracking in ATTrackingManager
-     - parameter id: id that user recieved after succeeded registration in ATTrackingManager
+     - Parameters:
+        - id: id that user recieved after succeeded registration in ATTrackingManager
+        - force: pass true for update idfa forcely(recommended to use this only in debug purposes)
      */
-    func registerIDFA(id: String)
+    func registerIDFA(id: String, force: Bool)
 }
 
 public extension PandaProtocol {
