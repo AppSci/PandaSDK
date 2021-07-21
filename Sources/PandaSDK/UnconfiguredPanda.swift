@@ -204,8 +204,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
 
         controller.view.backgroundColor = viewModel.payload?["background"] as? UIColor
         controller.modalPresentationStyle = .overFullScreen
-        controller.loadPage(html: html)
         controller.viewModel = viewModel
+        controller.loadPage(html: html)
         return controller
     }
     
