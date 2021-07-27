@@ -24,7 +24,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PandaAnalyticsObserver {
         Panda.shared.configure(apiKey: "9QBqG5Kcxyvo2F8Pzwz27xrPsf1miVZ6", isDebug: false) { (status) in
             print("Configured: \(status)")
             if status {
-                Panda.shared.prefetchScreen(screenId: "a1fc1e19-6d20-4b73-b95f-3b66e53e1b51")
+                Panda.shared.prefetchScreen(screenId: "a1fc1e19-6d20-4b73-b95f-3b66e53e1b51", payload: nil)
             }
         }
         UNUserNotificationCenter.current().delegate = self
