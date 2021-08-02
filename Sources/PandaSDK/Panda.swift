@@ -41,6 +41,7 @@ public protocol PandaProtocol: class {
                 "extra_event_values" - any info for analytics
                     "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
                 "background" - color of Screen
+                "no_default": true - disable loading and showing default screen in failure case
      */
     func getScreen(screenId: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
@@ -59,6 +60,7 @@ public protocol PandaProtocol: class {
                 "extra_event_values" - any info for analytics
                     "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
                 "background" - color of Screen
+                "no_default": true - disable loading and showing default screen in failure case
      */
     func showScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
     
@@ -75,6 +77,7 @@ public protocol PandaProtocol: class {
                 "extra_event_values" - any info for analytics
                     "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
                 "background" - color of Screen
+                "no_default": true - disable loading and showing default screen in failure case
      */
     func prefetchScreen(screenId: String?, payload: [String: Any]?)
     

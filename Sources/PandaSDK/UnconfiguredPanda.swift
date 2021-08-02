@@ -99,8 +99,12 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+        let shouldShowDefaultScreenOnFailure = (payload?["no_default"] as? Bool) != true
         let defaultScreen: ScreenData
         do {
+            guard shouldShowDefaultScreenOnFailure else {
+                throw Errors.notConfigured
+            }
             defaultScreen = try NetworkClient.loadScreenFromBundle()
         } catch {
             DispatchQueue.main.async {

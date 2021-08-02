@@ -189,6 +189,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
             return
         }
+        
+        let shouldShowDefaultScreenOnFailure = (payload?["no_default"] as? Bool) != true
+        
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] result in
             guard let self = self else {
                 DispatchQueue.main.async {
@@ -199,7 +202,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             switch result {
             case .failure(let error):
                 self.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
+                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle(), shouldShowDefaultScreenOnFailure else {
                     DispatchQueue.main.async {
                         callback?(.failure(error))
                     }
@@ -432,6 +435,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             return
         }
+        let shouldShowDefaultScreenOnFailure = (payload?["no_default"] as? Bool) != true
         networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
             switch screenResult {
             case .failure(let error):
@@ -441,7 +445,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     onShow?(.failure(error))
                     return
                 }
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle() else {
+                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle(), shouldShowDefaultScreenOnFailure else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))
                     return
