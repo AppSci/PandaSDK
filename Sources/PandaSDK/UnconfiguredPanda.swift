@@ -76,7 +76,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         appsFlyerId = id
     }
     
-    func registerIDFA(id: String, force: Bool) {
+    func registerIDFA(id: String) {
         advertisementId = id
     }
     
@@ -248,6 +248,10 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     public func setFBIds(facebookIds: FacebookIds) {
         self.facebookIds = facebookIds
+    }
+    
+    func resetIDFVAndIDFA() {
+        self.advertisementId = ""
     }
 }
 

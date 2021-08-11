@@ -546,9 +546,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func registerIDFA(id: String, force: Bool) {
+    public func registerIDFA(id: String) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.advertisementIdentifier != id || force else {
+        guard device.advertisementIdentifier != id else {
             pandaLog("Already sent advertisementIdentifier")
             return
         }
@@ -560,6 +560,20 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 device.advertisementIdentifier = id
                 self?.deviceStorage.store(device)
                 pandaLog("ATTrackingManager configured")
+            }
+        }
+    }
+    
+    public func resetIDFVAndIDFA() {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        networkClient.updateUser(user: user, idfv: "", idfa: "") { [weak self] (result) in
+            switch result {
+            case .failure(let error):
+                pandaLog("reset idfv and idfa error: \(error)")
+            case .success:
+                device.advertisementIdentifier = ""
+                self?.deviceStorage.store(device)
+                pandaLog("reset idfa and idfv success")
             }
         }
     }
