@@ -15,6 +15,7 @@ import NVActivityIndicatorView
 class WebViewController: UIViewController, WKScriptMessageHandler {
     
     var viewModel: WebViewModel!
+    var onPurchaseCmpld: (() -> Void)?
     var onFailedByTimeOut: (() -> Void)?
     var isAutoDismissable: Bool = true
     
@@ -130,6 +131,15 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
                                       viewModel?.screenData.id ?? "",
                                       viewModel?.screenData.name ?? ""
                 )
+                
+                if let urlString = data["url"],
+                   let url = URL(string: urlString),
+                   let type = data["type"],
+                   type == "external" {
+                    onPurchaseCmpld = {
+                        UIApplication.shared.open(url)
+                    }
+                }
             }
             
         }
@@ -153,6 +163,17 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         if message.name == PandaJSMessagesNames.onCustomEventSent.rawValue,
            let data = message.body as? [String: String] {
             handleAndSendCustomEventIfPossible(with: data)
+        }
+        
+        if message.name == PandaJSMessagesNames.onRedirect.rawValue,
+           let data = message.body as? [String: String],
+           let urlString = data["url"],
+           let type = data["type"],
+           let url = URL(string: urlString),
+           type == "external" {
+                UIApplication.shared.open(url)
+                onFinishLoad()
+                viewModel?.dismiss?(true, self, nil, nil)
         }
     }
     
@@ -244,6 +265,10 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     internal func tryAutoDismiss() {
         guard isAutoDismissable else { return }
         dismiss(animated: true, completion: nil)
+    }
+    
+    internal func onPurchaseCompleted() {
+        onPurchaseCmpld?()
     }
     
     internal func showInternetConnectionAlert() {
@@ -597,5 +622,6 @@ extension WebViewController {
         case logHandler
         case onLessonFeedbackSent
         case onCustomEventSent
+        case onRedirect
     }
 }

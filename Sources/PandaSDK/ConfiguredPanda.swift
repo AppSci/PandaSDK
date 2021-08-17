@@ -111,6 +111,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
                 pandaLog("productId = \(productId)\nid = \(verification.id)")
                 DispatchQueue.main.async {
+                    self?.viewControllers.forEach({ $0.value?.onPurchaseCompleted()})
                     self?.viewControllers.forEach { $0.value?.onFinishLoad() }
                     self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
                     self?.onPurchase?(productId)
