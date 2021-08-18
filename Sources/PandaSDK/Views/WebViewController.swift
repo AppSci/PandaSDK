@@ -125,6 +125,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         if message.name == PandaJSMessagesNames.onPurchase.rawValue {
             if let data = message.body as? [String: String],
                 let productID = data["productID"] {
+                onStartLoad()
                 viewModel?.onPurchase(productID,
                                       "WKScriptMessage",
                                       self,
@@ -269,6 +270,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     
     internal func onPurchaseCompleted() {
         onPurchaseCmpld?()
+        onPurchaseCmpld = nil
     }
     
     internal func showInternetConnectionAlert() {
