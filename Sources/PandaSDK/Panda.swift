@@ -41,6 +41,7 @@ public protocol PandaProtocol: class {
                 "extra_event_values" - any info for analytics
                     "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
                 "background" - color of Screen
+                "no_default": true - disable loading and showing default screen in failure case
      */
     func getScreen(screenId: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
     
@@ -59,6 +60,7 @@ public protocol PandaProtocol: class {
                 "extra_event_values" - any info for analytics
                     "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
                 "background" - color of Screen
+                "no_default": true - disable loading and showing default screen in failure case
      */
     func showScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
     
@@ -75,6 +77,7 @@ public protocol PandaProtocol: class {
                 "extra_event_values" - any info for analytics
                     "extra_event_values": ["entry_point": SubscriptionScreensConfig.CodingKeys.videoLessons.stringValue]
                 "background" - color of Screen
+                "no_default": true - disable loading and showing default screen in failure case
      */
     func prefetchScreen(screenId: String?, payload: [String: Any]?)
     
@@ -201,9 +204,10 @@ public protocol PandaProtocol: class {
      Call this method after user granted permission for Tracking in ATTrackingManager
      - Parameters:
         - id: id that user recieved after succeeded registration in ATTrackingManager
-        - force: pass true for update idfa forcely(recommended to use this only in debug purposes)
      */
-    func registerIDFA(id: String, force: Bool)
+    func registerIDFA(id: String)
+    /// Should be used only in debug purposes
+    func resetIDFVAndIDFA()
 }
 
 public extension PandaProtocol {
