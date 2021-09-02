@@ -45,6 +45,40 @@ public struct ReceiptVerificationResult: Codable {
     let active: Bool
 }
 
+internal struct CAPIConfig: Codable, Equatable {
+    let email: String?
+    let facebookLoginId: String?
+    let firstName: String?
+    let lastName: String?
+    let username: String?
+    let phone: String?
+    let gender: Int?
+    
+    var requestDictionary: [String: String] {
+        var result: [String: String] = [:]
+        if let email = email {
+            result["email"] = email
+        }
+        if let facebookId = facebookLoginId {
+            result["facebook_login_id"] = facebookId
+        }
+        if let firstName = firstName {
+            result["first_name"] = firstName
+        }
+        if let lastName = lastName {
+            result["last_name"] = lastName
+        }
+        if let username = username {
+            result["username"] = username
+        }
+        if let phone = phone {
+            result["phone"] = phone
+        }
+        
+        return result
+    }
+}
+
 enum SubscriptionAPIStatus: String, Codable {
     case success = "ok"
     case empty
@@ -258,6 +292,22 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
     
+    func updateUser(user: PandaUser,
+                    capiConfig: CAPIConfig,
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        var additionalData: Data?
+        if let gender = capiConfig.gender,
+           let data = try? JSONEncoder().encode(gender) {
+            additionalData = data
+        }
+        
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .put,
+                                    body: currentUserParameters(capiConfig: capiConfig),
+                                    additionalData: additionalData)
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
     func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
             self.verifySubscriptionsRequest(user: user, receipt: receipt, screenId: source?.screenId, callback: onComplete)
@@ -287,10 +337,14 @@ internal class NetworkClient {
         return .success(request)
     }
     
-    func createRequest<T: Codable>(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, body: T) -> Result<URLRequest, Error> {
+    func createRequest<T: Codable>(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, body: T, additionalData: Data? = nil) -> Result<URLRequest, Error> {
         let encoder = JSONEncoder()
         do {
-            let data = try encoder.encode(body)
+            var data = try encoder.encode(body)
+            if let additionalData = additionalData {
+                data.append(additionalData)
+            }
+            
             return createRequest(path: path, method: method, query: query, headers: headers, httpBody: data)
         } catch {
             return .failure(error)

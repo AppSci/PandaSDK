@@ -596,6 +596,31 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
         }
     }
+    
+    public func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?) {
+        let capiConfig = CAPIConfig(email: email,
+                                    facebookLoginId: facebookLoginId,
+                                    firstName: firstName,
+                                    lastName: lastName,
+                                    username: username,
+                                    phone: phone,
+                                    gender: gender)
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.capiConfig != capiConfig else {
+            pandaLog("Already sent this capi config: \(capiConfig)")
+            return
+        }
+        networkClient.updateUser(user: user, capiConfig: capiConfig) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                pandaLog("update capi config error: \(error.localizedDescription)")
+            case .success:
+                device.capiConfig = capiConfig
+                self?.deviceStorage.store(device)
+                pandaLog("Success on update capiConfig: \(capiConfig)")
+            }
+        }
+    }
 }
 
 extension Panda {
