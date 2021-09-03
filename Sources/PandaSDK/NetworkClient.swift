@@ -79,7 +79,7 @@ internal struct CAPIConfig: Codable, Equatable {
             result["last_name"] = lastName
         }
         if let username = username {
-            result["username"] = username
+            result["full_name"] = username
         }
         if let phone = phone {
             result["phone"] = phone
@@ -333,7 +333,7 @@ internal class NetworkClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         var additionalData: Data?
         if let gender = capiConfig.gender,
-           let data = try? JSONEncoder().encode(gender) {
+           let data = try? JSONEncoder().encode(["gender": gender]) {
             additionalData = data
         }
         
