@@ -615,7 +615,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .failure(let error):
                 pandaLog("update capi config error: \(error.localizedDescription)")
             case .success:
-                device.capiConfig = capiConfig
+                device.capiConfig = device.capiConfig.updated(with: capiConfig)
                 self?.deviceStorage.store(device)
                 pandaLog("Success on update capiConfig: \(capiConfig)")
             }

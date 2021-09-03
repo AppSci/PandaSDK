@@ -46,13 +46,23 @@ public struct ReceiptVerificationResult: Codable {
 }
 
 internal struct CAPIConfig: Codable, Equatable {
-    let email: String?
-    let facebookLoginId: String?
-    let firstName: String?
-    let lastName: String?
-    let username: String?
-    let phone: String?
-    let gender: Int?
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.email ?? "" == rhs.email &&
+        lhs.facebookLoginId ?? "" == rhs.email &&
+        lhs.firstName ?? "" == rhs.firstName &&
+        lhs.lastName ?? "" == rhs.lastName &&
+        lhs.username ?? "" == rhs.username &&
+        lhs.phone ?? "" == rhs.phone &&
+        lhs.gender ?? 0 == rhs.gender
+    }
+    
+    var email: String?
+    var facebookLoginId: String?
+    var firstName: String?
+    var lastName: String?
+    var username: String?
+    var phone: String?
+    var gender: Int?
     
     var requestDictionary: [String: String] {
         var result: [String: String] = [:]
@@ -76,6 +86,32 @@ internal struct CAPIConfig: Codable, Equatable {
         }
         
         return result
+    }
+    
+    mutating func updated(with other: CAPIConfig) -> CAPIConfig {
+        if let email = other.email, email != self.email {
+            self.email = email
+        }
+        if let facebookId = other.facebookLoginId, facebookId != self.facebookLoginId {
+            self.facebookLoginId = facebookId
+        }
+        if let firstName = other.firstName, firstName != self.firstName {
+            self.firstName = firstName
+        }
+        if let lastName = other.lastName, lastName != self.lastName {
+            self.lastName = lastName
+        }
+        if let username = other.username, username != self.username {
+            self.username = username
+        }
+        if let phone = other.phone, phone != self.phone {
+            self.phone = phone
+        }
+        if let gender = other.gender, gender != self.gender {
+            self.gender = gender
+        }
+        
+        return self
     }
 }
 
