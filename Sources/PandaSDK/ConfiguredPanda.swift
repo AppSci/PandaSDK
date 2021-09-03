@@ -606,7 +606,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
                                     phone: phone,
                                     gender: gender)
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.capiConfig != capiConfig else {
+        let updatedConfig = device.capiConfig.updated(with: capiConfig)
+        guard device.capiConfig != updatedConfig else {
             pandaLog("Already sent this capi config: \(capiConfig)")
             return
         }
@@ -615,7 +616,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .failure(let error):
                 pandaLog("update capi config error: \(error.localizedDescription)")
             case .success:
-                device.capiConfig = device.capiConfig.updated(with: capiConfig)
+                device.capiConfig = updatedConfig
                 self?.deviceStorage.store(device)
                 pandaLog("Success on update capiConfig: \(capiConfig)")
             }
