@@ -54,6 +54,10 @@ public struct SubscriptionInfo: Codable {
     public let price: Double?
     let state: SubscriptionAPIStatus
     
+    public var stateDescription: String {
+        state.rawValue
+    }
+    
     enum CodingKeys: String, CodingKey {
         case productID = "product_id"
         case isTrial  = "is_trial_period"

@@ -43,6 +43,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public var onSuccessfulPurchase: (() -> Void)?
     public let isConfigured: Bool = true
     public var pandaUserId: String?
+    public var pandaCustomUserId: String? {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        return device.customUserId
+    }
 
     init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.user = user

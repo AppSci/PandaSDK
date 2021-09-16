@@ -15,7 +15,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var onDismiss: (() -> Void)?
     var onSuccessfulPurchase: (() -> Void)?
     let isConfigured: Bool = false
-    var pandaUserId: String?  = nil
+    var pandaUserId: String?
+    var pandaCustomUserId: String?
     
     var viewControllers: Set<WeakObject<WebViewController>> = []
     var deviceToken: Data?
