@@ -103,6 +103,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .success(let receiptString):
                 receipt = receiptString
         }
+        self.send(event: .onPandaWillVerify(screenId: source.screenId, screenName: source.screenName, productId: productId))
         verificationClient.verifySubscriptions(user: user, receipt: receipt, source: source, retries: 1) { [weak self] (result) in
             switch result {
             case .failure(let error):
