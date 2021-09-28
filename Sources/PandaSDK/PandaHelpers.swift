@@ -70,7 +70,8 @@ internal func currentUserParameters(pushToken: String? = nil,
                                     appsFlyerId: String? = nil,
                                     advertisementId: String? = nil,
                                     facebookIds: FacebookIds? = nil,
-                                    idfv: String? = nil) -> [String: String] {
+                                    idfv: String? = nil,
+                                    capiConfig: CAPIConfig? = nil) -> [String: String] {
     var currentParameters = currentDeviceParameters()
     if let pushToken = pushToken {
         currentParameters["push_notifications_token"] = pushToken
@@ -92,6 +93,11 @@ internal func currentUserParameters(pushToken: String? = nil,
     }
     if let idfv = idfv {
         currentParameters["idfv"] = idfv
+    }
+    if let capiConfig = capiConfig {
+        for (key, value) in capiConfig.requestDictionary {
+            currentParameters[key] = value
+        }
     }
     return currentParameters
 }

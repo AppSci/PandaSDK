@@ -43,6 +43,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public var onSuccessfulPurchase: (() -> Void)?
     public let isConfigured: Bool = true
     public var pandaUserId: String?
+    public var pandaCustomUserId: String? {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        return device.customUserId
+    }
 
     init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
         self.user = user
@@ -593,6 +597,32 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 device.facebookIds = facebookIds
                 self?.deviceStorage.store(device)
                 pandaLog("Set Facebook Browser ID and Click ID success")
+            }
+        }
+    }
+    
+    public func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?) {
+        let capiConfig = CAPIConfig(email: email,
+                                    facebookLoginId: facebookLoginId,
+                                    firstName: firstName,
+                                    lastName: lastName,
+                                    username: username,
+                                    phone: phone,
+                                    gender: gender)
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        let updatedConfig = device.capiConfig.updated(with: capiConfig)
+        guard device.capiConfig != updatedConfig else {
+            pandaLog("Already sent this capi config: \(capiConfig)")
+            return
+        }
+        networkClient.updateUser(user: user, capiConfig: capiConfig) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                pandaLog("update capi config error: \(error.localizedDescription)")
+            case .success:
+                device.capiConfig = updatedConfig
+                self?.deviceStorage.store(device)
+                pandaLog("Success on update capiConfig: \(capiConfig)")
             }
         }
     }

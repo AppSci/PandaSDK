@@ -25,9 +25,14 @@ public protocol PandaProtocol: class {
     var isConfigured: Bool {get}
     
     /**
-     - Returns: Current Panda user id or nil if Panda not configured
+     Returns Current Panda user id or nil if Panda not configured
      */
     var pandaUserId: String? {get}
+    
+    /**
+     Returns Current Panda custom user id or nil in cases of abscence or Panda not configured
+     */
+    var pandaCustomUserId: String? { get }
     
     /**
      Returns screen from Panda Web
@@ -208,6 +213,8 @@ public protocol PandaProtocol: class {
     func registerIDFA(id: String)
     /// Should be used only in debug purposes
     func resetIDFVAndIDFA()
+    
+    func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?)
 }
 
 public extension PandaProtocol {

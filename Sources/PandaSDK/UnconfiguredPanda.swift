@@ -9,14 +9,14 @@ import Foundation
 import UIKit
 
 final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
-    
     var onPurchase: ((String) -> Void)?
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
     var onSuccessfulPurchase: (() -> Void)?
     let isConfigured: Bool = false
-    var pandaUserId: String?  = nil
+    var pandaUserId: String?
+    var pandaCustomUserId: String?
     
     var viewControllers: Set<WeakObject<WebViewController>> = []
     var deviceToken: Data?
@@ -24,6 +24,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var appsFlyerId: String?
     var advertisementId: String?
     var facebookIds: FacebookIds?
+    var capiConfig: CAPIConfig?
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
@@ -252,6 +253,16 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     func resetIDFVAndIDFA() {
         self.advertisementId = ""
+    }
+    
+    func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?) {
+        self.capiConfig = .init(email: email,
+                                facebookLoginId: facebookLoginId,
+                                firstName: firstName,
+                                lastName: lastName,
+                                username: username,
+                                phone: phone,
+                                gender: gender)
     }
 }
 

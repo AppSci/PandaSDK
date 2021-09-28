@@ -13,10 +13,19 @@ struct DeviceSettings: Codable {
     var appsFlyerId: String
     var customUserId: String
     var facebookIds: FacebookIds
+    var capiConfig: CAPIConfig
     
     static let `default` = DeviceSettings(pushToken: "",
                                           advertisementIdentifier: "",
                                           appsFlyerId: "",
                                           customUserId: "",
-                                          facebookIds: [:])
+                                          facebookIds: [:],
+                                          capiConfig: .init(email: nil,
+                                                            facebookLoginId: nil,
+                                                            firstName: nil,
+                                                            lastName: nil,
+                                                            username: nil,
+                                                            phone: nil,
+                                                            gender: nil)
+    )
 }
