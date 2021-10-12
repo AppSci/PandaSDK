@@ -23,10 +23,13 @@ protocol WebViewModelProtocol {
     var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)? { get set }
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
+    var onScreenDataUpdate: ((ScreenData) -> Void)? { get set }
+    
+    func webViewControllerDidFailLoadingHTML(_ webViewController: WebViewController)
 }
 
 class WebViewModel: WebViewModelProtocol {
-    
+    // MARK: - Properties
     @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ sceenId: String, _ screenName: String) -> Void)!
     var onViewWillAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
     var onViewDidAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
@@ -40,21 +43,44 @@ class WebViewModel: WebViewModelProtocol {
     var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)?
     var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
+    var onScreenDataUpdate: ((ScreenData) -> Void)?
     
-    let screenData: ScreenData
+    internal private(set) var screenData: ScreenData {
+        didSet {
+            onScreenDataUpdate?(screenData)
+        }
+    }
     var product: SKProduct?
     let payload: [String: Any]?
     
+    // MARK: - Init
     init(screenData: ScreenData, payload: [String: Any]? = nil) {
         self.screenData = screenData
         self.payload = payload
         setupObserver()
     }
     
-    func setupObserver() {
+    // MARK: - Public
+    func webViewControllerDidFailLoadingHTML(_ webViewController: WebViewController) {
+        guard (screenData.id != .default && screenData.id != .unknown),
+        let defaultScreenData = ScreenData.default else {
+            dismiss?(false, webViewController, nil, nil)
+            return
+        }
+        reloadWithDefaultScreenData(defaultScreenData)
+    }
+}
+
+// MARK: - Private
+extension WebViewModel {
+    private func setupObserver() {
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(getter: onPurchase),
                                                name: NSNotification.Name(rawValue: "SubscriptionBooster.onPurchase"),
                                                object: nil)
+    }
+    
+    private func reloadWithDefaultScreenData(_ screenData: ScreenData) {
+        self.screenData = screenData
     }
 }

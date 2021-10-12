@@ -208,17 +208,25 @@ final public class Panda: PandaProtocol, ObserverSupport {
             switch result {
             case .failure(let error):
                 self.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle(), shouldShowDefaultScreenOnFailure else {
+                guard let screenData = ScreenData.default, shouldShowDefaultScreenOnFailure else {
                     DispatchQueue.main.async {
                         callback?(.failure(error))
                     }
                     return
                 }
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: defaultScreen, screenType: screenType, product: product, payload: payload)))
+                    callback?(
+                        .success(
+                            self.prepareViewController(screen: screenData,
+                                                       screenType: screenType,
+                                                       product: product,
+                                                       payload: payload)
+                        )
+                    )
                 }
+
             case .success(let screen):
-                self.cache[screen.id] = screen
+                self.cache[screen.id.string] = screen
                 DispatchQueue.main.async {
                     callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product, payload: payload)))
                 }
@@ -296,7 +304,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}
         updatedVCs.forEach { (vc) in
-            vc.viewModel = createViewModel(screenData: vc.viewModel?.screenData ?? ScreenData.default)
+            vc.viewModel = createViewModel(screenData: vc.viewModel?.screenData ?? ScreenData.unknown)
         }
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
@@ -308,7 +316,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewControllers.insert(WeakObject(value: controller))
         return controller
     }
-    
+
     private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
         let extraValues = viewModel.payload?["extra_event_values"] as? [String: String]
@@ -379,6 +387,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
+                
         return viewModel
     }
     
@@ -451,14 +460,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     onShow?(.failure(error))
                     return
                 }
-                guard let defaultScreen = try? NetworkClient.loadScreenFromBundle(), shouldShowDefaultScreenOnFailure else {
+                guard let screenData = ScreenData.default, shouldShowDefaultScreenOnFailure else {
                     pandaLog("ShowScreen Error: \(error)")
                     onShow?(.failure(error))
                     return
                 }
-                self?.showPreparedViewController(screenData: defaultScreen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
+                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             case .success(let screenData):
-                self?.cache[screenData.id] = screenData
+                self?.cache[screenData.id.string] = screenData
                 self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             }
         }

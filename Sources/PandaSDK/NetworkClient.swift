@@ -13,8 +13,17 @@ internal struct PandaUser: Codable {
     let id: String
 }
 
+internal struct ID<T>: Codable, Equatable {
+    let string: String
+}
+
+extension ID where T == ScreenData {
+    static let unknown: Self = .init(string: "unknown")
+    static let `default`: Self = .init(string: "default")
+}
+
 internal struct ScreenData: Codable {
-    let id: String
+    let id: ID<ScreenData>
     let name: String
     let html: String
     enum CodingKeys: String, CodingKey {
@@ -23,7 +32,32 @@ internal struct ScreenData: Codable {
         case html = "screen_html"
     }
     
-    static var `default` = ScreenData(id: "unknown", name: "unknown", html: "unknown")
+    static let unknown = ScreenData(id: .unknown, name: "unknown", html: "unknown")
+    static var `default`: ScreenData? = {
+        guard let fileURL = Bundle.main.url(forResource: "PandaSDK-Default", withExtension: "html"),
+              let fileContents = try? String(contentsOf: fileURL) else {
+                  pandaLog("Cannot find default screen html")
+                  return nil
+        }
+        return .init(id: .default, name: "default", html: fileContents)
+    }()
+    
+    init(
+        id: ID<ScreenData>,
+        name: String,
+        html: String
+    ) {
+        self.id = id
+        self.name = name
+        self.html = html
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = .init(string: try container.decode(String.self, forKey: .id))
+        self.name = try container.decode(String.self, forKey: .name)
+        self.html = try container.decode(String.self, forKey: .html)
+    }
 }
 
 internal struct FeedbackData: Codable {
@@ -385,14 +419,6 @@ internal class NetworkClient {
         } catch {
             return .failure(error)
         }
-    }
-
-    static func loadScreenFromBundle(name: String = "PandaSDK-Default") throws -> ScreenData {
-        guard let fileURL = Bundle.main.url(forResource: name, withExtension: "html"), let fileContents = try? String(contentsOf: fileURL) else {
-            throw Errors.message("Cannot find default screen html")
-        }
-        let screenData = ScreenData(id: "default", name: "default", html: fileContents)
-        return screenData
     }
 }
 
