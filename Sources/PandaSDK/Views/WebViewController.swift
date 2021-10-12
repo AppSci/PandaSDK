@@ -12,11 +12,14 @@ import Foundation
 import WebKit
 import NVActivityIndicatorView
 
-class WebViewController: UIViewController, WKScriptMessageHandler {
+final class WebViewController: UIViewController, WKScriptMessageHandler {
     
-    var viewModel: WebViewModel!
+    var viewModel: WebViewModel! {
+        didSet {
+            bindVM(viewModel)
+        }
+    }
     var onPurchaseCmpld: (() -> Void)?
-    var onFailedByTimeOut: (() -> Void)?
     var isAutoDismissable: Bool = true
     
     var url: URLComponents?
@@ -129,7 +132,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
                 viewModel?.onPurchase(productID,
                                       "WKScriptMessage",
                                       self,
-                                      viewModel?.screenData.id ?? "",
+                                      viewModel?.screenData.id.string ?? "",
                                       viewModel?.screenData.name ?? ""
                 )
                 
@@ -207,24 +210,24 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        viewModel?.onViewWillAppear?(viewModel?.screenData.id ?? "",
+        viewModel?.onViewWillAppear?(viewModel?.screenData.id.string ?? "",
                                     viewModel?.screenData.name ?? ""
         )
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        viewModel?.onViewDidAppear?(viewModel?.screenData.id ?? "",
+        viewModel?.onViewDidAppear?(viewModel?.screenData.id.string ?? "",
                                    viewModel?.screenData.name ?? ""
         )
     }
     
     func didFinishLoading(_ url: URL?) {
         guard let url = url else {
-            viewModel?.onDidFinishLoading?(viewModel?.screenData.id, viewModel?.screenData.name)
+            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name)
             return
         }
         let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
-        let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id
+        let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string
         let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name
         viewModel?.onDidFinishLoading?(screenID, screenName)
     }
@@ -243,11 +246,7 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         pandaLog("🚨 Timeout error \(Date().timeIntervalSince1970) \(Date())")
         onFinishLoad()
         loadingIndicator.stopAnimating()
-        if let f = onFailedByTimeOut {
-            f()
-        } else {
-            viewModel?.dismiss?(false, self, nil , nil)
-        }
+        viewModel.webViewControllerDidFailLoadingHTML(self)
     }
     
     internal func onStartLoad() {
@@ -281,6 +280,12 @@ class WebViewController: UIViewController, WKScriptMessageHandler {
         alert.addAction(UIAlertAction(title: "Dismiss", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
+    
+    private func bindVM(_ viewModel: WebViewModel) {
+        viewModel.onScreenDataUpdate = { [weak self] in
+            self?.loadPage(html: $0.html)
+        }
+    }
 }
 
 extension WebViewController: UIScrollViewDelegate {
@@ -296,7 +301,7 @@ extension WebViewController: WKNavigationDelegate {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
         guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else { return true }
 
-        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string ?? ""
         let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
 
         switch action {
@@ -346,7 +351,7 @@ extension WebViewController: WKNavigationDelegate {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else {return}
         guard let action = urlComps.queryItems?.first(where: { $0.name == "type" })?.value else {return}
         
-        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+        let screenID = urlComps.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string ?? ""
         let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
         
         switch action {
@@ -381,7 +386,7 @@ extension WebViewController: WKNavigationDelegate {
             let lastComponent = url.lastPathComponent
 
             let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
-            let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id ?? ""
+            let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string ?? ""
             let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
             
             switch lastComponent {
