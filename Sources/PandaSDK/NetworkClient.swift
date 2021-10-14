@@ -115,7 +115,7 @@ internal struct CAPIConfig: Codable, Equatable {
     }
 }
 
-enum SubscriptionAPIStatus: String, Codable {
+public enum SubscriptionAPIStatus: String, Codable {
     case success = "ok"
     case empty
     case refund
