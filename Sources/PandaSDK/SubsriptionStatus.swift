@@ -52,7 +52,7 @@ public struct SubscriptionInfo: Codable {
     public let isTrial: Bool
     public let isIntro: Bool?
     public let price: Double?
-    let state: SubscriptionAPIStatus
+    public let state: SubscriptionAPIStatus
     
     public var stateDescription: String {
         state.rawValue
