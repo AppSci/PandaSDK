@@ -308,6 +308,12 @@ internal class NetworkClient {
         networkLoader.loadData(with: request, completion: callback)
     }
     
+    func updateUser(user: PandaUser,
+                    with userProperties: [PandaUserProperty],
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        
+    }
+    
     func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
         retry(retries, task: { (onComplete) in
             self.verifySubscriptionsRequest(user: user, receipt: receipt, screenId: source?.screenId, callback: onComplete)

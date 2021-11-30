@@ -215,6 +215,9 @@ public protocol PandaProtocol: class {
     func resetIDFVAndIDFA()
     
     func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?)
+    
+    func setUserProperty(_ pandaUserProperty: PandaUserProperty)
+    func getUserProperties() -> [PandaUserProperty]
 }
 
 public extension PandaProtocol {

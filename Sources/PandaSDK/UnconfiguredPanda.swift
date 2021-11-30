@@ -265,5 +265,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                                 phone: phone,
                                 gender: gender)
     }
+    
+    func setUserProperty(_ pandaUserProperty: PandaUserProperty) {
+        
+    }
+    
+    func getUserProperties() -> [PandaUserProperty] {
+        []
+    }
 }
 

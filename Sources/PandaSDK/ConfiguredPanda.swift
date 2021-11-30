@@ -636,6 +636,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
         }
     }
+    
+    public func setUserProperty(_ pandaUserProperty: PandaUserProperty) {
+        
+    }
+    
+    public func getUserProperties() -> [PandaUserProperty] {
+        []
+    }
 }
 
 extension Panda {

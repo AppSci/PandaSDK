@@ -71,7 +71,8 @@ internal func currentUserParameters(pushToken: String? = nil,
                                     advertisementId: String? = nil,
                                     pandaFacebookId: PandaFacebookId = .empty,
                                     idfv: String? = nil,
-                                    capiConfig: CAPIConfig? = nil) -> [String: String] {
+                                    capiConfig: CAPIConfig? = nil,
+                                    userProperties: [PandaUserProperty] = []) -> [String: String] {
     var currentParameters = currentDeviceParameters()
     if let pushToken = pushToken {
         currentParameters["push_notifications_token"] = pushToken
@@ -95,6 +96,15 @@ internal func currentUserParameters(pushToken: String? = nil,
             currentParameters[key] = value
         }
     }
+    let propertiesDictionary: [String: String] = userProperties.reduce(into: [:]) { result, userProperty in
+        result[userProperty.key] = userProperty.value
+    }
+    let encoder = JSONEncoder()
+    if !propertiesDictionary.isEmpty,
+        let jsonData = try? encoder.encode(propertiesDictionary) {
+        currentParameters["properties"] = String(data: jsonData, encoding: .utf8)
+    }
+    
     return currentParameters
 }
 
