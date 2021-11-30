@@ -593,18 +593,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func setFBIds(facebookIds: FacebookIds) {
+    public func setPandaFacebookId(pandaFacebookId: PandaFacebookId) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.facebookIds != facebookIds else {
+        guard device.pandaFacebookId != pandaFacebookId else {
             pandaLog("Already sent Facebook Browser ID and Click ID")
             return
         }
-        networkClient.updateUser(user: user, facebookIds: facebookIds) { [weak self] result in
+        networkClient.updateUser(user: user, pandaFacebookId: pandaFacebookId) { [weak self] result in
             switch result {
             case .failure(let error):
                 pandaLog("Error on set Facebook Browser ID or Click ID: \(error)")
             case .success:
-                device.facebookIds = facebookIds
+                device.pandaFacebookId = pandaFacebookId
                 self?.deviceStorage.store(device)
                 pandaLog("Set Facebook Browser ID and Click ID success")
             }

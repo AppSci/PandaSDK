@@ -104,7 +104,7 @@ public protocol PandaProtocol: class {
     /**
         Set Facebook Browser ID and  Click ID for current Panda User Id
      */
-    func setFBIds(facebookIds: FacebookIds)
+    func setPandaFacebookId(pandaFacebookId: PandaFacebookId)
     
     
     // MARK: - Handle Push Notification
@@ -294,8 +294,8 @@ extension Panda {
         let customUserId = unconfigured?.customUserId
         customUserId.map(panda.setCustomUserId(id:))
         
-        let facebookIds = unconfigured?.facebookIds
-        facebookIds.map(panda.setFBIds(facebookIds:))
+        let pandaFacebookIds = unconfigured?.pandaFacebookId
+        pandaFacebookIds.map(panda.setPandaFacebookId(pandaFacebookId:))
         
         return panda
     }
