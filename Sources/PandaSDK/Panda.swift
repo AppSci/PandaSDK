@@ -217,6 +217,7 @@ public protocol PandaProtocol: class {
     func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?)
     
     func setUserProperty(_ pandaUserProperty: PandaUserProperty)
+    func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>)
     func getUserProperties() -> [PandaUserProperty]
 }
 
@@ -299,6 +300,18 @@ extension Panda {
         
         let pandaFacebookIds = unconfigured?.pandaFacebookId
         pandaFacebookIds.map(panda.setPandaFacebookId(pandaFacebookId:))
+        
+        let pandaCapiConfig = unconfigured?.capiConfig
+        panda.register(facebookLoginId: pandaCapiConfig?.facebookLoginId,
+                       email: pandaCapiConfig?.email,
+                       firstName: pandaCapiConfig?.firstName,
+                       lastName: pandaCapiConfig?.lastName,
+                       username: pandaCapiConfig?.username,
+                       phone: pandaCapiConfig?.phone,
+                       gender: pandaCapiConfig?.gender)
+        
+        let pandaUserProperties = unconfigured?.pandaUserProperties
+        pandaUserProperties.map(panda.setUserProperties)
         
         return panda
     }

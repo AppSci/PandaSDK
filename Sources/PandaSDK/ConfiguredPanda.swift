@@ -638,11 +638,29 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func setUserProperty(_ pandaUserProperty: PandaUserProperty) {
+        setUserProperties([pandaUserProperty])
+    }
+    
+    public func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        guard device.userProperties != pandaUserProperties else {
+            return
+        }
         
+        networkClient.updateUser(user: user, with: pandaUserProperties) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                pandaLog("update capi config error: \(error.localizedDescription)")
+            case .success:
+                device.userProperties = device.userProperties.union(pandaUserProperties)
+                self?.deviceStorage.store(device)
+                pandaLog("Success on update pandaUserProperty: \(result)")
+            }
+        }
     }
     
     public func getUserProperties() -> [PandaUserProperty] {
-        []
+        Array((deviceStorage.fetch() ?? DeviceSettings.default).userProperties)
     }
 }
 
@@ -745,8 +763,4 @@ class ScreenCache {
             cache[key] = newValue
         }
     }
-}
-
-extension NetworkClient: VerificationClient {
-    
 }

@@ -29,17 +29,4 @@ public enum PandaFacebookId: Codable, Equatable {
         
         return .empty
     }
-    
-    var requestParameters: [String: String] {
-        switch self {
-        case .fbc(let value): return ["fbc": value]
-        case .fbp(let value): return ["fbp": value]
-        case .fbpAndFbc(let fbp, let fbc):
-            return [
-                "fbc": fbc,
-                "fbp": fbp
-            ]
-        case .empty: return [:]
-        }
-    }
 }

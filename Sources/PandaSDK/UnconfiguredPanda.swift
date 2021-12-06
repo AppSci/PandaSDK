@@ -25,6 +25,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var advertisementId: String?
     var pandaFacebookId: PandaFacebookId = .empty
     var capiConfig: CAPIConfig?
+    var pandaUserProperties = Set<PandaUserProperty>()
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
@@ -267,11 +268,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func setUserProperty(_ pandaUserProperty: PandaUserProperty) {
-        
+        setUserProperties([pandaUserProperty])
     }
     
-    func getUserProperties() -> [PandaUserProperty] {
-        []
+    func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>) {
+        pandaUserProperties.forEach { self.pandaUserProperties.update(with: $0) }
     }
+    
+    func getUserProperties() -> [PandaUserProperty] { [] }
 }
 
