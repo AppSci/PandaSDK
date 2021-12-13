@@ -643,7 +643,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
     
     public func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.userProperties != pandaUserProperties else {
+        var storedUserProperties = device.userProperties
+        var shouldUpdate: Bool = false
+        pandaUserProperties.forEach { pandaUserProperty in
+            let existUserProperty = storedUserProperties.first(where: { $0 == pandaUserProperty })
+            if (existUserProperty != nil && existUserProperty?.value != pandaUserProperty.value) ||
+                (!storedUserProperties.contains(pandaUserProperty)) {
+                shouldUpdate = true
+                storedUserProperties.update(with: pandaUserProperty)
+            }
+        }
+        
+        guard shouldUpdate else {
             return
         }
         
@@ -652,7 +663,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .failure(let error):
                 pandaLog("update capi config error: \(error.localizedDescription)")
             case .success:
-                device.userProperties = device.userProperties.union(pandaUserProperties)
+                device.userProperties = storedUserProperties
                 self?.deviceStorage.store(device)
                 pandaLog("Success on update pandaUserProperty: \(result)")
             }
@@ -661,6 +672,23 @@ final public class Panda: PandaProtocol, ObserverSupport {
     
     public func getUserProperties() -> [PandaUserProperty] {
         Array((deviceStorage.fetch() ?? DeviceSettings.default).userProperties)
+    }
+    
+    public func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void)) {
+        networkClient.getUser(user: self.user) { [weak self] result in
+            let userProperties: Set<PandaUserProperty>
+            switch result {
+            case .success(let userInfo):
+                userProperties = userInfo.userProperties.reduce(into: Set<PandaUserProperty>()) { result, keyValuePair in
+                    result.update(with: PandaUserProperty(key: keyValuePair.key, value: keyValuePair.value))
+                }
+            case .failure:
+                userProperties = Set(self?.getUserProperties() ?? [])
+            }
+            DispatchQueue.main.async {
+                completion(userProperties)
+            }
+        }
     }
 }
 

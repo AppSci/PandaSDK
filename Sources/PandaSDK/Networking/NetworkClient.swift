@@ -210,7 +210,7 @@ internal class NetworkClient: VerificationClient {
     internal func registerUserRequest(callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users",
                                     method: .post,
-                                    body: PandaRequestBody()
+                                    body: PandaUserInfo()
         )
         networkLoader.loadData(with: request, completion: callback)
     }
@@ -234,7 +234,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody(pushNotificationToken: pushToken))
+                                    body: PandaUserInfo(pushNotificationToken: pushToken))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -243,7 +243,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody(appsFlyerId: appsFlyerId))
+                                    body: PandaUserInfo(appsFlyerId: appsFlyerId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -252,7 +252,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody(idfa: advertisementId))
+                                    body: PandaUserInfo(idfa: advertisementId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -261,7 +261,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody(customUserId: customUserId))
+                                    body: PandaUserInfo(customUserId: customUserId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -270,7 +270,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody.body(forPandaFacebookId: pandaFacebookId))
+                                    body: PandaUserInfo.body(forPandaFacebookId: pandaFacebookId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -280,7 +280,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody(idfa: idfa, idfv: idfv))
+                                    body: PandaUserInfo(idfa: idfa, idfv: idfv))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -289,7 +289,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody.body(forCAPIConfig: capiConfig))
+                                    body: PandaUserInfo.body(forCAPIConfig: capiConfig))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -298,7 +298,7 @@ internal class NetworkClient: VerificationClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: PandaRequestBody.body(forUserProperties: userProperties))
+                                    body: PandaUserInfo.body(forUserProperties: userProperties))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -312,6 +312,12 @@ internal class NetworkClient: VerificationClient {
         retry(retries, task: { (onComplete) in
             self.registerUserRequest(callback: onComplete)
         }, completion: callback)
+    }
+    
+    func getUser(user: PandaUser, callback: @escaping (Result<PandaUserInfo, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .get)
+        networkLoader.loadData(with: request, completion: callback)
     }
     
     func createRequest(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, httpBody: Data? = nil) -> Result<URLRequest, Error> {

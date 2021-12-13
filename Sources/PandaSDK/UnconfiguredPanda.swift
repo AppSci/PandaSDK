@@ -276,5 +276,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func getUserProperties() -> [PandaUserProperty] { [] }
+    func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void)) {
+        completion(.init())
+    }
 }
 

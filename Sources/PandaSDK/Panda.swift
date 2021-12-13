@@ -218,7 +218,10 @@ public protocol PandaProtocol: class {
     
     func setUserProperty(_ pandaUserProperty: PandaUserProperty)
     func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>)
+    /// Get User Properties Stored in local storage
     func getUserProperties() -> [PandaUserProperty]
+    /// Fetch All User Properties From Remote or local in case of failure. Returns on main thread
+    func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void))
 }
 
 public extension PandaProtocol {

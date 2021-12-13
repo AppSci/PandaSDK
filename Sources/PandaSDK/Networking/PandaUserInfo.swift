@@ -1,5 +1,5 @@
 //
-//  PandaRequestBody.swift
+//  PandaUserInfo.swift
 //  PandaSDK
 //
 //  Created by Aleksey Filobok on 04.12.2021.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct PandaRequestBody: Codable {
+struct PandaUserInfo: Codable {
     let deviceFamily: String = UIDevice.current.userInterfaceIdiom == .phone ? "iPhone" : "iPad"
     let appVersion: String = (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? ""
     let deviceModel: String = UIDevice.current.modelName
@@ -94,7 +94,7 @@ struct PandaRequestBody: Codable {
 }
 
 // MARK: - Init Helpers
-extension PandaRequestBody {
+extension PandaUserInfo {
     static func body(forPandaFacebookId pandaFacebookId: PandaFacebookId) -> Self {
         switch pandaFacebookId {
         case .fbc(let fbc): return .init(fbc: fbc)
