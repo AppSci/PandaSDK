@@ -23,8 +23,9 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var customUserId: String?
     var appsFlyerId: String?
     var advertisementId: String?
-    var facebookIds: FacebookIds?
+    var pandaFacebookId: PandaFacebookId = .empty
     var capiConfig: CAPIConfig?
+    var pandaUserProperties = Set<PandaUserProperty>()
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
@@ -248,8 +249,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         self.customUserId = id
     }
     
-    public func setFBIds(facebookIds: FacebookIds) {
-        self.facebookIds = facebookIds
+    public func setPandaFacebookId(pandaFacebookId: PandaFacebookId) {
+        self.pandaFacebookId = pandaFacebookId
     }
     
     func resetIDFVAndIDFA() {
@@ -264,6 +265,19 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                                 username: username,
                                 phone: phone,
                                 gender: gender)
+    }
+    
+    func setUserProperty(_ pandaUserProperty: PandaUserProperty) {
+        setUserProperties([pandaUserProperty])
+    }
+    
+    func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>) {
+        pandaUserProperties.forEach { self.pandaUserProperties.update(with: $0) }
+    }
+    
+    func getUserProperties() -> [PandaUserProperty] { [] }
+    func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void)) {
+        completion(.init())
     }
 }
 

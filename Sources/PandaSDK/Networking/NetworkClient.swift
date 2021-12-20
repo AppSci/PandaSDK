@@ -9,14 +9,6 @@
 import Foundation
 import UIKit
 
-internal struct PandaUser: Codable {
-    let id: String
-}
-
-internal struct ID<T>: Codable, Equatable {
-    let string: String
-}
-
 extension ID where T == ScreenData {
     static let unknown: Self = .init(string: "unknown")
     static let `default`: Self = .init(string: "default")
@@ -77,76 +69,6 @@ internal struct AnswerData: Codable {
 public struct ReceiptVerificationResult: Codable {
     let id: String
     let active: Bool
-}
-
-internal struct CAPIConfig: Codable, Equatable {
-    static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.email ?? "" == rhs.email &&
-        lhs.facebookLoginId ?? "" == rhs.email &&
-        lhs.firstName ?? "" == rhs.firstName &&
-        lhs.lastName ?? "" == rhs.lastName &&
-        lhs.username ?? "" == rhs.username &&
-        lhs.phone ?? "" == rhs.phone &&
-        lhs.gender ?? 0 == rhs.gender
-    }
-    
-    var email: String?
-    var facebookLoginId: String?
-    var firstName: String?
-    var lastName: String?
-    var username: String?
-    var phone: String?
-    var gender: Int?
-    
-    var requestDictionary: [String: String] {
-        var result: [String: String] = [:]
-        if let email = email {
-            result["email"] = email
-        }
-        if let facebookId = facebookLoginId {
-            result["facebook_login_id"] = facebookId
-        }
-        if let firstName = firstName {
-            result["first_name"] = firstName
-        }
-        if let lastName = lastName {
-            result["last_name"] = lastName
-        }
-        if let username = username {
-            result["full_name"] = username
-        }
-        if let phone = phone {
-            result["phone"] = phone
-        }
-        
-        return result
-    }
-    
-    mutating func updated(with other: CAPIConfig) -> CAPIConfig {
-        if let email = other.email, email != self.email {
-            self.email = email
-        }
-        if let facebookId = other.facebookLoginId, facebookId != self.facebookLoginId {
-            self.facebookLoginId = facebookId
-        }
-        if let firstName = other.firstName, firstName != self.firstName {
-            self.firstName = firstName
-        }
-        if let lastName = other.lastName, lastName != self.lastName {
-            self.lastName = lastName
-        }
-        if let username = other.username, username != self.username {
-            self.username = username
-        }
-        if let phone = other.phone, phone != self.phone {
-            self.phone = phone
-        }
-        if let gender = other.gender, gender != self.gender {
-            self.gender = gender
-        }
-        
-        return self
-    }
 }
 
 public enum SubscriptionAPIStatus: String, Codable {
@@ -213,7 +135,7 @@ public enum ScreenType: String, Codable {
     case feedback
 }
 
-internal class NetworkClient {
+internal class NetworkClient: VerificationClient {
     
     let isDebug: Bool
     let serverAPI: String
@@ -288,7 +210,7 @@ internal class NetworkClient {
     internal func registerUserRequest(callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users",
                                     method: .post,
-                                    body: currentDeviceParameters()
+                                    body: PandaUserInfo()
         )
         networkLoader.loadData(with: request, completion: callback)
     }
@@ -312,7 +234,7 @@ internal class NetworkClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(pushToken: pushToken))
+                                    body: PandaUserInfo(pushNotificationToken: pushToken))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -321,7 +243,7 @@ internal class NetworkClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(appsFlyerId: appsFlyerId))
+                                    body: PandaUserInfo(appsFlyerId: appsFlyerId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -330,7 +252,7 @@ internal class NetworkClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(advertisementId: advertisementId))
+                                    body: PandaUserInfo(idfa: advertisementId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -339,16 +261,16 @@ internal class NetworkClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(customUserId: customUserId))
+                                    body: PandaUserInfo(customUserId: customUserId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
     func updateUser(user: PandaUser,
-                    facebookIds: FacebookIds,
+                    pandaFacebookId: PandaFacebookId,
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(facebookIds: facebookIds))
+                                    body: PandaUserInfo.body(forPandaFacebookId: pandaFacebookId))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -358,23 +280,25 @@ internal class NetworkClient {
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(advertisementId: idfa, idfv: idfv))
+                                    body: PandaUserInfo(idfa: idfa, idfv: idfv))
         networkLoader.loadData(with: request, completion: callback)
     }
     
     func updateUser(user: PandaUser,
                     capiConfig: CAPIConfig,
                     callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        var additionalData: Data?
-        if let gender = capiConfig.gender,
-           let data = try? JSONEncoder().encode(["gender": gender]) {
-            additionalData = data
-        }
-        
         let request = createRequest(path: "/v1/users/\(user.id)",
                                     method: .put,
-                                    body: currentUserParameters(capiConfig: capiConfig),
-                                    additionalData: additionalData)
+                                    body: PandaUserInfo.body(forCAPIConfig: capiConfig))
+        networkLoader.loadData(with: request, completion: callback)
+    }
+    
+    func updateUser(user: PandaUser,
+                    with userProperties: Set<PandaUserProperty>,
+                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .put,
+                                    body: PandaUserInfo.body(forUserProperties: userProperties))
         networkLoader.loadData(with: request, completion: callback)
     }
     
@@ -388,6 +312,12 @@ internal class NetworkClient {
         retry(retries, task: { (onComplete) in
             self.registerUserRequest(callback: onComplete)
         }, completion: callback)
+    }
+    
+    func getUser(user: PandaUser, callback: @escaping (Result<PandaUserInfo, Error>) -> Void) {
+        let request = createRequest(path: "/v1/users/\(user.id)",
+                                    method: .get)
+        networkLoader.loadData(with: request, completion: callback)
     }
     
     func createRequest(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, httpBody: Data? = nil) -> Result<URLRequest, Error> {
@@ -407,14 +337,14 @@ internal class NetworkClient {
         return .success(request)
     }
     
-    func createRequest<T: Codable>(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, body: T, additionalData: Data? = nil) -> Result<URLRequest, Error> {
+    func createRequest<T: Codable>(path: String,
+                                   method: HttpMethod,
+                                   query: [String: String?]? = nil,
+                                   headers: [String: String?]? = nil,
+                                   body: T) -> Result<URLRequest, Error> {
         let encoder = JSONEncoder()
         do {
             var data = try encoder.encode(body)
-            if let additionalData = additionalData {
-                data.append(additionalData)
-            }
-            
             return createRequest(path: path, method: method, query: query, headers: headers, httpBody: data)
         } catch {
             return .failure(error)
@@ -422,26 +352,29 @@ internal class NetworkClient {
     }
 }
 
-func retry<T>(_ attempts: Int,
-              interval: DispatchTimeInterval = .seconds(0),
-              task: @escaping (_ completion:@escaping (Result<T, Error>) -> Void) -> Void,
-              completion: @escaping (Result<T, Error>) -> Void) {
-    
-    task({ result in
-        switch result {
-        case .success:
-            completion(result)
-        case .failure(let error):
-            guard attempts > 0 else {
+// MARK: - Private
+extension NetworkClient {
+    private func retry<T>(_ attempts: Int,
+                          interval: DispatchTimeInterval = .seconds(0),
+                          task: @escaping (_ completion:@escaping (Result<T, Error>) -> Void) -> Void,
+                          completion: @escaping (Result<T, Error>) -> Void) {
+        task({ [weak self] result in
+            switch result {
+            case .success:
                 completion(result)
-                return
+            case .failure(let error):
+                guard attempts > 0 else {
+                    completion(result)
+                    return
+                }
+                pandaLog("retries left \(attempts) and error = \(error)")
+                DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+                    self?.retry(attempts - 1, interval: interval, task: task, completion: completion)
+                }
             }
-            pandaLog("retries left \(attempts) and error = \(error)")
-            DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
-                retry(attempts - 1, interval: interval, task: task, completion: completion)
-            }
-        }
-    })
+        })
+    }
+
 }
 
 enum DeviceInfo {

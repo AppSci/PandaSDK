@@ -593,18 +593,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func setFBIds(facebookIds: FacebookIds) {
+    public func setPandaFacebookId(pandaFacebookId: PandaFacebookId) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
-        guard device.facebookIds != facebookIds else {
+        guard device.pandaFacebookId != pandaFacebookId else {
             pandaLog("Already sent Facebook Browser ID and Click ID")
             return
         }
-        networkClient.updateUser(user: user, facebookIds: facebookIds) { [weak self] result in
+        networkClient.updateUser(user: user, pandaFacebookId: pandaFacebookId) { [weak self] result in
             switch result {
             case .failure(let error):
                 pandaLog("Error on set Facebook Browser ID or Click ID: \(error)")
             case .success:
-                device.facebookIds = facebookIds
+                device.pandaFacebookId = pandaFacebookId
                 self?.deviceStorage.store(device)
                 pandaLog("Set Facebook Browser ID and Click ID success")
             }
@@ -633,6 +633,60 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 device.capiConfig = updatedConfig
                 self?.deviceStorage.store(device)
                 pandaLog("Success on update capiConfig: \(capiConfig)")
+            }
+        }
+    }
+    
+    public func setUserProperty(_ pandaUserProperty: PandaUserProperty) {
+        setUserProperties([pandaUserProperty])
+    }
+    
+    public func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>) {
+        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        var storedUserProperties = device.userProperties
+        var shouldUpdate: Bool = false
+        pandaUserProperties.forEach { pandaUserProperty in
+            let existUserProperty = storedUserProperties.first(where: { $0 == pandaUserProperty })
+            if (existUserProperty != nil && existUserProperty?.value != pandaUserProperty.value) ||
+                (!storedUserProperties.contains(pandaUserProperty)) {
+                shouldUpdate = true
+                storedUserProperties.update(with: pandaUserProperty)
+            }
+        }
+        
+        guard shouldUpdate else {
+            return
+        }
+        
+        networkClient.updateUser(user: user, with: pandaUserProperties) { [weak self] result in
+            switch result {
+            case .failure(let error):
+                pandaLog("update capi config error: \(error.localizedDescription)")
+            case .success:
+                device.userProperties = storedUserProperties
+                self?.deviceStorage.store(device)
+                pandaLog("Success on update pandaUserProperty: \(result)")
+            }
+        }
+    }
+    
+    public func getUserProperties() -> [PandaUserProperty] {
+        Array((deviceStorage.fetch() ?? DeviceSettings.default).userProperties)
+    }
+    
+    public func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void)) {
+        networkClient.getUser(user: self.user) { [weak self] result in
+            let userProperties: Set<PandaUserProperty>
+            switch result {
+            case .success(let userInfo):
+                userProperties = userInfo.userProperties.reduce(into: Set<PandaUserProperty>()) { result, keyValuePair in
+                    result.update(with: PandaUserProperty(key: keyValuePair.key, value: keyValuePair.value))
+                }
+            case .failure:
+                userProperties = Set(self?.getUserProperties() ?? [])
+            }
+            DispatchQueue.main.async {
+                completion(userProperties)
             }
         }
     }
@@ -737,8 +791,4 @@ class ScreenCache {
             cache[key] = newValue
         }
     }
-}
-
-extension NetworkClient: VerificationClient {
-    
 }

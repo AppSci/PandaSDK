@@ -104,7 +104,7 @@ public protocol PandaProtocol: class {
     /**
         Set Facebook Browser ID and  Click ID for current Panda User Id
      */
-    func setFBIds(facebookIds: FacebookIds)
+    func setPandaFacebookId(pandaFacebookId: PandaFacebookId)
     
     
     // MARK: - Handle Push Notification
@@ -215,6 +215,13 @@ public protocol PandaProtocol: class {
     func resetIDFVAndIDFA()
     
     func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?)
+    
+    func setUserProperty(_ pandaUserProperty: PandaUserProperty)
+    func setUserProperties(_ pandaUserProperties: Set<PandaUserProperty>)
+    /// Get User Properties Stored in local storage
+    func getUserProperties() -> [PandaUserProperty]
+    /// Fetch All User Properties From Remote or local in case of failure. Returns on main thread
+    func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void))
 }
 
 public extension PandaProtocol {
@@ -294,8 +301,20 @@ extension Panda {
         let customUserId = unconfigured?.customUserId
         customUserId.map(panda.setCustomUserId(id:))
         
-        let facebookIds = unconfigured?.facebookIds
-        facebookIds.map(panda.setFBIds(facebookIds:))
+        let pandaFacebookIds = unconfigured?.pandaFacebookId
+        pandaFacebookIds.map(panda.setPandaFacebookId(pandaFacebookId:))
+        
+        let pandaCapiConfig = unconfigured?.capiConfig
+        panda.register(facebookLoginId: pandaCapiConfig?.facebookLoginId,
+                       email: pandaCapiConfig?.email,
+                       firstName: pandaCapiConfig?.firstName,
+                       lastName: pandaCapiConfig?.lastName,
+                       username: pandaCapiConfig?.username,
+                       phone: pandaCapiConfig?.phone,
+                       gender: pandaCapiConfig?.gender)
+        
+        let pandaUserProperties = unconfigured?.pandaUserProperties
+        pandaUserProperties.map(panda.setUserProperties)
         
         return panda
     }
