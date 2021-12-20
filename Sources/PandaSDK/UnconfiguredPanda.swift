@@ -47,11 +47,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     func configure(apiKey: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
         lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug)
         Panda.configure(apiKey: apiKey, isDebug: isDebug, unconfigured: self, callback: { result in
-            switch result {
-            case .failure:
-                callback?(false)
-            case .success:
-                callback?(true)
+            DispatchQueue.main.async {
+                switch result {
+                case .failure:
+                    callback?(false)
+                case .success:
+                    callback?(true)
+                }
             }
         })
     }
