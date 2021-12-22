@@ -319,8 +319,10 @@ extension Panda {
         return panda
     }
 
-    static public func resetPandaStorage() {
+    static public func reset() {
         let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
         userStorage.clear()
+        
+        shared = UnconfiguredPanda()
     }
 }
