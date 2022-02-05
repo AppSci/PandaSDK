@@ -5,7 +5,7 @@
 //  Created by Aleksey Filobok on 04.12.2021.
 //
 
-import Foundation
+import UIKit
 
 struct PandaUserInfo: Codable {
     let deviceFamily: String = UIDevice.current.userInterfaceIdiom == .phone ? "iPhone" : "iPad"
