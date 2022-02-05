@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import Foundation
 import WebKit
-import NVActivityIndicatorView
+import NVActivityIndicatorViewExtended
 
 final class WebViewController: UIViewController, WKScriptMessageHandler {
     
