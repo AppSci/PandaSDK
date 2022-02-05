@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "PandaSDK"
-  spec.version      = "0.5.0"
+  spec.version      = "0.5.1"
   spec.summary      = "Panda pod which will help us boost our revenue."
 
   # This description is used to generate tags and improve search results.
@@ -138,6 +138,6 @@ Pod::Spec.new do |spec|
 
   # spec.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
   # spec.dependency "JSONKit", "~> 1.4"
-  spec.dependency 'NVActivityIndicatorView', "~> 4.8.0"
+  spec.dependency 'NVActivityIndicatorView'
 
 end

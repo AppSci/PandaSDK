@@ -54,7 +54,7 @@ struct PandaUserInfo: Codable {
         case facebookLoginId = "facebook_login_id"
         case firstName = "first_name"
         case lastName = "last_name"
-        case username = "user_name"
+        case username = "full_name"
         case phone
         case gender
         case userProperties = "properties"
