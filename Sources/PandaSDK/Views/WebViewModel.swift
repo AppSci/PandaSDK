@@ -51,10 +51,10 @@ class WebViewModel: WebViewModelProtocol {
         }
     }
     var product: SKProduct?
-    let payload: [String: Any]?
+    let payload: PandaPayload?
     
     // MARK: - Init
-    init(screenData: ScreenData, payload: [String: Any]? = nil) {
+    init(screenData: ScreenData, payload: PandaPayload? = nil) {
         self.screenData = screenData
         self.payload = payload
         setupObserver()
@@ -74,10 +74,12 @@ class WebViewModel: WebViewModelProtocol {
 // MARK: - Private
 extension WebViewModel {
     private func setupObserver() {
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(getter: onPurchase),
-                                               name: NSNotification.Name(rawValue: "SubscriptionBooster.onPurchase"),
-                                               object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(getter: onPurchase),
+            name: NSNotification.Name(rawValue: "SubscriptionBooster.onPurchase"),
+            object: nil
+        )
     }
     
     private func reloadWithDefaultScreenData(_ screenData: ScreenData) {

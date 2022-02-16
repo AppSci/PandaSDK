@@ -31,9 +31,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
     private let deviceStorage: Storage<DeviceSettings> = CodableStorageFactory.userDefaults()
     private var viewControllers: Set<WeakObject<WebViewController>> = []
-    private var payload: [String: Any]?
+    private var payload: PandaPayload?
     private var entryPoint: String? {
-        return (payload?["extra_event_values"] as? [String: String])?["entry_point"]
+        return payload?.extraEventValues["entry_point"]
     }
     
     public var onPurchase: ((String) -> Void)?
@@ -44,7 +44,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     public let isConfigured: Bool = true
     public var pandaUserId: String?
     public var pandaCustomUserId: String? {
-        var device = deviceStorage.fetch() ?? DeviceSettings.default
+        let device = deviceStorage.fetch() ?? DeviceSettings.default
         return device.customUserId
     }
 
@@ -169,9 +169,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func prefetchScreen(screenId: String?, payload: [String: Any]?) {
+    public func prefetchScreen(screenId: String?, payload: PandaPayload?) {
         self.payload = payload
-        networkClient.loadScreen(user: user, screenId: screenId) { [weak self] result in
+        networkClient.loadScreen(user: user, screenId: screenId, timeout: payload?.htmlDownloadTimeout) { [weak self] result in
             guard let self = self else {
                 pandaLog("Panda is missing!")
                 return
@@ -187,18 +187,27 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
 
-    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: PandaPayload? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         self.payload = payload
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
-                callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product, payload: payload)))
+                callback?(
+                    .success(
+                        self.prepareViewController(
+                            screen: screen,
+                            screenType: screenType,
+                            product: product,
+                            payload: payload
+                        )
+                    )
+                )
             }
             return
         }
         
-        let shouldShowDefaultScreenOnFailure = (payload?["no_default"] as? Bool) != true
+        let shouldShowDefaultScreenOnFailure = payload?.shouldShowDefaultScreen == true
         
-        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] result in
+        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType, timeout: payload?.htmlDownloadTimeout) { [weak self] result in
             guard let self = self else {
                 DispatchQueue.main.async {
                     callback?(.failure(Errors.message("Panda is missing!")))
@@ -217,10 +226,12 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 DispatchQueue.main.async {
                     callback?(
                         .success(
-                            self.prepareViewController(screen: screenData,
-                                                       screenType: screenType,
-                                                       product: product,
-                                                       payload: payload)
+                            self.prepareViewController(
+                                screen: screenData,
+                                screenType: screenType,
+                                product: product,
+                                payload: payload
+                            )
                         )
                     )
                 }
@@ -309,7 +320,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
-    private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil, payload: [String: Any]? = nil) -> WebViewController {
+    private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil, payload: PandaPayload? = nil) -> WebViewController {
         let viewModel = createViewModel(screenData: screen, product: product, payload: payload)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
@@ -317,9 +328,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         return controller
     }
 
-    private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
+    private func createViewModel(screenData: ScreenData, product: String? = nil, payload: PandaPayload? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
-        let extraValues = viewModel.payload?["extra_event_values"] as? [String: String]
+        let extraValues = viewModel.payload?.extraEventValues
         let entryPoint = extraValues?["entry_point"]
 
         if let product = product {
@@ -394,7 +405,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private func setupWebView(html: String, viewModel: WebViewModel, screenType: ScreenType) -> WebViewController {
         let controller = WebViewController()
 
-        controller.view.backgroundColor = viewModel.payload?["background"] as? UIColor
+        controller.view.backgroundColor = viewModel.payload?.screenBackgroundColor
         controller.modalPresentationStyle = screenType == .sales ? .overFullScreen : .pageSheet
         controller.viewModel = viewModel
         controller.loadPage(html: html)
@@ -444,14 +455,22 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(
+        screenType: ScreenType,
+        screenId: String? = nil,
+        product: String? = nil,
+        autoDismiss: Bool = true, 
+        presentationStyle: UIModalPresentationStyle = .pageSheet,
+        payload: PandaPayload? = nil,
+        onShow: ((Result<Bool, Error>) -> Void)? = nil
+    ) {
         self.payload = payload
         if let screen = cache[screenId] {
             self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             return
         }
-        let shouldShowDefaultScreenOnFailure = (payload?["no_default"] as? Bool) != true
-        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType) { [weak self] (screenResult) in
+        let shouldShowDefaultScreenOnFailure = payload?.shouldShowDefaultScreen == true
+        networkClient.loadScreen(user: user, screenId: screenId, screenType: screenType, timeout: payload?.htmlDownloadTimeout) { [weak self] (screenResult) in
             switch screenResult {
             case .failure(let error):
                 self?.send(event: .screenShowFailed(screenId: screenId ?? "", screenType: screenType.rawValue))
@@ -473,7 +492,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)?) {
+    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: PandaPayload? = nil, onShow: ((Result<Bool, Error>) -> Void)?) {
         DispatchQueue.main.async {
             let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product, payload: payload)
             vc.modalPresentationStyle = presentationStyle

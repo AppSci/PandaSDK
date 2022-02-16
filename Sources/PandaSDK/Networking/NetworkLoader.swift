@@ -9,7 +9,11 @@
 import Foundation
 
 protocol NetworkLoader {
-    func loadData<T: Codable>(with requestRes: Result<URLRequest, Error>, completion: @escaping (Result<T, Error>) -> Void)
+    func loadData<T: Codable>(
+        with requestRes: Result<URLRequest, Error>,
+        timeout: TimeInterval?,
+        completion: @escaping (Result<T, Error>) -> Void
+    )
 }
 
 struct ApiError: Error {
@@ -22,14 +26,21 @@ private struct ApiErrorMessage: Codable {
 }
 
 extension URLSession: NetworkLoader {
-    func loadData<T: Codable>(with requestRes: Result<URLRequest, Error>, completion: @escaping (Result<T, Error>) -> Void) {
-        let request: URLRequest
+    func loadData<T: Codable>(
+        with requestRes: Result<URLRequest, Error>,
+        timeout: TimeInterval?,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
+        var request: URLRequest
         switch requestRes {
         case .failure(let error):
             completion(.failure(error))
             return
         case .success(let value):
             request = value
+        }
+        if let timeout = timeout {
+            request.timeoutInterval = timeout
         }
         self.dataTask(with: request) { (data, response, error) in
             guard let data = data, let response = response as? HTTPURLResponse else {

@@ -17,7 +17,11 @@ public protocol PandaProtocol: class {
      - parameter isDebug: Optional. Please, use `true` for debugging, `false` for production.
      - parameter callback: Optional. You can do check if Panda SDK in configured.
      */
-    func configure(apiKey: String, isDebug: Bool, callback: ((Bool) -> Void)?)
+    func configure(
+        apiKey: String,
+        isDebug: Bool,
+        callback: ((Bool) -> Void)?
+    )
     
     /**
      Returns Panda configuration state
@@ -48,9 +52,19 @@ public protocol PandaProtocol: class {
                 "background" - color of Screen
                 "no_default": true - disable loading and showing default screen in failure case
      */
-    func getScreen(screenId: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    func getScreen(
+        screenId: String?,
+        payload: PandaPayload?,
+        callback: ((Result<UIViewController, Error>) -> Void)?
+    )
     
-    func getScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, callback: ((Result<UIViewController, Error>) -> Void)?)
+    func getScreen(
+        screenType: ScreenType,
+        screenId: String?,
+        product: String?,
+        payload: PandaPayload?,
+        callback: ((Result<UIViewController, Error>) -> Void)?
+    )
     
     /**
      Returns screen with specific product from Panda Web
@@ -67,9 +81,23 @@ public protocol PandaProtocol: class {
                 "background" - color of Screen
                 "no_default": true - disable loading and showing default screen in failure case
      */
-    func showScreen(screenType: ScreenType, screenId: String?, product: String?, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
+    func showScreen(
+        screenType: ScreenType,
+        screenId: String?,
+        product: String?,
+        payload: PandaPayload?,
+        onShow: ((Result<Bool, Error>) -> Void)?
+    )
     
-    func showScreen(screenType: ScreenType, screenId: String?, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: [String: Any]?, onShow: ((Result<Bool, Error>) -> Void)?)
+    func showScreen(
+        screenType: ScreenType,
+        screenId: String?,
+        product: String?,
+        autoDismiss: Bool,
+        presentationStyle: UIModalPresentationStyle,
+        payload: PandaPayload?,
+        onShow: ((Result<Bool, Error>) -> Void)?
+    )
 
     /**
      Prefetches screen from Panda Web - if you want to cashe Screen before displaying it
@@ -84,7 +112,7 @@ public protocol PandaProtocol: class {
                 "background" - color of Screen
                 "no_default": true - disable loading and showing default screen in failure case
      */
-    func prefetchScreen(screenId: String?, payload: [String: Any]?)
+    func prefetchScreen(screenId: String?, payload: PandaPayload?)
     
     /**
      You can call to check subscription status of User
@@ -232,7 +260,7 @@ public extension PandaProtocol {
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
      - parameter callback: Optional. Returns Result for showing screen
      */
-    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, payload: PandaPayload? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
         showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, presentationStyle: .pageSheet, payload: payload, onShow: onShow)
     }
     
@@ -243,7 +271,7 @@ public extension PandaProtocol {
      - parameter callback: Optional. Returns Result for getting screen
      */
 
-    func getScreen(screenId: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+    func getScreen(screenId: String? = nil, payload: PandaPayload? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         getScreen(screenType: .sales, screenId: screenId, product: nil, payload: payload, callback: callback)
     }
     
@@ -305,13 +333,15 @@ extension Panda {
         pandaFacebookIds.map(panda.setPandaFacebookId(pandaFacebookId:))
         
         let pandaCapiConfig = unconfigured?.capiConfig
-        panda.register(facebookLoginId: pandaCapiConfig?.facebookLoginId,
-                       email: pandaCapiConfig?.email,
-                       firstName: pandaCapiConfig?.firstName,
-                       lastName: pandaCapiConfig?.lastName,
-                       username: pandaCapiConfig?.username,
-                       phone: pandaCapiConfig?.phone,
-                       gender: pandaCapiConfig?.gender)
+        panda.register(
+            facebookLoginId: pandaCapiConfig?.facebookLoginId,
+            email: pandaCapiConfig?.email,
+            firstName: pandaCapiConfig?.firstName,
+            lastName: pandaCapiConfig?.lastName,
+            username: pandaCapiConfig?.username,
+            phone: pandaCapiConfig?.phone,
+            gender: pandaCapiConfig?.gender
+        )
         
         let pandaUserProperties = unconfigured?.pandaUserProperties
         pandaUserProperties.map(panda.setUserProperties)

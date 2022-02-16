@@ -10,7 +10,12 @@ import Foundation
 import UIKit
 import Foundation
 import WebKit
+
+#if canImport(NVActivityIndicatorViewExtended)
 import NVActivityIndicatorViewExtended
+#else
+import NVActivityIndicatorView
+#endif
 
 final class WebViewController: UIViewController, WKScriptMessageHandler {
     
@@ -65,7 +70,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     internal func loadPage(html: String? = nil) {
         /// if after 15 seconds webview not appeared, then fail
         pandaLog("start loading html \(Date().timeIntervalSince1970) \(Date())")
-        let timeout = (viewModel.payload?["timeout"] as? TimeInterval) ?? 3.0
+        let timeout = viewModel.payload?.pageLoadingTimeout ?? 3.0
         perform(#selector(failedByTimeOut), with: nil, afterDelay: timeout)
         loadingIndicator.startAnimating()
         _ = view // trigger viewdidload
@@ -192,7 +197,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     private func setPayload() {
-        guard let payload = viewModel.payload?["data"] else { return }
+        guard let payload = viewModel.payload?.data else { return }
         guard let data = try? JSONSerialization.data(withJSONObject: payload, options: []) else { return }
         guard let json = String(data: data, encoding: .utf8) else { return }
         
@@ -210,14 +215,16 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        viewModel?.onViewWillAppear?(viewModel?.screenData.id.string ?? "",
-                                    viewModel?.screenData.name ?? ""
+        viewModel?.onViewWillAppear?(
+            viewModel?.screenData.id.string ?? "",
+            viewModel?.screenData.name ?? ""
         )
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        viewModel?.onViewDidAppear?(viewModel?.screenData.id.string ?? "",
-                                   viewModel?.screenData.name ?? ""
+        viewModel?.onViewDidAppear?(
+            viewModel?.screenData.id.string ?? "",
+            viewModel?.screenData.name ?? ""
         )
     }
     
@@ -308,25 +315,29 @@ extension WebViewController: WKNavigationDelegate {
         case "purchase":
             onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
-            viewModel?.onPurchase(productID,
-                                  url.lastPathComponent,
-                                  self,
-                                  screenID,
-                                  screenName
+            viewModel?.onPurchase(
+                productID,
+                url.lastPathComponent,
+                self,
+                screenID,
+                screenName
             )
             return false
         case "restore":
             onStartLoad()
-            viewModel?.onRestorePurchase?(self,
-                                          screenID,
-                                          screenName)
+            viewModel?.onRestorePurchase?(
+                self,
+                screenID,
+                screenName
+            )
             return false
         case "dismiss":
             onFinishLoad()
-            viewModel?.dismiss?(true,
-                                self,
-                                screenID,
-                                screenName
+            viewModel?.dismiss?(
+                true,
+                self,
+                screenID,
+                screenName
             )
             return false
         case "billing_issue":
@@ -357,23 +368,26 @@ extension WebViewController: WKNavigationDelegate {
         switch action {
         case "survey":
             let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(answer,
-                                 screenID,
-                                 screenName
+            viewModel?.onSurvey?(
+                answer,
+                screenID,
+                screenName
             )
         case "feedback_sent":
             let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
-            viewModel?.onFeedback?(feedback,
-                                   screenID,
-                                   screenName
+            viewModel?.onFeedback?(
+                feedback,
+                screenID,
+                screenName
             )
             fallthrough
         case "dismiss":
             onFinishLoad()
-            viewModel?.dismiss?(true,
-                                self,
-                                screenID,
-                                screenName
+            viewModel?.dismiss?(
+                true,
+                self,
+                screenID,
+                screenName
             )
         default:
             break
@@ -404,10 +418,11 @@ extension WebViewController: WKNavigationDelegate {
                 return handleAction(url: url)
             case "dismiss":
                 onFinishLoad()
-                viewModel?.dismiss?(true,
-                                    self,
-                                    screenID,
-                                    screenName
+                viewModel?.dismiss?(
+                    true,
+                    self,
+                    screenID,
+                    screenName
                 )
                 return false
             default:
