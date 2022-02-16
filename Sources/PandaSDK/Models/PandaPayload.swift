@@ -15,11 +15,11 @@ public struct PandaPayload {
     let htmlDownloadTimeout: TimeInterval?
     let data: [String: Any]?
 
-    init(
+    public init(
         shouldShowDefaultScreen: Bool = true,
         screenBackgroundColor: UIColor? = nil,
         extraEventValues: [String: String] = [:],
-        pageLoadingTimeout: TimeInterval = Constants.defaultTimeout,
+        pageLoadingTimeout: TimeInterval = 3.0,
         htmlDownloadTimeout: TimeInterval? = nil,
         data: [String: Any]? = nil
     ) {
@@ -30,8 +30,4 @@ public struct PandaPayload {
         self.htmlDownloadTimeout = htmlDownloadTimeout
         self.data = data
     }
-}
-
-private enum Constants {
-    static let defaultTimeout: TimeInterval = 3.0
 }
