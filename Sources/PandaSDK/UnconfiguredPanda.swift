@@ -84,11 +84,19 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         advertisementId = id
     }
     
-    func prefetchScreen(screenId: String?, payload: [String:Any]?) {
+    func prefetchScreen(screenId: String?, payload: PandaPayload?) {
         pandaLog(UnconfiguredPanda.configError)
     }
 
-    public func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, autoDismiss: Bool = true, presentationStyle: UIModalPresentationStyle = .pageSheet, payload: [String: Any]? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+    public func showScreen(
+        screenType: ScreenType,
+        screenId: String? = nil,
+        product: String? = nil,
+        autoDismiss: Bool = true,
+        presentationStyle: UIModalPresentationStyle = .pageSheet,
+        payload: PandaPayload? = nil,
+        onShow: ((Result<Bool, Error>) -> Void)? = nil
+    ) {
         pandaLog(UnconfiguredPanda.configError)
         onShow?(.failure(Errors.notConfigured))
     }
@@ -98,12 +106,22 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         statusCallback?(.failure(Errors.notConfigured))
     }
 
-    func getScreen(screenId: String?, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+    func getScreen(
+        screenId: String?,
+        payload: PandaPayload? = nil,
+        callback: ((Result<UIViewController, Error>) -> Void)?
+    ) {
         getScreen(screenType: .sales, screenId: screenId, payload: payload, callback: callback)
     }
     
-    func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: [String: Any]? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        let shouldShowDefaultScreenOnFailure = (payload?["no_default"] as? Bool) != true
+    func getScreen(
+        screenType: ScreenType = .sales,
+        screenId: String? = nil,
+        product: String? = nil,
+        payload: PandaPayload? = nil,
+        callback: ((Result<UIViewController, Error>) -> Void)?
+    ) {
+        let shouldShowDefaultScreenOnFailure = payload?.shouldShowDefaultScreen == true
         guard shouldShowDefaultScreenOnFailure else {
             DispatchQueue.main.async {
                 callback?(.failure(Errors.notConfigured))
@@ -126,7 +144,12 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         pandaLog(UnconfiguredPanda.configError)
     }
     
-    private func prepareViewController(screenData: ScreenData, screenType: ScreenType, product: String? = nil, payload: [String: Any]? = nil) -> WebViewController {
+    private func prepareViewController(
+        screenData: ScreenData,
+        screenType: ScreenType,
+        product: String? = nil,
+        payload: PandaPayload? = nil
+    ) -> WebViewController {
         let viewModel = createViewModel(screenData: screenData, product: product, payload: payload)
         let controller = setupWebView(html: screenData.html, viewModel: viewModel)
         viewControllers = viewControllers.filter { $0.value != nil }
@@ -134,9 +157,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         return controller
     }
     
-    private func createViewModel(screenData: ScreenData, product: String? = nil, payload: [String: Any]? = nil) -> WebViewModel {
+    private func createViewModel(
+        screenData: ScreenData,
+        product: String? = nil,
+        payload: PandaPayload? = nil
+    ) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
-        let extraValues = viewModel.payload?["extra_event_values"] as? [String: String]
+        let extraValues = viewModel.payload?.extraEventValues
         let source = extraValues?["entry_point"]
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
@@ -211,7 +238,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     private func setupWebView(html: String, viewModel: WebViewModel) -> WebViewController {
         let controller = WebViewController()
 
-        controller.view.backgroundColor = viewModel.payload?["background"] as? UIColor
+        controller.view.backgroundColor = viewModel.payload?.screenBackgroundColor
         controller.modalPresentationStyle = .overFullScreen
         controller.viewModel = viewModel
         controller.loadPage(html: html)
@@ -256,17 +283,19 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func resetIDFVAndIDFA() {
-        self.advertisementId = ""
+        advertisementId = ""
     }
     
     func register(facebookLoginId: String?, email: String?, firstName: String?, lastName: String?, username: String?, phone: String?, gender: Int?) {
-        self.capiConfig = .init(email: email,
-                                facebookLoginId: facebookLoginId,
-                                firstName: firstName,
-                                lastName: lastName,
-                                username: username,
-                                phone: phone,
-                                gender: gender)
+        capiConfig = .init(
+            email: email,
+            facebookLoginId: facebookLoginId,
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            phone: phone,
+            gender: gender
+        )
     }
     
     func setUserProperty(_ pandaUserProperty: PandaUserProperty) {

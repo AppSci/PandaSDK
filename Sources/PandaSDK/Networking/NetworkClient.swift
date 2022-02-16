@@ -168,159 +168,246 @@ internal class NetworkClient: VerificationClient {
         self.init(networkLoader: URLSession(configuration: config), isDebug: isDebug)
     }
     
-    internal func loadScreen(user: PandaUser, screenId: String?, screenType: ScreenType? = .sales, callback: @escaping ((Result<ScreenData, Error>) -> Void)) {
-        let request = createRequest(path: "/v1/screen",
-                                    method: .get,
-                                    query: [
-                                        "user": user.id,
-                                        "id": screenId,
-                                        "type": screenType?.rawValue,
-                                    ],
-                                    headers: [
-                                        "Accept-Language": Locale.current.languageCode
-                                    ])
+    internal func loadScreen(
+        user: PandaUser,
+        screenId: String?,
+        screenType: ScreenType? = .sales,
+        timeout: TimeInterval?,
+        callback: @escaping ((Result<ScreenData, Error>) -> Void)
+    ) {
+        let request = createRequest(
+            path: "/v1/screen",
+            method: .get,
+            query: [
+                "user": user.id,
+                "id": screenId,
+                "type": screenType?.rawValue
+            ],
+            headers: [
+                "Accept-Language": Locale.current.languageCode
+            ]
+        )
         
-        networkLoader.loadData(with: request, completion: callback)
+        networkLoader.loadData(with: request, timeout: timeout, completion: callback)
     }
     
-    internal func sendFeedback(user: PandaUser, screenId: String?, feedback: String, callback: @escaping ((Result<FeedbackData, Error>) -> Void)) {
-        let request = createRequest(path: "/v1/feedback/answers",
-                                    method: .post,
-                                    body: [
-                                        "user_id": user.id,
-                                        "screen_id": screenId,
-                                        "answer": feedback,
-                                    ])
+    internal func sendFeedback(
+        user: PandaUser,
+        screenId: String?,
+        feedback: String,
+        callback: @escaping ((Result<FeedbackData, Error>) -> Void)
+    ) {
+        let request = createRequest(
+            path: "/v1/feedback/answers",
+            method: .post,
+            body: [
+                "user_id": user.id,
+                "screen_id": screenId,
+                "answer": feedback,
+            ]
+        )
         
-        networkLoader.loadData(with: request, completion: callback)
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    internal func sendAnswers(user: PandaUser, screenId: String?, answer: String, callback: @escaping ((Result<FeedbackData, Error>) -> Void)) {
-        let request = createRequest(path: "/v1/survey/answers",
-                                    method: .post,
-                                    body: [
-                                        "user_id": user.id,
-                                        "screen_id": screenId,
-                                        "answer_id": answer,
-                                    ])
+    internal func sendAnswers(
+        user: PandaUser,
+        screenId: String?,
+        answer: String,
+        callback: @escaping ((Result<FeedbackData, Error>) -> Void)
+    ) {
+        let request = createRequest(
+            path: "/v1/survey/answers",
+            method: .post,
+            body: [
+                "user_id": user.id,
+                "screen_id": screenId,
+                "answer_id": answer,
+            ]
+        )
         
-        networkLoader.loadData(with: request, completion: callback)
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
     internal func registerUserRequest(callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users",
-                                    method: .post,
-                                    body: PandaUserInfo()
+        let request = createRequest(
+            path: "/v1/users",
+            method: .post,
+            body: PandaUserInfo()
         )
-        networkLoader.loadData(with: request, completion: callback)
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
 
-    func verifySubscriptionsRequest(user: PandaUser, receipt: String, screenId: String?, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
-        let request = createRequest(path: "/v1/itunes/verify/\(user.id)",
-                                    method: .post,
-                                    query: ["screen_id" : screenId ?? ""],
-                                    httpBody: receipt.data(using: .utf8))
-        networkLoader.loadData(with: request, completion: callback)
+    func verifySubscriptionsRequest(
+        user: PandaUser,
+        receipt: String,
+        screenId: String?,
+        callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/itunes/verify/\(user.id)",
+            method: .post,
+            query: ["screen_id" : screenId ?? ""],
+            httpBody: receipt.data(using: .utf8)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func getSubscriptionStatus(user: PandaUser, callback: @escaping (Result<SubscriptionStatusResponse, Error>) -> Void) {
-        let request = createRequest(path: "/v1/subscription-status/\(user.id)",
-                                    method: .get)
-        networkLoader.loadData(with: request, completion: callback)
+    func getSubscriptionStatus(
+        user: PandaUser,
+        callback: @escaping (Result<SubscriptionStatusResponse, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/subscription-status/\(user.id)",
+            method: .get
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(pushToken: String,
-                    user: PandaUser,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo(pushNotificationToken: pushToken))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        pushToken: String,
+        user: PandaUser,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo(pushNotificationToken: pushToken)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(appsFlyerId: String,
-                    user: PandaUser,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo(appsFlyerId: appsFlyerId))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        appsFlyerId: String,
+        user: PandaUser,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo(appsFlyerId: appsFlyerId)
+        )
+        networkLoader.loadData(with: request, timeout: nil,  completion: callback)
     }
     
-    func updateUser(advertisementId: String,
-                    user: PandaUser,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo(idfa: advertisementId))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        advertisementId: String,
+        user: PandaUser,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo(idfa: advertisementId)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(user: PandaUser,
-                    with customUserId: String,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo(customUserId: customUserId))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        user: PandaUser,
+        with customUserId: String,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo(customUserId: customUserId)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(user: PandaUser,
-                    pandaFacebookId: PandaFacebookId,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo.body(forPandaFacebookId: pandaFacebookId))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        user: PandaUser,
+        pandaFacebookId: PandaFacebookId,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo.body(forPandaFacebookId: pandaFacebookId)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(user: PandaUser,
-                    idfv: String,
-                    idfa: String,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo(idfa: idfa, idfv: idfv))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        user: PandaUser,
+        idfv: String,
+        idfa: String,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo(idfa: idfa, idfv: idfv)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(user: PandaUser,
-                    capiConfig: CAPIConfig,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo.body(forCAPIConfig: capiConfig))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        user: PandaUser,
+        capiConfig: CAPIConfig,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo.body(forCAPIConfig: capiConfig)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func updateUser(user: PandaUser,
-                    with userProperties: Set<PandaUserProperty>,
-                    callback: @escaping (Result<PandaUser, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .put,
-                                    body: PandaUserInfo.body(forUserProperties: userProperties))
-        networkLoader.loadData(with: request, completion: callback)
+    func updateUser(
+        user: PandaUser,
+        with userProperties: Set<PandaUserProperty>,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: PandaUserInfo.body(forUserProperties: userProperties)
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int = 1, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+    func verifySubscriptions(
+        user: PandaUser,
+        receipt: String,
+        source: PaymentSource?,
+        retries: Int = 1,
+        callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void
+    ) {
         retry(retries, task: { (onComplete) in
             self.verifySubscriptionsRequest(user: user, receipt: receipt, screenId: source?.screenId, callback: onComplete)
         }, completion: callback)
     }
 
-    func registerUser(retries: Int = 2, callback: @escaping (Result<PandaUser, Error>) -> Void) {
+    func registerUser(
+        retries: Int = 2,
+        callback: @escaping (Result<PandaUser, Error>
+        ) -> Void) {
         retry(retries, task: { (onComplete) in
             self.registerUserRequest(callback: onComplete)
         }, completion: callback)
     }
     
-    func getUser(user: PandaUser, callback: @escaping (Result<PandaUserInfo, Error>) -> Void) {
-        let request = createRequest(path: "/v1/users/\(user.id)",
-                                    method: .get)
-        networkLoader.loadData(with: request, completion: callback)
+    func getUser(
+        user: PandaUser,
+        callback: @escaping (Result<PandaUserInfo, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .get
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
-    func createRequest(path: String, method: HttpMethod, query: [String: String?]? = nil, headers: [String: String?]? = nil, httpBody: Data? = nil) -> Result<URLRequest, Error> {
+    func createRequest(
+        path: String,
+        method: HttpMethod,
+        query: [String: String?]? = nil,
+        headers: [String: String?]? = nil,
+        httpBody: Data? = nil
+    ) -> Result<URLRequest, Error> {
         guard var components = URLComponents(string: serverAPI + path) else {
             return .failure(Errors.message("Bad url: \(serverAPI + path)"))
         }
@@ -337,14 +424,16 @@ internal class NetworkClient: VerificationClient {
         return .success(request)
     }
     
-    func createRequest<T: Codable>(path: String,
-                                   method: HttpMethod,
-                                   query: [String: String?]? = nil,
-                                   headers: [String: String?]? = nil,
-                                   body: T) -> Result<URLRequest, Error> {
+    func createRequest<T: Codable>(
+        path: String,
+        method: HttpMethod,
+        query: [String: String?]? = nil,
+        headers: [String: String?]? = nil,
+        body: T
+    ) -> Result<URLRequest, Error> {
         let encoder = JSONEncoder()
         do {
-            var data = try encoder.encode(body)
+            let data = try encoder.encode(body)
             return createRequest(path: path, method: method, query: query, headers: headers, httpBody: data)
         } catch {
             return .failure(error)
@@ -354,10 +443,12 @@ internal class NetworkClient: VerificationClient {
 
 // MARK: - Private
 extension NetworkClient {
-    private func retry<T>(_ attempts: Int,
-                          interval: DispatchTimeInterval = .seconds(0),
-                          task: @escaping (_ completion:@escaping (Result<T, Error>) -> Void) -> Void,
-                          completion: @escaping (Result<T, Error>) -> Void) {
+    private func retry<T>(
+        _ attempts: Int,
+        interval: DispatchTimeInterval = .seconds(0),
+        task: @escaping (_ completion:@escaping (Result<T, Error>) -> Void) -> Void,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) {
         task({ [weak self] result in
             switch result {
             case .success:
