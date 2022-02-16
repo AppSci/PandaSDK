@@ -5,7 +5,7 @@
 //  Created by Aleksey Filobok on 09.02.2022.
 //
 
-import Foundation
+import UIKit
 
 public struct PandaPayload {
     let shouldShowDefaultScreen: Bool
