@@ -13,7 +13,7 @@ public struct PandaPayload {
     let extraEventValues: [String: String]
     let pageLoadingTimeout: TimeInterval
     let htmlDownloadTimeout: TimeInterval?
-    let data: [String: Any]?
+    let data: [String: String]?
 
     public init(
         shouldShowDefaultScreen: Bool = true,
@@ -21,7 +21,7 @@ public struct PandaPayload {
         extraEventValues: [String: String] = [:],
         pageLoadingTimeout: TimeInterval = 3.0,
         htmlDownloadTimeout: TimeInterval? = nil,
-        data: [String: Any]? = nil
+        data: [String: String]? = nil
     ) {
         self.shouldShowDefaultScreen = shouldShowDefaultScreen
         self.screenBackgroundColor = screenBackgroundColor
