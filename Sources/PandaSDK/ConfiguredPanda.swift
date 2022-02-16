@@ -33,7 +33,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private var viewControllers: Set<WeakObject<WebViewController>> = []
     private var payload: PandaPayload?
     private var entryPoint: String? {
-        return payload?.extraEventValues["entry_point"]
+        return payload?.entryPoint
     }
     
     public var onPurchase: ((String) -> Void)?
@@ -330,8 +330,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
     private func createViewModel(screenData: ScreenData, product: String? = nil, payload: PandaPayload? = nil) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
-        let extraValues = viewModel.payload?.extraEventValues
-        let entryPoint = extraValues?["entry_point"]
+        let entryPoint = payload?.entryPoint
 
         if let product = product {
             appStoreClient.getProduct(with: product) { result in

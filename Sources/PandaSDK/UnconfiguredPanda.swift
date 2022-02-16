@@ -163,8 +163,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         payload: PandaPayload? = nil
     ) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
-        let extraValues = viewModel.payload?.extraEventValues
-        let source = extraValues?["entry_point"]
+        let source = payload?.entryPoint
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
