@@ -49,23 +49,3 @@ public struct PandaPayload {
         self.data = data
     }
 }
-
-//let strings = [
-//             ["feedback.first.title": L.Feedback.Title.text],
-//             ["feedback.first.placeholder": L.Feedback.Hint.text],
-//             ["feedback.first.button": L.Feedback.Button.text],
-//             ["feedback.second.title": L.SmartFeedback.Feedback.title],
-//             ["feedback.second.description": L.Feedback.Subtitle.text]
-//         ]
-//
-//         return [
-//             "background": UIColor.clear,
-//             "no_default": true,
-//             "data": [
-//         return PandaPayload(
-//             shouldShowDefaultScreen: false,
-//             screenBackgroundColor: .clear,
-//             data: [
-//                 "strings": strings,
-//                 "lesson_key": "",
-//                 "lesson_title": lesson.title
