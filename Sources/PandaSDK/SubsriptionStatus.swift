@@ -79,7 +79,7 @@ public struct SubscriptionInfo: Codable {
     }
 }
 
-public enum PaymentType: Codable {
+public enum PaymentType: String, Codable {
     case lifetime
     case subscription
     case onetime
