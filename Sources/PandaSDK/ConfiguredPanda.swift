@@ -397,6 +397,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
+
+        viewModel.onSupportUkraineAnyButtonTap = { [weak self] in
+            self?.send(event: .onSupportUkraineAnyButtonTap)
+        }
                 
         return viewModel
     }

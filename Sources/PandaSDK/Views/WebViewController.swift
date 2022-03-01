@@ -180,9 +180,12 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
            let type = data["type"],
            let url = URL(string: urlString),
            type == "external" {
-                UIApplication.shared.open(url)
-                onFinishLoad()
-                viewModel?.dismiss?(true, self, nil, nil)
+            if viewModel?.screenData.id.string == "5077a1da-092c-4ab8-a41f-0a3966a4b326" {
+                viewModel?.onSupportUkraineAnyButtonTap?()
+            }
+            UIApplication.shared.open(url)
+            onFinishLoad()
+            viewModel?.dismiss?(true, self, nil, nil)
         }
     }
     

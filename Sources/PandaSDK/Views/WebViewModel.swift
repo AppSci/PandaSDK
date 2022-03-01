@@ -24,11 +24,13 @@ protocol WebViewModelProtocol {
     var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)? { get set }
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onScreenDataUpdate: ((ScreenData) -> Void)? { get set }
+
+    var onSupportUkraineAnyButtonTap: (() -> Void)? { get set }
     
     func webViewControllerDidFailLoadingHTML(_ webViewController: WebViewController)
 }
 
-class WebViewModel: WebViewModelProtocol {
+final class WebViewModel: WebViewModelProtocol {
     // MARK: - Properties
     @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ sceenId: String, _ screenName: String) -> Void)!
     var onViewWillAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
@@ -44,6 +46,8 @@ class WebViewModel: WebViewModelProtocol {
     var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
     var onScreenDataUpdate: ((ScreenData) -> Void)?
+
+    var onSupportUkraineAnyButtonTap: (() -> Void)?
     
     internal private(set) var screenData: ScreenData {
         didSet {

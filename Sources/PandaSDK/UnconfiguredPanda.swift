@@ -231,6 +231,9 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         viewModel.onCustomEvent = { [weak self] eventName, eventParameters in
             self?.send(event: .customEvent(name: eventName, parameters: eventParameters))
         }
+        viewModel.onSupportUkraineAnyButtonTap = { [weak self] in
+            self?.send(event: .onSupportUkraineAnyButtonTap)
+        }
         return viewModel
     }
     

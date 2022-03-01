@@ -26,6 +26,7 @@ public enum PandaEvent {
     case subscriptionTermsTap
     case customEvent(name: String, parameters: [String: String])
     case onPandaWillVerify(screenId: String, screenName: String, productId: String)
+    case onSupportUkraineAnyButtonTap
 }
 
 public protocol PandaAnalyticsObserver: AnyObject {
