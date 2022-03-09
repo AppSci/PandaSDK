@@ -46,6 +46,8 @@ public struct PandaPayload {
             data["lesson_title"] = lessonTitle
         }
 
+        data["panda_id"] = Panda.shared.pandaUserId
+
         self.data = data
     }
 }
