@@ -17,6 +17,7 @@ import NVActivityIndicatorViewExtended
 import NVActivityIndicatorView
 #endif
 
+
 final class WebViewController: UIViewController, WKScriptMessageHandler {
     
     var viewModel: WebViewModel! {
@@ -32,7 +33,11 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     private lazy var wv: WKWebView = {
         let config = getWKWebViewConfiguration()
         let wv = WKWebView(frame: view.bounds, configuration: config)
-        wv.navigationDelegate = self
+        if (viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae") {
+            wv.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
+        } else {
+            wv.navigationDelegate = self
+        }
         view.addSubview(wv)
         wv.allowsLinkPreview = false
         wv.allowsBackForwardNavigationGestures = false
@@ -71,7 +76,9 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         /// if after 15 seconds webview not appeared, then fail
         pandaLog("start loading html \(Date().timeIntervalSince1970) \(Date())")
         let timeout = viewModel.payload?.pageLoadingTimeout ?? 3.0
+
         perform(#selector(failedByTimeOut), with: nil, afterDelay: timeout)
+
         loadingIndicator.startAnimating()
         _ = view // trigger viewdidload
         wv.alpha = 0
@@ -89,6 +96,12 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             load(url: url)
         }
     }
+
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "loading", !wv.isLoading {
+            handleScreenDidLoad()
+        }
+    }
     
     private func load(url: URL) {
         wv.load(URLRequest(url: url))
@@ -96,6 +109,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     
     private func load(html: String, baseURL: URL?) {
         let html = replaceProductInfo(html: html)
+        
         wv.loadHTMLString(html, baseURL: baseURL)
     }
     
@@ -187,8 +201,43 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             onFinishLoad()
             viewModel?.dismiss?(true, self, nil, nil)
         }
+
+        if message.name == PandaJSMessagesNames.onRestore.rawValue {
+            onStartLoad()
+            viewModel?.onRestorePurchase?(
+                self,
+                viewModel?.screenData.id.string ?? "",
+                viewModel?.screenData.name ?? ""
+            )
+        }
+
+        if message.name == PandaJSMessagesNames.onDismiss.rawValue {
+            onFinishLoad()
+            viewModel?.dismiss?(
+                true,
+                self,
+                viewModel?.screenData.id.string ?? "",
+                viewModel?.screenData.name ?? ""
+            )
+        }
+
+        if message.name == PandaJSMessagesNames.onBillingIssue.rawValue {
+            viewModel?.onBillingIssue?(self)
+        }
+
+        if message.name == PandaJSMessagesNames.onTerms.rawValue {
+            viewModel?.onTerms?()
+        }
+
+        if message.name == PandaJSMessagesNames.onPolicy.rawValue {
+            viewModel?.onPolicy?()
+        }
+
+        if message.name == PandaJSMessagesNames.onSubscriptionTerms.rawValue {
+            viewModel?.onSubscriptionTerms?()
+        }
     }
-    
+
     private func handleAndSendCustomEventIfPossible(with data: [String: String]) {
         guard let name = data["name"] else {
             pandaLog("No name for custom event!")
@@ -305,7 +354,6 @@ extension WebViewController: UIScrollViewDelegate {
 }
 
 extension WebViewController: WKNavigationDelegate {
-    
     @discardableResult
     private func handleAction(url: URL) -> Bool {
         guard let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true) else { return true }
@@ -443,7 +491,7 @@ extension WebViewController: WKNavigationDelegate {
         
         return true
     }
-    
+
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if handleNavigationAction(navigationAction: navigationAction) {
             decisionHandler(.allow)
@@ -648,5 +696,11 @@ extension WebViewController {
         case onLessonFeedbackSent
         case onCustomEventSent
         case onRedirect
+        case onRestore
+        case onDismiss
+        case onBillingIssue
+        case onTerms
+        case onPolicy
+        case onSubscriptionTerms
     }
 }
