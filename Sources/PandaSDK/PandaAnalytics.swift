@@ -9,7 +9,7 @@ import Foundation
 public enum PandaEvent {
     case subscriptionSelect(screenId: String, screenName: String, productId: String)
     case purchaseStarted(screenId: String, screenName: String, productId: String, source: String?)
-    case successfulPurchase(screenId: String, screenName: String, productId: String, source: String?)
+    case successfulPurchase(screenId: String, screenName: String, productId: String, source: String?, course: String?)
     case purchaseError(error: Error, source: String?)
     case screenDismissed(screenId: String, screenName: String, source: String?)
     case surveyAnswerSelect(screenId: String, screenName: String, answerId: String)

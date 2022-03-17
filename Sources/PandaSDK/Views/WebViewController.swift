@@ -33,7 +33,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     private lazy var wv: WKWebView = {
         let config = getWKWebViewConfiguration()
         let wv = WKWebView(frame: view.bounds, configuration: config)
-        if (viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" || viewModel.screenData.id.string == "a2ac7438-09f0-47a2-89f7-bf81c0951dc5") {
+        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" {
             wv.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         } else {
             wv.navigationDelegate = self
@@ -148,11 +148,13 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             if let data = message.body as? [String: String],
                 let productID = data["productID"] {
                 onStartLoad()
-                viewModel?.onPurchase(productID,
-                                      "WKScriptMessage",
-                                      self,
-                                      viewModel?.screenData.id.string ?? "",
-                                      viewModel?.screenData.name ?? ""
+                viewModel?.onPurchase(
+                    productID,
+                    "WKScriptMessage",
+                    self,
+                    viewModel?.screenData.id.string ?? "",
+                    viewModel?.screenData.name ?? "",
+                    data["course"]
                 )
                 
                 if let urlString = data["url"],
@@ -366,12 +368,14 @@ extension WebViewController: WKNavigationDelegate {
         case "purchase":
             onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
+            let course = urlComps.queryItems?.first(where: { $0.name == "course" })?.value
             viewModel?.onPurchase(
                 productID,
                 url.lastPathComponent,
                 self,
                 screenID,
-                screenName
+                screenName,
+                course
             )
             return false
         case "restore":

@@ -167,7 +167,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onPurchase = { [weak self] productId, source, view, screenId, screenName in
+        viewModel.onPurchase = { [weak self] productId, source, view, screenId, screenName, course in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
@@ -176,7 +176,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                 switch result {
                 case .success:
                     pandaLog("Reconfigured")
-                    view.viewModel?.onPurchase?(productId, source, view, screenId, screenName)
+                    view.viewModel?.onPurchase?(productId, source, view, screenId, screenName, course)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {

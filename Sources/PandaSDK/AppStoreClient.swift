@@ -39,6 +39,7 @@ class ProductRequest: NSObject, SKProductsRequestDelegate {
 public struct PaymentSource {
     let screenId: String
     let screenName: String
+    let course: String?
 }
 
 class AppStoreClient: NSObject {
@@ -177,7 +178,7 @@ extension AppStoreClient: SKPaymentTransactionObserver {
             storage.store(processed)
         }
         guard !restored.isEmpty else { return }
-        restore(transactions: restored, source: restoreSource ?? .init(screenId: "", screenName: ""))
+        restore(transactions: restored, source: restoreSource ?? .init(screenId: "", screenName: "", course: ""))
         restored.forEach { processed.insert($0.transactionIdentifier) }
     }
     

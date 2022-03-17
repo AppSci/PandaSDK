@@ -121,9 +121,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
                     self?.onPurchase?(productId)
                     self?.onSuccessfulPurchase?()
-                    self?.send(event: .successfulPurchase(screenId: source.screenId,
-                                                          screenName: source.screenName,
-                                                          productId: productId, source: self?.entryPoint)
+                    self?.send(
+                        event: .successfulPurchase(
+                            screenId: source.screenId,
+                            screenName: source.screenName,
+                            productId: productId,
+                            source: self?.entryPoint,
+                            course: source.course
+                        )
                     )
                 }
             }
@@ -305,11 +310,11 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func purchase(productID: String) {
-        appStoreClient.purchase(productId: productID, source: PaymentSource(screenId: "", screenName: "manual purchase"))
+        appStoreClient.purchase(productId: productID, source: PaymentSource(screenId: "", screenName: "manual purchase", course: ""))
     }
     
     public func restorePurchase() {
-        appStoreClient.restore(with: PaymentSource(screenId: "", screenName: "manual restore"))
+        appStoreClient.restore(with: PaymentSource(screenId: "", screenName: "manual restore", course: ""))
     }
 
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
@@ -352,18 +357,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onPurchase = { [appStoreClient, weak self] productId, source, _, screenId, screenName in
+        viewModel.onPurchase = { [appStoreClient, weak self] productId, source, _, screenId, screenName, course in
             guard let productId = productId else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
             pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
             self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: entryPoint))
-            appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name))
+            appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name, course: course))
         }
         viewModel.onRestorePurchase = { [appStoreClient] _, screenId, screenName in
             pandaLog("Restore")
-            appStoreClient.restore(with: PaymentSource(screenId: screenId ?? "", screenName: screenName ?? ""))
+            appStoreClient.restore(with: PaymentSource(screenId: screenId ?? "", screenName: screenName ?? "", course: nil))
         }
         viewModel.onCustomEvent = { [weak self] eventName, eventParameters in
             self?.send(event: .customEvent(name: eventName, parameters: eventParameters))
