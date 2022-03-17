@@ -278,19 +278,20 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     override func viewDidAppear(_ animated: Bool) {
         viewModel?.onViewDidAppear?(
             viewModel?.screenData.id.string ?? "",
-            viewModel?.screenData.name ?? ""
+            viewModel?.screenData.name ?? "",
+            (viewModel?.payload?.data?["course"] as? String)
         )
     }
     
     func didFinishLoading(_ url: URL?) {
         guard let url = url else {
-            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name)
+            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name, (viewModel?.payload?.data?["course"] as? String))
             return
         }
         let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
         let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string
         let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name
-        viewModel?.onDidFinishLoading?(screenID, screenName)
+        viewModel?.onDidFinishLoading?(screenID, screenName, (viewModel?.payload?.data?["course"] as? String))
     }
     
     func handleScreenDidLoad() {

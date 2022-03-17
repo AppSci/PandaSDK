@@ -12,8 +12,8 @@ import StoreKit
 protocol WebViewModelProtocol {
     var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ screenId: String, _ screenName: String, _ course: String?) -> Void)!  { get set }
     var onViewWillAppear: ((_ screenId: String?, _ screenName: String?) -> Void)? { get set }
-    var onViewDidAppear: ((_ screenId: String?, _ screenName: String?) -> Void)? { get set }
-    var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?) -> Void)? { get set }
+    var onViewDidAppear: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)? { get set }
+    var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)? { get set }
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)? { get set }
     var onRestorePurchase: ((_ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
@@ -34,8 +34,8 @@ final class WebViewModel: WebViewModelProtocol {
     // MARK: - Properties
     @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ sceenId: String, _ screenName: String, _ course: String?) -> Void)!
     var onViewWillAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
-    var onViewDidAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
-    var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?) -> Void)?
+    var onViewDidAppear: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)?
+    var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)?
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)?
     var onRestorePurchase: ((_ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
     var onTerms: (() -> Void)?

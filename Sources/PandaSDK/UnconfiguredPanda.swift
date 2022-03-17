@@ -224,9 +224,9 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             guard let screenId = screenId, let screenName = screenName else { return }
             self?.send(event: .screenWillShow(screenId: screenId, screenName: screenName, source: source))
         }
-        viewModel.onViewDidAppear = { [weak self] screenId, screenName in
+        viewModel.onViewDidAppear = { [weak self] screenId, screenName, course in
             guard let screenId = screenId, let screenName = screenName else { return }
-            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName, source: source))
+            self?.send(event: .screenShowed(screenId: screenId, screenName: screenName, source: source, course: course))
         }
         viewModel.onCustomEvent = { [weak self] eventName, eventParameters in
             self?.send(event: .customEvent(name: eventName, parameters: eventParameters))
