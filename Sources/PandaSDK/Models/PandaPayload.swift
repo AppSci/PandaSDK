@@ -27,7 +27,8 @@ public struct PandaPayload {
         lessonTitle: String? = nil,
         customId: String? = nil,
         email: String? = nil,
-        course: String? = nil
+        course: String? = nil,
+        variant: String? = nil
     ) {
         self.shouldShowDefaultScreen = shouldShowDefaultScreen
         self.screenBackgroundColor = screenBackgroundColor
@@ -59,6 +60,9 @@ public struct PandaPayload {
         
         if let course = course {
             data["course"] = course
+        }
+        if let variant = variant {
+            data["variant"] = variant
         }
 
         self.data = data
