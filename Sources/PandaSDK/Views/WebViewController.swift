@@ -33,7 +33,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     private lazy var wv: WKWebView = {
         let config = getWKWebViewConfiguration()
         let wv = WKWebView(frame: view.bounds, configuration: config)
-        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" {
+        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" || viewModel.screenData.id.string == "89a4b8c2-cb7b-45a5-a8df-f5a8ffd32618" {
             wv.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         } else {
             wv.navigationDelegate = self
@@ -165,6 +165,13 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
                         UIApplication.shared.open(url)
                     }
                 }
+
+                if let type = data["type"],
+                   type == "moveNext" {
+                    onPurchaseCmpld = { [weak self] in
+                        self?.moveNext()
+                    }
+                }
             }
             
         }
@@ -264,6 +271,24 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             }
             if let res = result {
                 pandaLog("payload \(res)")
+            }
+        }
+    }
+
+    private func moveNext() {
+        let js = """
+                    moveNext();
+                 """
+        wv.evaluateJavaScript(js) { [weak self] (result, error) in
+            guard let self = self else {
+                return
+            }
+            if let e = error {
+                pandaLog("error: \(e)")
+            }
+            if let res = result {
+                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String))
+                pandaLog("res \(res)")
             }
         }
     }
