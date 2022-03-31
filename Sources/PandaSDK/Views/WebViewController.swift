@@ -33,7 +33,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     private lazy var wv: WKWebView = {
         let config = getWKWebViewConfiguration()
         let wv = WKWebView(frame: view.bounds, configuration: config)
-        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" || viewModel.screenData.id.string == "451406e2-0b29-4df4-b4cf-2844ea111fc3" {
+        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" || viewModel.screenData.id.string == "d061da4e-9752-4379-9e6b-32f52cf298c9" {
             wv.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         } else {
             wv.navigationDelegate = self
