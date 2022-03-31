@@ -286,9 +286,11 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             }
             if let e = error {
                 pandaLog("error: \(e)")
+            } else if self.viewModel.screenData.id.string == "d061da4e-9752-4379-9e6b-32f52cf298c9"  {
+                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String))
+
             }
             if let res = result {
-                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String))
                 pandaLog("res \(res)")
             }
         }
