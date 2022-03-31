@@ -168,6 +168,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
 
                 if let type = data["type"],
                    type == "moveNext" {
+                    isAutoDismissable = false
                     onPurchaseCmpld = { [weak self] in
                         self?.moveNext()
                     }
