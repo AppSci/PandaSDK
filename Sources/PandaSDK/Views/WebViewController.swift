@@ -33,7 +33,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     private lazy var wv: WKWebView = {
         let config = getWKWebViewConfiguration()
         let wv = WKWebView(frame: view.bounds, configuration: config)
-        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" || viewModel.screenData.id.string == "d061da4e-9752-4379-9e6b-32f52cf298c9" {
+        if viewModel.screenData.id.string == "69c444b9-42c5-473a-a22a-873879b7f3ae" || viewModel.screenData.id.string == "89a4b8c2-cb7b-45a5-a8df-f5a8ffd32618" {
             wv.addObserver(self, forKeyPath: #keyPath(WKWebView.isLoading), options: .new, context: nil)
         } else {
             wv.navigationDelegate = self
@@ -209,6 +209,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             }
             UIApplication.shared.open(url)
             onFinishLoad()
+            isAutoDismissable = true
             viewModel?.dismiss?(true, self, nil, nil)
         }
 
@@ -286,7 +287,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             }
             if let e = error {
                 pandaLog("error: \(e)")
-            } else if self.viewModel.screenData.id.string == "d061da4e-9752-4379-9e6b-32f52cf298c9"  {
+            } else if self.viewModel?.screenData.id.string == "89a4b8c2-cb7b-45a5-a8df-f5a8ffd32618"  {
                 self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String))
 
             }
