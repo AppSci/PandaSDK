@@ -331,6 +331,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         wv.alpha = 1
         loadingIndicator.stopAnimating()
         pandaLog("html did load \(Date().timeIntervalSince1970) \(Date())")
+        didFinishLoading(nil)
     }
     
     @objc private func failedByTimeOut() {
