@@ -100,6 +100,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "loading", !wv.isLoading {
             handleScreenDidLoad()
+            didFinishLoading(nil)
         }
     }
     
@@ -331,7 +332,6 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         wv.alpha = 1
         loadingIndicator.stopAnimating()
         pandaLog("html did load \(Date().timeIntervalSince1970) \(Date())")
-        didFinishLoading(nil)
     }
     
     @objc private func failedByTimeOut() {
