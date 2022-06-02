@@ -9,7 +9,7 @@ import Foundation
 import PassKit
 import Combine
 
-public enum PaymentHandlerOutputMessage {
+public enum ApplePayPaymentHandlerOutputMessage {
     case failedToPresentPayment
     case paymentFinished(_ status: PKPaymentAuthorizationStatus, _ productId: String, _ paymentData: Data)
 }
@@ -23,8 +23,8 @@ final class ApplePayPaymentHandler: NSObject {
     private var paymentData: Data? = nil
     private let configuration: ApplePayConfiguration
     
-    let outputPublisher: AnyPublisher<PaymentHandlerOutputMessage, Never>
-    private let outputSubject = PassthroughSubject<PaymentHandlerOutputMessage, Never>()
+    let outputPublisher: AnyPublisher<ApplePayPaymentHandlerOutputMessage, Error>
+    private let outputSubject = PassthroughSubject<ApplePayPaymentHandlerOutputMessage, Error>()
     
     init(configuration: ApplePayConfiguration) {
         self.configuration = configuration

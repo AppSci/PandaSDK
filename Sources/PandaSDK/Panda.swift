@@ -22,6 +22,7 @@ public protocol PandaProtocol: AnyObject {
         apiKey: String,
         isDebug: Bool,
         applePayConfiguration: ApplePayConfiguration?,
+        webAppId: String?,
         callback: ((Bool) -> Void)?
     )
     
@@ -34,6 +35,16 @@ public protocol PandaProtocol: AnyObject {
      Returns Current Panda user id or nil if Panda not configured
      */
     var pandaUserId: String? {get}
+    
+    /**
+     Returns Web Panda App Id
+     */
+    var webAppId: String? { get }
+    
+    /**
+     Returns publisher that produces apple pay result
+     */
+    var applePayOutputPublisher: AnyPublisher<ApplePayResult, Error>? { get }
     
     /**
      Returns Current Panda custom user id or nil in cases of abscence or Panda not configured
@@ -181,11 +192,6 @@ public protocol PandaProtocol: AnyObject {
     // MARK: - Handle Purchases
     
     /**
-     Apple Pay Purchase product publisher.
-     */
-    var applePayOutputPublisher: AnyPublisher<PaymentHandlerOutputMessage, Never>? { get }
-    
-    /**
      Purchase product callback.
      Callback for successful purchase in Panda purchase screen - you can validate & do you own setup in this callback
      - parameter String in callback: Product ID that was purchased.
@@ -298,6 +304,7 @@ extension Panda {
         apiKey: String,
         isDebug: Bool = true,
         applePayConfiguration: ApplePayConfiguration? = nil,
+        webAppId: String? = nil,
         unconfigured: UnconfiguredPanda?,
         callback: @escaping (Result<Panda, Error>) -> Void
     ) {
@@ -321,7 +328,8 @@ extension Panda {
                         networkClient: networkClient,
                         appStoreClient: appStoreClient,
                         unconfigured: unconfigured,
-                        applePayConfiguration: applePayConfiguration
+                        applePayConfiguration: applePayConfiguration,
+                        webAppId: webAppId
                     )
                 )
             )
@@ -338,7 +346,8 @@ extension Panda {
                             networkClient: networkClient,
                             appStoreClient: appStoreClient,
                             unconfigured: unconfigured,
-                            applePayConfiguration: applePayConfiguration
+                            applePayConfiguration: applePayConfiguration,
+                            webAppId: webAppId
                         )
                     )
                 )
@@ -353,13 +362,14 @@ extension Panda {
         networkClient: NetworkClient,
         appStoreClient: AppStoreClient,
         unconfigured: UnconfiguredPanda?,
-        applePayConfiguration: ApplePayConfiguration?
+        applePayConfiguration: ApplePayConfiguration?,
+        webAppId: String?
     ) -> Panda {
         let panda = Panda(
             user: user,
             networkClient: networkClient,
             appStoreClient: appStoreClient,
-            applePayPaymentHandler: .init(configuration: applePayConfiguration ?? .init(merchantIdentifier: "", countryCode: ""))
+            applePayPaymentHandler: .init(configuration: applePayConfiguration ?? .init(merchantIdentifier: "", countryCode: "")), webAppId: webAppId ?? ""
         )
         if let unconfigured = unconfigured {
             panda.copyCallbacks(from: unconfigured)

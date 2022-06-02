@@ -71,6 +71,10 @@ public struct ReceiptVerificationResult: Codable {
     let active: Bool
 }
 
+public struct ApplePayResult: Codable {
+    let transactionID: String
+}
+
 public enum SubscriptionAPIStatus: String, Codable {
     case success = "ok"
     case empty
@@ -253,6 +257,41 @@ internal class NetworkClient: VerificationClient {
         networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
     
+    func verifyApplePayRequest(
+        user: PandaUser,
+        paymentData: Data,
+        productId: String,
+        webAppId: String,
+        callback: @escaping (Result<ApplePayResult, Error>) -> Void
+    ) {
+        let decoder = JSONDecoder()
+        guard
+            let paymentInfo = try? decoder.decode(ApplePayPaymentInfo.self, from: paymentData)
+        else {
+            callback(.failure(ApplePayVerificationError.init(message: "ApplePayPaymentInfo decoding failed")))
+            return
+        }
+        let payment = ApplePayPayment(
+            data: paymentInfo.data,
+            ephemeralPublicKey: paymentInfo.header.ephemeralPublicKey,
+            publicKeyHash: paymentInfo.header.publicKeyHash,
+            transactionId: paymentInfo.header.transactionId,
+            signature: paymentInfo.signature,
+            version: paymentInfo.version,
+            sandbox: isDebug,
+            webAppId: webAppId,
+            productId: productId,
+            userId: user.id
+        )
+        let request = createRequest(
+            path: "/v1/solid/ios",
+            method: .post,
+            body: payment
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
+    }
+    
+    
     func getSubscriptionStatus(
         user: PandaUser,
         callback: @escaping (Result<SubscriptionStatusResponse, Error>) -> Void
@@ -379,6 +418,20 @@ internal class NetworkClient: VerificationClient {
         retry(retries, task: { (onComplete) in
             self.verifySubscriptionsRequest(user: user, receipt: receipt, screenId: source?.screenId, callback: onComplete)
         }, completion: callback)
+    }
+    
+    func verifyApplePay(
+        user: PandaUser,
+        paymentData: Data,
+        productId: String,
+        webAppId: String,
+        retries: Int = 1,
+        callback: @escaping (Result<ApplePayResult, Error>) -> Void
+    ) {
+        retry(retries, task: { completion in
+            self.verifyApplePayRequest(user: user, paymentData: paymentData, productId: productId, webAppId: webAppId, callback: completion)
+        }, completion: callback)
+
     }
 
     func registerUser(

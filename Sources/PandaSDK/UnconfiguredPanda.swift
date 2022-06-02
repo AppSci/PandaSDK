@@ -28,8 +28,9 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var pandaFacebookId: PandaFacebookId = .empty
     var capiConfig: CAPIConfig?
     var pandaUserProperties = Set<PandaUserProperty>()
+    var webAppId: String?
     
-    var applePayOutputPublisher: AnyPublisher<PaymentHandlerOutputMessage, Never>?
+    var applePayOutputPublisher: AnyPublisher<ApplePayResult, Error>?
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
@@ -37,6 +38,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         var apiKey: String
         var isDebug: Bool
         var applePayConfiguration: ApplePayConfiguration?
+        var webAppId: String?
     }
     private var lastConfigurationAttempt: LastConfigurationAttempt?
 
@@ -49,12 +51,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         observers.removeValue(forKey: ObjectIdentifier(observer))
     }
 
-    func configure(apiKey: String, isDebug: Bool = true, applePayConfiguration: ApplePayConfiguration? = nil, callback: ((Bool) -> Void)?) {
+    func configure(apiKey: String, isDebug: Bool = true, applePayConfiguration: ApplePayConfiguration? = nil, webAppId: String?, callback: ((Bool) -> Void)?) {
         lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug, applePayConfiguration: applePayConfiguration)
         Panda.configure(
             apiKey: apiKey,
             isDebug: isDebug,
             applePayConfiguration: applePayConfiguration,
+            webAppId: webAppId,
             unconfigured: self,
             callback: { result in
             DispatchQueue.main.async {
@@ -78,6 +81,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             apiKey: configAttempt.apiKey,
             isDebug: configAttempt.isDebug,
             applePayConfiguration: configAttempt.applePayConfiguration,
+            webAppId: configAttempt.webAppId,
             unconfigured: self
         ) { [viewControllers] (result) in
             if case .failure = result {
