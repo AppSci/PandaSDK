@@ -148,30 +148,44 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         if message.name == PandaJSMessagesNames.onPurchase.rawValue {
             if let data = message.body as? [String: String],
                 let productID = data["productID"] {
-                onStartLoad()
-                viewModel?.onPurchase(
-                    productID,
-                    "WKScriptMessage",
-                    self,
-                    viewModel?.screenData.id.string ?? "",
-                    viewModel?.screenData.name ?? "",
-                    data["course"]
-                )
                 
-                if let urlString = data["url"],
-                   let url = URL(string: urlString),
-                   let type = data["type"],
-                   type == "external" {
-                    onPurchaseCmpld = {
-                        UIApplication.shared.open(url)
+                if let label = data["product_label"], let price = data["product_price"], let currency = data["product_currency"] {
+                    viewModel?.onApplePayPurchase(
+                        productID,
+                        currency,
+                        price,
+                        label,
+                        "WKScriptMessage",
+                        viewModel?.screenData.id.string ?? "",
+                        viewModel?.screenData.name ?? "",
+                        self
+                    )
+                } else {
+                    onStartLoad()
+                    viewModel?.onPurchase(
+                        productID,
+                        "WKScriptMessage",
+                        self,
+                        viewModel?.screenData.id.string ?? "",
+                        viewModel?.screenData.name ?? "",
+                        data["course"]
+                    )
+                    
+                    if let urlString = data["url"],
+                       let url = URL(string: urlString),
+                       let type = data["type"],
+                       type == "external" {
+                        onPurchaseCmpld = {
+                            UIApplication.shared.open(url)
+                        }
                     }
-                }
 
-                if let type = data["type"],
-                   type == "moveNext" {
-                    isAutoDismissable = false
-                    onPurchaseCmpld = { [weak self] in
-                        self?.moveNext()
+                    if let type = data["type"],
+                       type == "moveNext" {
+                        isAutoDismissable = false
+                        onPurchaseCmpld = { [weak self] in
+                            self?.moveNext()
+                        }
                     }
                 }
             }
@@ -397,17 +411,34 @@ extension WebViewController: WKNavigationDelegate {
 
         switch action {
         case "purchase":
-            onStartLoad()
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
             let course = urlComps.queryItems?.first(where: { $0.name == "course" })?.value
-            viewModel?.onPurchase(
-                productID,
-                url.lastPathComponent,
-                self,
-                screenID,
-                screenName,
-                course
-            )
+            
+            if let label = urlComps.queryItems?.first(where: { $0.name == "product_label" })?.value,
+               let price = urlComps.queryItems?.first(where: { $0.name == "product_price" })?.value,
+               let currency = urlComps.queryItems?.first(where: { $0.name == "product_currency" })?.value {
+                viewModel?.onApplePayPurchase(
+                    productID,
+                    currency,
+                    price,
+                    label,
+                    url.lastPathComponent,
+                    viewModel?.screenData.id.string ?? "",
+                    viewModel?.screenData.name ?? "",
+                    self
+                )
+            } else {
+                onStartLoad()
+                viewModel?.onPurchase(
+                    productID,
+                    url.lastPathComponent,
+                    self,
+                    screenID,
+                    screenName,
+                    course
+                )
+            }
+            
             return false
         case "restore":
             onStartLoad()

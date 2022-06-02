@@ -8,8 +8,9 @@
 
 import Foundation
 import UIKit
+import Combine
 
-public protocol PandaProtocol: class {
+public protocol PandaProtocol: AnyObject {
     /**
      Initializes PandaSDK. You should call it in `func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool`. All Panda funcs must be  called after Panda is configured
      
@@ -20,6 +21,7 @@ public protocol PandaProtocol: class {
     func configure(
         apiKey: String,
         isDebug: Bool,
+        applePayConfiguration: ApplePayConfiguration?,
         callback: ((Bool) -> Void)?
     )
     
@@ -177,6 +179,12 @@ public protocol PandaProtocol: class {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool
 
     // MARK: - Handle Purchases
+    
+    /**
+     Apple Pay Purchase product publisher.
+     */
+    var applePayOutputPublisher: AnyPublisher<PaymentHandlerOutputMessage, Never>? { get }
+    
     /**
      Purchase product callback.
      Callback for successful purchase in Panda purchase screen - you can validate & do you own setup in this callback
@@ -286,7 +294,13 @@ public extension Panda {
 
 extension Panda {
     
-    static func configure(apiKey: String, isDebug: Bool = true, unconfigured: UnconfiguredPanda?, callback: @escaping (Result<Panda, Error>) -> Void) {
+    static func configure(
+        apiKey: String,
+        isDebug: Bool = true,
+        applePayConfiguration: ApplePayConfiguration? = nil,
+        unconfigured: UnconfiguredPanda?,
+        callback: @escaping (Result<Panda, Error>) -> Void
+    ) {
         if notificationDispatcher == nil {
             notificationDispatcher = NotificationDispatcher()
         }
@@ -300,22 +314,53 @@ extension Panda {
         
         let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
         if let user = userStorage.fetch() {
-            callback(.success(create(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
+            callback(
+                .success(
+                    create(
+                        user: user,
+                        networkClient: networkClient,
+                        appStoreClient: appStoreClient,
+                        unconfigured: unconfigured,
+                        applePayConfiguration: applePayConfiguration
+                    )
+                )
+            )
             return
         }
         networkClient.registerUser() { (result) in
             switch result {
             case .success(let user):
                 userStorage.store(user)
-                callback(.success(create(user: user, networkClient: networkClient, appStoreClient: appStoreClient, unconfigured: unconfigured)))
+                callback(
+                    .success(
+                        create(
+                            user: user,
+                            networkClient: networkClient,
+                            appStoreClient: appStoreClient,
+                            unconfigured: unconfigured,
+                            applePayConfiguration: applePayConfiguration
+                        )
+                    )
+                )
             case .failure(let error):
                 callback(.failure(error))
             }
         }
     }
     
-    static private func create(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient, unconfigured: UnconfiguredPanda?) -> Panda {
-        let panda = Panda(user: user, networkClient: networkClient, appStoreClient: appStoreClient)
+    static private func create(
+        user: PandaUser,
+        networkClient: NetworkClient,
+        appStoreClient: AppStoreClient,
+        unconfigured: UnconfiguredPanda?,
+        applePayConfiguration: ApplePayConfiguration?
+    ) -> Panda {
+        let panda = Panda(
+            user: user,
+            networkClient: networkClient,
+            appStoreClient: appStoreClient,
+            applePayPaymentHandler: .init(configuration: applePayConfiguration ?? .init(merchantIdentifier: "", countryCode: ""))
+        )
         if let unconfigured = unconfigured {
             panda.copyCallbacks(from: unconfigured)
             panda.addViewControllers(controllers: unconfigured.viewControllers)

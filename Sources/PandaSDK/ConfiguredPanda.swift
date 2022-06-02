@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import Combine
 
 protocol VerificationClient {
     func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
@@ -24,6 +25,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     let networkClient: NetworkClient
+    let applePayPaymentHandler: ApplePayPaymentHandler
     let cache: ScreenCache = ScreenCache()
     let user: PandaUser
     let appStoreClient: AppStoreClient
@@ -47,12 +49,21 @@ final public class Panda: PandaProtocol, ObserverSupport {
         let device = deviceStorage.fetch() ?? DeviceSettings.default
         return device.customUserId
     }
+    
+    public var applePayOutputPublisher: AnyPublisher<PaymentHandlerOutputMessage, Never>?
 
-    init(user: PandaUser, networkClient: NetworkClient, appStoreClient: AppStoreClient) {
+    init(
+        user: PandaUser,
+        networkClient: NetworkClient,
+        appStoreClient: AppStoreClient,
+        applePayPaymentHandler: ApplePayPaymentHandler
+    ) {
         self.user = user
         self.networkClient = networkClient
         self.appStoreClient = appStoreClient
         self.verificationClient = networkClient
+        self.applePayPaymentHandler = applePayPaymentHandler
+        self.applePayOutputPublisher = applePayPaymentHandler.outputPublisher
         self.pandaUserId = user.id
     }
     
@@ -78,7 +89,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         observers.removeValue(forKey: ObjectIdentifier(observer))
     }
 
-    public func configure(apiKey: String, isDebug: Bool, callback: ((Bool) -> Void)?) {
+    public func configure(apiKey: String, isDebug: Bool, applePayConfiguration: ApplePayConfiguration?, callback: ((Bool) -> Void)?) {
         pandaLog("Already configured")
         callback?(true)
     }
@@ -356,6 +367,15 @@ final public class Panda: PandaProtocol, ObserverSupport {
             if let text = feedback {
                 self.send(feedback: text, at: screenId)
             }
+        }
+        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] productId, currency, price, label, source, screenId, screenName, _ in
+            guard let productId = productId else {
+                pandaLog("Missing productId with source: \(source)")
+                return
+            }
+            pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: entryPoint))
+            applePayPaymentHandler.startPayment(with: label, price: price, currency: currency, productId: productId)
         }
         viewModel.onPurchase = { [appStoreClient, weak self] productId, source, _, screenId, screenName, course in
             guard let productId = productId else {
