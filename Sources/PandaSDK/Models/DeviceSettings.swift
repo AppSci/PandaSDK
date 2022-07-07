@@ -16,12 +16,13 @@ struct DeviceSettings: Codable {
     var capiConfig: CAPIConfig
     var userProperties: Set<PandaUserProperty>
     
-    static let `default` = DeviceSettings(pushToken: "",
-                                          advertisementIdentifier: "",
-                                          appsFlyerId: "",
-                                          customUserId: "",
-                                          pandaFacebookId: .empty,
-                                          capiConfig: .init(),
-                                          userProperties: .init()
+    static let `default` = DeviceSettings(
+        pushToken: "",
+        advertisementIdentifier: "",
+        appsFlyerId: "",
+        customUserId: "",
+        pandaFacebookId: .empty,
+        capiConfig: .init(),
+        userProperties: .init()
     )
 }

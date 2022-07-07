@@ -394,13 +394,13 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("onViewWillAppear \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
-        viewModel.onViewDidAppear = { [weak self] screenId, screenName, _ in
+        viewModel.onViewDidAppear = { [weak self] screenId, screenName, course in
             pandaLog("onViewDidAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
+            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint, course: course))
         }
         viewModel.onDidFinishLoading = { [weak self] screenId, screenName, course in
             pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint, course: course))
+            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
         }
 
         viewModel.onSupportUkraineAnyButtonTap = { [weak self] in
