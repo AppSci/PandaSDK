@@ -402,14 +402,26 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] productId, currency, price, label, source, screenId, screenName, _ in
-            guard let productId = productId else {
+        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] bilingID, source, screenId, screenName, _ in
+            guard let bilingID = bilingID else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
-            pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: entryPoint))
-            applePayPaymentHandler.startPayment(with: label, price: price, currency: currency, productId: productId)
+            pandaLog("purchaseStarted: \(bilingID) \(screenName) \(screenId)")
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: bilingID, source: entryPoint))
+
+            self?.networkClient.getBillingPlan(
+                bilingID: bilingID,
+                callback: { result in
+                    switch result {
+                    case let .success(billingPlan):
+                        applePayPaymentHandler.startPayment(with: billingPlan.subscriptionType, price: billingPlan.firstPayment.description, currency: billingPlan.currency, productId: billingPlan.productID)
+                    case let .failure(error):
+                        print("FAILED GET BILLING PLAN \(error)")
+                    }
+                }
+            )
+
         }
         viewModel.onPurchase = { [appStoreClient, weak self] productId, source, _, screenId, screenName, course in
             guard let productId = productId else {

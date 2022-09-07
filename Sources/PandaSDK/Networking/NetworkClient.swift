@@ -256,6 +256,18 @@ internal class NetworkClient: VerificationClient {
         )
         networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
+
+    func getBillingPlan(
+        bilingID: String,
+        callback: @escaping (Result<BillingPlan, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/billing-plans/\(bilingID)",
+            method: .get,
+            headers: ["Authorization": "9QBqG5Kcxyvo2F8Pzwz27xrPsf1miVZ6"]
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
+    }
     
     func verifyApplePayRequest(
         user: PandaUser,

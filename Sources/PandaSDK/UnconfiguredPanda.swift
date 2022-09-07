@@ -186,8 +186,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
         }
-        viewModel.onApplePayPurchase = { [weak self] productId, currency, price, label, source, screenId, screenName, viewController in
-            guard let productId = productId else {
+        viewModel.onApplePayPurchase = { [weak self] bilingID, source, screenId, screenName, viewController in
+            guard let bilingID = bilingID else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
@@ -195,7 +195,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
                 switch result {
                 case .success:
                     pandaLog("Reconfigured")
-                    viewController.viewModel?.onApplePayPurchase?(productId, currency, price, label, source, screenId, screenName, viewController)
+                    viewController.viewModel?.onApplePayPurchase?(bilingID, source, screenId, screenName, viewController)
                 case .failure(let error):
                     pandaLog("Reconfigured error: \(error)")
                     DispatchQueue.main.async {

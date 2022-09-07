@@ -146,50 +146,53 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         pandaLog("JavaScript messageHandler: `\(message.name)` is sending a message:")
         
         if message.name == PandaJSMessagesNames.onPurchase.rawValue {
-            if let data = message.body as? [String: String],
-                let productID = data["productID"] {
-                
-                if let label = data["product_label"], let price = data["product_price"], let currency = data["product_currency"] {
-                    viewModel?.onApplePayPurchase(
-                        productID,
-                        currency,
-                        price,
-                        label,
-                        "WKScriptMessage",
-                        viewModel?.screenData.id.string ?? "",
-                        viewModel?.screenData.name ?? "",
-                        self
-                    )
-                } else {
-                    onStartLoad()
-                    viewModel?.onPurchase(
-                        productID,
-                        "WKScriptMessage",
-                        self,
-                        viewModel?.screenData.id.string ?? "",
-                        viewModel?.screenData.name ?? "",
-                        data["course"]
-                    )
-                    
-                    if let urlString = data["url"],
-                       let url = URL(string: urlString),
-                       let type = data["type"],
-                       type == "external" {
-                        onPurchaseCmpld = {
-                            UIApplication.shared.open(url)
-                        }
-                    }
+            if let data = message.body as? [String: String] {
 
-                    if let type = data["type"],
-                       type == "moveNext" {
-                        isAutoDismissable = false
-                        onPurchaseCmpld = { [weak self] in
-                            self?.moveNext()
-                        }
-                    }
-                }
+                viewModel?.onApplePayPurchase(
+                    "bff04ef2-3260-4ecf-ab7a-70dc0239d458",
+                    "WKScriptMessage",
+                    viewModel?.screenData.id.string ?? "",
+                    viewModel?.screenData.name ?? "",
+                    self
+                )
+
+//                if let bilingID = data["bilingID"] {
+//                    viewModel?.onApplePayPurchase(
+//                        bilingID,
+//                        "WKScriptMessage",
+//                        viewModel?.screenData.id.string ?? "",
+//                        viewModel?.screenData.name ?? "",
+//                        self
+//                    )
+//                } else if let productID = data["productID"] {
+//                    onStartLoad()
+//                    viewModel?.onPurchase(
+//                        productID,
+//                        "WKScriptMessage",
+//                        self,
+//                        viewModel?.screenData.id.string ?? "",
+//                        viewModel?.screenData.name ?? "",
+//                        data["course"]
+//                    )
+//
+//                    if let urlString = data["url"],
+//                       let url = URL(string: urlString),
+//                       let type = data["type"],
+//                       type == "external" {
+//                        onPurchaseCmpld = {
+//                            UIApplication.shared.open(url)
+//                        }
+//                    }
+//
+//                    if let type = data["type"],
+//                       type == "moveNext" {
+//                        isAutoDismissable = false
+//                        onPurchaseCmpld = { [weak self] in
+//                            self?.moveNext()
+//                        }
+//                    }
+//                }
             }
-            
         }
 
         if message.name == PandaJSMessagesNames.logHandler.rawValue {
@@ -413,32 +416,35 @@ extension WebViewController: WKNavigationDelegate {
         case "purchase":
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
             let course = urlComps.queryItems?.first(where: { $0.name == "course" })?.value
-            
-            if let label = urlComps.queryItems?.first(where: { $0.name == "product_label" })?.value,
-               let price = urlComps.queryItems?.first(where: { $0.name == "product_price" })?.value,
-               let currency = urlComps.queryItems?.first(where: { $0.name == "product_currency" })?.value {
-                viewModel?.onApplePayPurchase(
-                    productID,
-                    currency,
-                    price,
-                    label,
-                    url.lastPathComponent,
-                    viewModel?.screenData.id.string ?? "",
-                    viewModel?.screenData.name ?? "",
-                    self
-                )
-            } else {
-                onStartLoad()
-                viewModel?.onPurchase(
-                    productID,
-                    url.lastPathComponent,
-                    self,
-                    screenID,
-                    screenName,
-                    course
-                )
-            }
-            
+
+            viewModel?.onApplePayPurchase(
+                "bff04ef2-3260-4ecf-ab7a-70dc0239d458",
+                url.lastPathComponent,
+                viewModel?.screenData.id.string ?? "",
+                viewModel?.screenData.name ?? "",
+                self
+            )
+
+//            if let billingID = urlComps.queryItems?.first(where: { $0.name == "bilingID"})?.value {
+//                viewModel?.onApplePayPurchase(
+//                    billingID,
+//                    url.lastPathComponent,
+//                    viewModel?.screenData.id.string ?? "",
+//                    viewModel?.screenData.name ?? "",
+//                    self
+//                )
+//            } else {
+//                onStartLoad()
+//                viewModel?.onPurchase(
+//                    productID,
+//                    url.lastPathComponent,
+//                    self,
+//                    screenID,
+//                    screenName,
+//                    course
+//                )
+//            }
+
             return false
         case "restore":
             onStartLoad()
