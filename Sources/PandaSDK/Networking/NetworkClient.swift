@@ -73,6 +73,10 @@ public struct ReceiptVerificationResult: Codable {
 
 public struct ApplePayResult: Codable {
     let transactionID: String
+
+    enum CodingKeys: String, CodingKey {
+        case transactionID = "TransactionID"
+    }
 }
 
 public enum SubscriptionAPIStatus: String, Codable {
@@ -263,8 +267,7 @@ internal class NetworkClient: VerificationClient {
     ) {
         let request = createRequest(
             path: "/v1/billing-plans/\(bilingID)",
-            method: .get,
-            headers: ["Authorization": "9QBqG5Kcxyvo2F8Pzwz27xrPsf1miVZ6"]
+            method: .get
         )
         networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }
@@ -290,7 +293,7 @@ internal class NetworkClient: VerificationClient {
             transactionId: paymentInfo.header.transactionId,
             signature: paymentInfo.signature,
             version: paymentInfo.version,
-            sandbox: isDebug,
+            sandbox: true,
             webAppId: webAppId,
             productId: productId,
             userId: user.id

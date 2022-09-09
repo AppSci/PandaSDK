@@ -67,6 +67,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         self.verificationClient = networkClient
         self.applePayPaymentHandler = applePayPaymentHandler
         self.pandaUserId = user.id
+        self.webAppId = webAppId
         bindApplePayMessages()
     }
     
@@ -86,13 +87,16 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             promise(.failure(ApplePayVerificationError.init(message: "Payment finished unsuccessfully")))
                             return
                         }
-                        
+
                         self.verificationClient.verifyApplePayRequest(
                             user: self.user,
                             paymentData: paymentData,
                             productId: productId,
                             webAppId: webAppId) { result in
-                                promise(result)
+                                DispatchQueue.main.async { [weak self] in
+                                    self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+                                    promise(result)
+                                }
                             }
                     }
                 }
@@ -402,22 +406,28 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] bilingID, source, screenId, screenName, _ in
-            guard let bilingID = bilingID else {
+        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] billingID, source, screenId, screenName, _ in
+            guard let billingID = billingID else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
-            pandaLog("purchaseStarted: \(bilingID) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: bilingID, source: entryPoint))
+            pandaLog("purchaseStarted: \(billingID) \(screenName) \(screenId)")
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: billingID, source: entryPoint))
 
             self?.networkClient.getBillingPlan(
-                bilingID: bilingID,
+                bilingID: billingID,
                 callback: { result in
                     switch result {
                     case let .success(billingPlan):
-                        applePayPaymentHandler.startPayment(with: billingPlan.subscriptionType, price: billingPlan.firstPayment.description, currency: billingPlan.currency, productId: billingPlan.productID)
+                        applePayPaymentHandler.startPayment(
+                            with: billingPlan.getLabelForApplePayment(),
+                            price: billingPlan.getPrice(),
+                            currency: billingPlan.currency,
+                            productId: billingPlan.id,
+                            countryCode: billingPlan.countryCode
+                        )
                     case let .failure(error):
-                        print("FAILED GET BILLING PLAN \(error)")
+                        pandaLog("Failed get billingPlan Error: \(error)")
                     }
                 }
             )

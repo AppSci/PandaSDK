@@ -369,7 +369,7 @@ extension Panda {
             user: user,
             networkClient: networkClient,
             appStoreClient: appStoreClient,
-            applePayPaymentHandler: .init(configuration: applePayConfiguration ?? .init(merchantIdentifier: "", countryCode: "")), webAppId: webAppId ?? ""
+            applePayPaymentHandler: .init(configuration: applePayConfiguration ?? .init(merchantIdentifier: "")), webAppId: webAppId ?? ""
         )
         if let unconfigured = unconfigured {
             panda.copyCallbacks(from: unconfigured)

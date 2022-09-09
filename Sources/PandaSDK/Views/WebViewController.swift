@@ -148,50 +148,42 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         if message.name == PandaJSMessagesNames.onPurchase.rawValue {
             if let data = message.body as? [String: String] {
 
-                viewModel?.onApplePayPurchase(
-                    "bff04ef2-3260-4ecf-ab7a-70dc0239d458",
-                    "WKScriptMessage",
-                    viewModel?.screenData.id.string ?? "",
-                    viewModel?.screenData.name ?? "",
-                    self
-                )
+                if let pandaID = data["pandaID"] {
+                    viewModel?.onApplePayPurchase(
+                        pandaID,
+                        "WKScriptMessage",
+                        viewModel?.screenData.id.string ?? "",
+                        viewModel?.screenData.name ?? "",
+                        self
+                    )
+                } else if let productID = data["productID"] {
+                    onStartLoad()
+                    viewModel?.onPurchase(
+                        productID,
+                        "WKScriptMessage",
+                        self,
+                        viewModel?.screenData.id.string ?? "",
+                        viewModel?.screenData.name ?? "",
+                        data["course"]
+                    )
 
-//                if let bilingID = data["bilingID"] {
-//                    viewModel?.onApplePayPurchase(
-//                        bilingID,
-//                        "WKScriptMessage",
-//                        viewModel?.screenData.id.string ?? "",
-//                        viewModel?.screenData.name ?? "",
-//                        self
-//                    )
-//                } else if let productID = data["productID"] {
-//                    onStartLoad()
-//                    viewModel?.onPurchase(
-//                        productID,
-//                        "WKScriptMessage",
-//                        self,
-//                        viewModel?.screenData.id.string ?? "",
-//                        viewModel?.screenData.name ?? "",
-//                        data["course"]
-//                    )
-//
-//                    if let urlString = data["url"],
-//                       let url = URL(string: urlString),
-//                       let type = data["type"],
-//                       type == "external" {
-//                        onPurchaseCmpld = {
-//                            UIApplication.shared.open(url)
-//                        }
-//                    }
-//
-//                    if let type = data["type"],
-//                       type == "moveNext" {
-//                        isAutoDismissable = false
-//                        onPurchaseCmpld = { [weak self] in
-//                            self?.moveNext()
-//                        }
-//                    }
-//                }
+                    if let urlString = data["url"],
+                       let url = URL(string: urlString),
+                       let type = data["type"],
+                       type == "external" {
+                        onPurchaseCmpld = {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+
+                    if let type = data["type"],
+                       type == "moveNext" {
+                        isAutoDismissable = false
+                        onPurchaseCmpld = { [weak self] in
+                            self?.moveNext()
+                        }
+                    }
+                }
             }
         }
 
@@ -417,33 +409,25 @@ extension WebViewController: WKNavigationDelegate {
             let productID = urlComps.queryItems?.first(where: { $0.name == "product_id" })?.value
             let course = urlComps.queryItems?.first(where: { $0.name == "course" })?.value
 
-            viewModel?.onApplePayPurchase(
-                "bff04ef2-3260-4ecf-ab7a-70dc0239d458",
-                url.lastPathComponent,
-                viewModel?.screenData.id.string ?? "",
-                viewModel?.screenData.name ?? "",
-                self
-            )
-
-//            if let billingID = urlComps.queryItems?.first(where: { $0.name == "bilingID"})?.value {
-//                viewModel?.onApplePayPurchase(
-//                    billingID,
-//                    url.lastPathComponent,
-//                    viewModel?.screenData.id.string ?? "",
-//                    viewModel?.screenData.name ?? "",
-//                    self
-//                )
-//            } else {
-//                onStartLoad()
-//                viewModel?.onPurchase(
-//                    productID,
-//                    url.lastPathComponent,
-//                    self,
-//                    screenID,
-//                    screenName,
-//                    course
-//                )
-//            }
+            if let pandaID = urlComps.queryItems?.first(where: { $0.name == "pandaID"})?.value {
+                viewModel?.onApplePayPurchase(
+                    pandaID,
+                    url.lastPathComponent,
+                    viewModel?.screenData.id.string ?? "",
+                    viewModel?.screenData.name ?? "",
+                    self
+                )
+            } else {
+                onStartLoad()
+                viewModel?.onPurchase(
+                    productID,
+                    url.lastPathComponent,
+                    self,
+                    screenID,
+                    screenName,
+                    course
+                )
+            }
 
             return false
         case "restore":

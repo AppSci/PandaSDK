@@ -9,9 +9,8 @@ import Foundation
 
 public struct ApplePayConfiguration {
     let merchantIdentifier: String
-    let countryCode: String
+
+    public init(merchantIdentifier: String) {
+        self.merchantIdentifier = merchantIdentifier
+    }
 }
-
-
-//let merchantIdentifier = "merchant.boosters.solidgate"
-//let countryCode = "US"

@@ -42,18 +42,29 @@ final class ApplePayPaymentHandler: NSObject {
         return (PKPaymentAuthorizationController.canMakePayments(),
                 PKPaymentAuthorizationController.canMakePayments(usingNetworks: supportedNetworks))
     }
-    
-    func startPayment(with label: String, price: String, currency: String, productId: String) {
+
+    func startPayment(with label: String, price: String?, currency: String?, productId: String?, countryCode: String?) {
+        guard
+            let price = price,
+            let currency = currency,
+            let productId = productId,
+            let countryCode = countryCode
+        else {
+            self.outputSubject.send(.failedToPresentPayment)
+            return
+        }
+
         let product = PKPaymentSummaryItem(label: label, amount: NSDecimalNumber(string: price), type: .final)
+
         paymentSummaryItems = [product]
-        
+
         // Create a payment request.
         let paymentRequest = PKPaymentRequest()
         paymentRequest.paymentSummaryItems = paymentSummaryItems
         paymentRequest.merchantIdentifier = configuration.merchantIdentifier
         paymentRequest.merchantCapabilities = .capability3DS
         
-        paymentRequest.countryCode = configuration.countryCode
+        paymentRequest.countryCode = countryCode
         paymentRequest.currencyCode = currency
         paymentRequest.supportedNetworks = ApplePayPaymentHandler.supportedNetworks
 
