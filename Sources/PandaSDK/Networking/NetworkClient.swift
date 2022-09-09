@@ -293,7 +293,7 @@ internal class NetworkClient: VerificationClient {
             transactionId: paymentInfo.header.transactionId,
             signature: paymentInfo.signature,
             version: paymentInfo.version,
-            sandbox: true,
+            sandbox: isDebug,
             webAppId: webAppId,
             productId: productId,
             userId: user.id
