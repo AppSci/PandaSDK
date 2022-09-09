@@ -11,6 +11,7 @@ import StoreKit
 
 protocol WebViewModelProtocol {
     var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ screenId: String, _ screenName: String, _ course: String?) -> Void)!  { get set }
+    var onApplePayPurchase: ((_ bilingID: String?, _ source: String, _ screenId: String, _ screenName: String, _ viewController: WebViewController) -> Void)! { get set }
     var onViewWillAppear: ((_ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onViewDidAppear: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)? { get set }
     var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)? { get set }
@@ -31,8 +32,10 @@ protocol WebViewModelProtocol {
 }
 
 final class WebViewModel: WebViewModelProtocol {
+
     // MARK: - Properties
-    @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ sceenId: String, _ screenName: String, _ course: String?) -> Void)!
+    @objc var onPurchase: ((_ product: String?, _ source: String, _ viewController: WebViewController, _ screenId: String, _ screenName: String, _ course: String?) -> Void)!
+    @objc var onApplePayPurchase: ((String?, String, String, String, WebViewController) -> Void)!
     var onViewWillAppear: ((_ screenId: String?, _ screenName: String?) -> Void)?
     var onViewDidAppear: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)?
     var onDidFinishLoading: ((_ screenId: String?, _ screenName: String?, _ course: String?) -> Void)?
@@ -62,6 +65,7 @@ final class WebViewModel: WebViewModelProtocol {
         self.screenData = screenData
         self.payload = payload
         setupObserver()
+        setupApplePayObserver()
     }
     
     // MARK: - Public
@@ -81,6 +85,15 @@ extension WebViewModel {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(getter: onPurchase),
+            name: NSNotification.Name(rawValue: "SubscriptionBooster.onPurchase"),
+            object: nil
+        )
+    }
+    
+    private func setupApplePayObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(getter: onApplePayPurchase),
             name: NSNotification.Name(rawValue: "SubscriptionBooster.onPurchase"),
             object: nil
         )

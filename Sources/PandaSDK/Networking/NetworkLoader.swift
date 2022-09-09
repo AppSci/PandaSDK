@@ -21,6 +21,10 @@ struct ApiError: Error {
     let message: String?
 }
 
+struct ApplePayVerificationError: Error {
+    let message: String
+}
+
 private struct ApiErrorMessage: Codable {
     let message: String
 }

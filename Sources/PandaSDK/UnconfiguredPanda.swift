@@ -7,8 +7,10 @@
 
 import Foundation
 import UIKit
+import Combine
 
 final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
+    
     var onPurchase: ((String) -> Void)?
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
@@ -26,12 +28,17 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var pandaFacebookId: PandaFacebookId = .empty
     var capiConfig: CAPIConfig?
     var pandaUserProperties = Set<PandaUserProperty>()
+    var webAppId: String?
+    
+    var applePayOutputPublisher: AnyPublisher<ApplePayResult, Error>?
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
     struct LastConfigurationAttempt {
         var apiKey: String
         var isDebug: Bool
+        var applePayConfiguration: ApplePayConfiguration?
+        var webAppId: String?
     }
     private var lastConfigurationAttempt: LastConfigurationAttempt?
 
@@ -44,9 +51,15 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         observers.removeValue(forKey: ObjectIdentifier(observer))
     }
 
-    func configure(apiKey: String, isDebug: Bool = true, callback: ((Bool) -> Void)?) {
-        lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug)
-        Panda.configure(apiKey: apiKey, isDebug: isDebug, unconfigured: self, callback: { result in
+    func configure(apiKey: String, isDebug: Bool = true, applePayConfiguration: ApplePayConfiguration? = nil, webAppId: String?, callback: ((Bool) -> Void)?) {
+        lastConfigurationAttempt = LastConfigurationAttempt(apiKey: apiKey, isDebug: isDebug, applePayConfiguration: applePayConfiguration)
+        Panda.configure(
+            apiKey: apiKey,
+            isDebug: isDebug,
+            applePayConfiguration: applePayConfiguration,
+            webAppId: webAppId,
+            unconfigured: self,
+            callback: { result in
             DispatchQueue.main.async {
                 switch result {
                 case .failure:
@@ -64,7 +77,13 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
             callback(.failure(Errors.notConfigured))
             return
         }
-        Panda.configure(apiKey: configAttempt.apiKey, isDebug: configAttempt.isDebug, unconfigured: self) { [viewControllers] (result) in
+        Panda.configure(
+            apiKey: configAttempt.apiKey,
+            isDebug: configAttempt.isDebug,
+            applePayConfiguration: configAttempt.applePayConfiguration,
+            webAppId: configAttempt.webAppId,
+            unconfigured: self
+        ) { [viewControllers] (result) in
             if case .failure = result {
                 viewControllers.forEach { $0.value?.onFinishLoad() }
             }
@@ -166,6 +185,26 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         let source = payload?.entryPoint
         viewModel.onSurvey = { value, screenId, screenName in
             pandaLog("Survey: \(value)")
+        }
+        viewModel.onApplePayPurchase = { [weak self] bilingID, source, screenId, screenName, viewController in
+            guard let bilingID = bilingID else {
+                pandaLog("Missing productId with source: \(source)")
+                return
+            }
+            self?.reconfigure(callback: { (result) in
+                switch result {
+                case .success:
+                    pandaLog("Reconfigured")
+                    viewController.viewModel?.onApplePayPurchase?(bilingID, source, screenId, screenName, viewController)
+                case .failure(let error):
+                    pandaLog("Reconfigured error: \(error)")
+                    DispatchQueue.main.async {
+                        viewController.showInternetConnectionAlert()
+                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+                        self?.onError?(error)
+                    }
+                }
+            })
         }
         viewModel.onPurchase = { [weak self] productId, source, view, screenId, screenName, course in
             guard let productId = productId else {
