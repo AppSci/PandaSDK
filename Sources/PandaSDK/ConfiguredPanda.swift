@@ -88,6 +88,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             return
                         }
 
+                        self.viewControllers.forEach({ $0.value?.onStartLoad() })
+
                         self.verificationClient.verifyApplePayRequest(
                             user: self.user,
                             paymentData: paymentData,
@@ -300,13 +302,20 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
-        networkClient.getSubscriptionStatus(user: user) { (result) in
-            switch result {
-            case .failure(let error):
-                statusCallback?(.failure(error))
-            case .success(let apiResponse):
-                let subscriptionStatus = SubscriptionStatus(with: apiResponse)
-                statusCallback?(.success(subscriptionStatus))
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard
+                let self = self
+            else {
+                return
+            }
+            self.networkClient.getSubscriptionStatus(user: self.user) { (result) in
+                switch result {
+                case .failure(let error):
+                    statusCallback?(.failure(error))
+                case .success(let apiResponse):
+                    let subscriptionStatus = SubscriptionStatus(with: apiResponse)
+                    statusCallback?(.success(subscriptionStatus))
+                }
             }
         }
     }
