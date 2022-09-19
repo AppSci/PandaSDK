@@ -62,7 +62,7 @@ struct BillingPlan: Codable {
 
             if let trialDaysDuration = durationTrialInDays,
                trial {
-                text.append("1 week trial with one lesson")
+                text.append("FREE WEEK WITH 1 LESSON, ")
 
                 if let secondPayment = secondPayment {
 
@@ -72,15 +72,17 @@ struct BillingPlan: Codable {
 
                     if let futureDate = Calendar.current.date(byAdding: dateComponent, to: currentDate) {
 
-                        text.append("\nstarting \(dateFormatter.string(from: futureDate)) - \(MonetaryAmount(amountCents: secondPayment).amountDollars.description)")
+                        text.append("\(MonetaryAmount(amountCents: secondPayment).amountDollars.description)")
 
                         if let currency = currency {
                             let currencySymbol = CurrencyHelper.getSymbolForCurrencyCode(code: currency)
 
                             if !currencySymbol.isEmpty {
-                                text.append(" \(currencySymbol)")
+                                text.append("\(currencySymbol)/MONTH")
                             }
                         }
+
+                        text.append(" FROM \(dateFormatter.string(from: futureDate))")
                     }
                 }
             } else {
