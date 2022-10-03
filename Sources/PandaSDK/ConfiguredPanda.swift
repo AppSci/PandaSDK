@@ -52,7 +52,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
         return device.customUserId
     }
     public var webAppId: String?
-    public var applePayOutputPublisher: AnyPublisher<ApplePayResult, Error>?
+    private var cancellable = Set<AnyCancellable>()
+    private var applePayOutputSubject = PassthroughSubject<ApplePayResult, Error>()
+    public lazy var applePayOutputPublisher = applePayOutputSubject.eraseToAnyPublisher()
     
     init(
         user: PandaUser,
@@ -72,39 +74,57 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     private func bindApplePayMessages() {
-        self.applePayOutputPublisher = applePayPaymentHandler.outputPublisher
-            .flatMap { message in
-                Future<ApplePayResult, Error> { [weak self] promise in
-                    switch message {
-                    case .failedToPresentPayment:
-                        promise(.failure(ApplePayVerificationError.init(message: "failed to present apple pay screen")))
-                    case let .paymentFinished(status, productId, paymentData):
-                        guard
-                            let self = self,
-                            let webAppId = self.webAppId,
-                            status == PKPaymentAuthorizationStatus.success
-                        else {
-                            promise(.failure(ApplePayVerificationError.init(message: "Payment finished unsuccessfully")))
-                            return
-                        }
-
-                        self.viewControllers.forEach({ $0.value?.onStartLoad() })
-
-                        self.verificationClient.verifyApplePayRequest(
-                            user: self.user,
-                            paymentData: paymentData,
-                            productId: productId,
-                            webAppId: webAppId) { result in
-                                DispatchQueue.main.async { [weak self] in
-                                    self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-                                    promise(result)
-                                }
-                            }
-                    }
+        applePayPaymentHandler.outputPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
+                if case .failure = completion {
+                    self?.applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: "failed to present apple pay screen")))
                 }
-                .eraseToAnyPublisher()
+            } receiveValue: { [weak self] message in
+                self?.handleApplePay(message)
             }
-            .eraseToAnyPublisher()
+            .store(in: &cancellable)
+    }
+
+    private func handleApplePay(_ message: ApplePayPaymentHandlerOutputMessage) {
+        switch message {
+        case .failedToPresentPayment:
+            applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: "failed to present apple pay screen")))
+        case let .paymentFinished(status, productID, paymentData):
+            guard
+                let webAppId = webAppId,
+                status == PKPaymentAuthorizationStatus.success
+            else {
+                applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: "Payment finished unsuccessfully")))
+                return
+            }
+
+            viewControllers.forEach({ $0.value?.onStartLoad() })
+
+            verificationClient.verifyApplePayRequest(
+                user: user,
+                paymentData: paymentData,
+                productId: productID,
+                webAppId: webAppId
+            ) { result in
+                DispatchQueue.main.async { [weak self] in
+                    guard
+                        let self = self
+                    else {
+                        return
+                    }
+
+                    switch result {
+                    case let .success(result):
+                        self.applePayOutputSubject.send(result)
+                    case let .failure(error):
+                        self.applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: error.localizedDescription)))
+                    }
+
+                    self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+                }
+            }
+        }
     }
     
     internal func configureAppStoreClient() {

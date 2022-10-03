@@ -29,8 +29,9 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var capiConfig: CAPIConfig?
     var pandaUserProperties = Set<PandaUserProperty>()
     var webAppId: String?
-    
-    var applePayOutputPublisher: AnyPublisher<ApplePayResult, Error>?
+
+    var applePayOutputSubject = PassthroughSubject<ApplePayResult, Error>()
+    lazy var applePayOutputPublisher = applePayOutputSubject.eraseToAnyPublisher()
     
     private static let configError = "Please, configure Panda, by calling Panda.configure(\"<API_TOKEN>\") and wait, until you get `callback(true)`"
 
