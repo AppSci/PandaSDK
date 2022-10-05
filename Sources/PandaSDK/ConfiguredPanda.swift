@@ -107,7 +107,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 productId: productID,
                 webAppId: webAppId
             ) { result in
-                DispatchQueue.main.async { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
                     guard
                         let self = self
                     else {
