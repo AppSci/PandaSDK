@@ -53,9 +53,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     public var webAppId: String?
     private var cancellable = Set<AnyCancellable>()
-    private var applePayOutputSubject = PassthroughSubject<ApplePayResult, Error>()
-    public lazy var applePayOutputPublisher = applePayOutputSubject.eraseToAnyPublisher()
-    
+
     init(
         user: PandaUser,
         networkClient: NetworkClient,
@@ -77,9 +75,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
         applePayPaymentHandler.outputPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                if case .failure = completion {
-                    self?.applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: "failed to present apple pay screen")))
-                }
+                let error = ApplePayVerificationError.init(message: "failed to present apple pay screen")
+
+                self?.onError?(error)
+                self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
             } receiveValue: { [weak self] message in
                 self?.handleApplePay(message)
             }
@@ -89,13 +88,19 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private func handleApplePay(_ message: ApplePayPaymentHandlerOutputMessage) {
         switch message {
         case .failedToPresentPayment:
-            applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: "failed to present apple pay screen")))
+            let error = ApplePayVerificationError.init(message: "failed to present apple pay screen")
+
+            onError?(error)
+            send(event: .purchaseError(error: error, source: entryPoint))
         case let .paymentFinished(status, productID, paymentData):
             guard
                 let webAppId = webAppId,
                 status == PKPaymentAuthorizationStatus.success
             else {
-                applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: "Payment finished unsuccessfully")))
+                let error = ApplePayVerificationError.init(message: "Payment finished unsuccessfully")
+
+                onError?(error)
+                send(event: .purchaseError(error: error, source: entryPoint))
                 return
             }
 
@@ -116,12 +121,15 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
                     switch result {
                     case let .success(result):
-                        self.applePayOutputSubject.send(result)
+                        self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+                        self.send(event: .onApplePaySuccessfulPurchase)
                     case let .failure(error):
-                        self.applePayOutputSubject.send(completion: .failure(ApplePayVerificationError.init(message: error.localizedDescription)))
+                        self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+
+                        self.onError?(error)
+                        self.send(event: .purchaseError(error: error, source: self.entryPoint))
                     }
 
-                    self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
                 }
             }
         }
@@ -456,6 +464,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             countryCode: billingPlan.countryCode
                         )
                     case let .failure(error):
+                        self?.onError?(error)
+                        self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
                         pandaLog("Failed get billingPlan Error: \(error)")
                     }
                 }
