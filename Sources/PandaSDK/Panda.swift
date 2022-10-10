@@ -40,12 +40,7 @@ public protocol PandaProtocol: AnyObject {
      Returns Web Panda App Id
      */
     var webAppId: String? { get }
-    
-    /**
-     Returns publisher that produces apple pay result
-     */
-    var applePayOutputPublisher: AnyPublisher<ApplePayResult, Error> { get }
-    
+        
     /**
      Returns Current Panda custom user id or nil in cases of abscence or Panda not configured
      */
