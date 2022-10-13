@@ -12,7 +12,7 @@ import PassKit
 
 protocol VerificationClient {
     func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
-    func verifyApplePayRequest(user: PandaUser, paymentData: Data, productId: String, webAppId: String, callback: @escaping (Result<ApplePayResult, Error>) -> Void)
+    func verifyApplePayRequest(user: PandaUser, paymentData: Data, billingID: String, webAppId: String, callback: @escaping (Result<ApplePayResult, Error>) -> Void)
 }
 
 final public class Panda: PandaProtocol, ObserverSupport {
@@ -92,7 +92,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
             onError?(error)
             send(event: .purchaseError(error: error, source: entryPoint))
-        case let .paymentFinished(status, productID, paymentData):
+        case let .paymentFinished(status, billingID, paymentData, productID):
             guard
                 let webAppId = webAppId,
                 status == PKPaymentAuthorizationStatus.success
@@ -109,7 +109,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             verificationClient.verifyApplePayRequest(
                 user: user,
                 paymentData: paymentData,
-                productId: productID,
+                billingID: billingID,
                 webAppId: webAppId
             ) { result in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
@@ -122,7 +122,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     switch result {
                     case let .success(result):
                         self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-                        self.send(event: .onApplePaySuccessfulPurchase)
+                        self.send(event: .onApplePaySuccessfulPurchase(productID: productID))
                     case let .failure(error):
                         self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
 
@@ -443,16 +443,18 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] billingID, source, screenId, screenName, _ in
-            guard let billingID = billingID else {
+        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] pandaID, source, screenId, screenName, _ in
+            guard
+                let pandaID = pandaID
+            else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
-            pandaLog("purchaseStarted: \(billingID) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: billingID, source: entryPoint))
+            pandaLog("purchaseStarted: \(pandaID) \(screenName) \(screenId)")
+            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: pandaID, source: entryPoint))
 
             self?.networkClient.getBillingPlan(
-                bilingID: billingID,
+                with: pandaID,
                 callback: { result in
                     switch result {
                     case let .success(billingPlan):
@@ -460,8 +462,9 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             with: billingPlan.getLabelForApplePayment(),
                             price: billingPlan.getPrice(),
                             currency: billingPlan.currency,
-                            productId: billingPlan.id,
-                            countryCode: billingPlan.countryCode
+                            billingID: billingPlan.id,
+                            countryCode: billingPlan.countryCode,
+                            productID: billingPlan.productID
                         )
                     case let .failure(error):
                         self?.onError?(error)

@@ -11,7 +11,7 @@ import Combine
 
 public enum ApplePayPaymentHandlerOutputMessage {
     case failedToPresentPayment
-    case paymentFinished(_ status: PKPaymentAuthorizationStatus, _ productId: String, _ paymentData: Data)
+    case paymentFinished(_ status: PKPaymentAuthorizationStatus, _ billingID: String, _ paymentData: Data, _ productID: String)
 }
 
 final class ApplePayPaymentHandler: NSObject {
@@ -19,7 +19,8 @@ final class ApplePayPaymentHandler: NSObject {
     private var paymentController: PKPaymentAuthorizationController?
     private var paymentSummaryItems = [PKPaymentSummaryItem]()
     private var paymentStatus = PKPaymentAuthorizationStatus.failure
-    private var productId: String? = nil
+    private var billingID: String? = nil
+    private var productID: String? = nil
     private var paymentData: Data? = nil
     private let configuration: ApplePayConfiguration
     
@@ -43,11 +44,18 @@ final class ApplePayPaymentHandler: NSObject {
                 PKPaymentAuthorizationController.canMakePayments(usingNetworks: supportedNetworks))
     }
 
-    func startPayment(with label: String, price: String?, currency: String?, productId: String?, countryCode: String?) {
+    func startPayment(
+        with label: String,
+        price: String?,
+        currency: String?,
+        billingID: String?,
+        countryCode: String?,
+        productID: String?
+    ) {
         guard
             let price = price,
             let currency = currency,
-            let productId = productId,
+            let billingID = billingID,
             let countryCode = countryCode
         else {
             self.outputSubject.send(.failedToPresentPayment)
@@ -76,7 +84,8 @@ final class ApplePayPaymentHandler: NSObject {
             if !presented {
                 self.outputSubject.send(.failedToPresentPayment)
             } else {
-                self.productId = productId
+                self.billingID = billingID
+                self.productID = productID
             }
         })
     }
@@ -99,11 +108,12 @@ extension ApplePayPaymentHandler: PKPaymentAuthorizationControllerDelegate {
             DispatchQueue.main.async {
                 guard
                     let paymentData = self.paymentData,
-                    let productId = self.productId
+                    let billingID = self.billingID,
+                    let productID = self.productID
                 else {
                     return
                 }
-                self.outputSubject.send(.paymentFinished(self.paymentStatus, productId, paymentData))
+                self.outputSubject.send(.paymentFinished(self.paymentStatus, billingID, paymentData, productID))
             }
         }
     }
