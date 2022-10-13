@@ -262,11 +262,11 @@ internal class NetworkClient: VerificationClient {
     }
 
     func getBillingPlan(
-        bilingID: String,
+        with pandaID: String,
         callback: @escaping (Result<BillingPlan, Error>) -> Void
     ) {
         let request = createRequest(
-            path: "/v1/billing-plans/\(bilingID)",
+            path: "/v1/billing-plans/\(pandaID)",
             method: .get
         )
         networkLoader.loadData(with: request, timeout: nil, completion: callback)
@@ -275,7 +275,7 @@ internal class NetworkClient: VerificationClient {
     func verifyApplePayRequest(
         user: PandaUser,
         paymentData: Data,
-        productId: String,
+        billingID: String,
         webAppId: String,
         callback: @escaping (Result<ApplePayResult, Error>) -> Void
     ) {
@@ -295,7 +295,7 @@ internal class NetworkClient: VerificationClient {
             version: paymentInfo.version,
             sandbox: isDebug,
             webAppId: webAppId,
-            productId: productId,
+            productId: billingID,
             userId: user.id
         )
         let request = createRequest(
@@ -438,13 +438,13 @@ internal class NetworkClient: VerificationClient {
     func verifyApplePay(
         user: PandaUser,
         paymentData: Data,
-        productId: String,
+        billingID: String,
         webAppId: String,
         retries: Int = 1,
         callback: @escaping (Result<ApplePayResult, Error>) -> Void
     ) {
         retry(retries, task: { completion in
-            self.verifyApplePayRequest(user: user, paymentData: paymentData, productId: productId, webAppId: webAppId, callback: completion)
+            self.verifyApplePayRequest(user: user, paymentData: paymentData, billingID: billingID, webAppId: webAppId, callback: completion)
         }, completion: callback)
 
     }
