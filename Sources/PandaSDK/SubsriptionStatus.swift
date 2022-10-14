@@ -54,6 +54,7 @@ public struct SubscriptionInfo: Codable {
     public let price: Double?
     public let state: SubscriptionAPIStatus
     public let paymentType: PaymentType
+    public let paymentStatus: PaymentStatus
     
     public var stateDescription: String {
         state.rawValue
@@ -66,6 +67,7 @@ public struct SubscriptionInfo: Codable {
         case price
         case state
         case paymentType = "payment_type"
+        case paymentStatus = "payment_status"
     }
 
     public init(from decoder: Decoder) throws {
@@ -76,6 +78,7 @@ public struct SubscriptionInfo: Codable {
         self.price = try container.decodeIfPresent(Double.self, forKey: .price)
         self.state = try container.decode(SubscriptionAPIStatus.self, forKey: .state)
         self.paymentType = try container.decodeIfPresent(PaymentType.self, forKey: .paymentType) ?? .unknown
+        self.paymentStatus = try container.decodeIfPresent(PaymentStatus.self, forKey: .paymentStatus) ?? .unknown
     }
 }
 
@@ -83,5 +86,12 @@ public enum PaymentType: String, Codable {
     case lifetime
     case subscription
     case onetime
+    case unknown
+}
+
+public enum PaymentStatus: String, Codable {
+    case fail
+    case processing
+    case success
     case unknown
 }
