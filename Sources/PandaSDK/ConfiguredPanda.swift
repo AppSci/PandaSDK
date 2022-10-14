@@ -121,15 +121,21 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
                     switch result {
                     case let .success(result):
-                        self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
+                        if let transactionStatus = result.transactionStatus,
+                           transactionStatus == .fail {
+                            let error = ApplePayVerificationError.init(message: "Payment transaction failed")
+                            self.send(event: .purchaseError(error: error, source: self.entryPoint))
+                            self.onError?(error)
+                            return
+                        }
+
+                        self.viewControllers.forEach { $0.value?.tryAutoDismiss() }
                         self.send(event: .onApplePaySuccessfulPurchase(productID: productID))
                     case let .failure(error):
-                        self.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-
+                        self.viewControllers.forEach { $0.value?.tryAutoDismiss() }
                         self.onError?(error)
                         self.send(event: .purchaseError(error: error, source: self.entryPoint))
                     }
-
                 }
             }
         }
