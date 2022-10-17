@@ -35,6 +35,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
     private let deviceStorage: Storage<DeviceSettings> = CodableStorageFactory.userDefaults()
     private var viewControllers: Set<WeakObject<WebViewController>> = []
+    private var viewControllerForApplePayPurchase: WebViewController?
     private var payload: PandaPayload?
     private var entryPoint: String? {
         return payload?.entryPoint
@@ -99,12 +100,16 @@ final public class Panda: PandaProtocol, ObserverSupport {
             else {
                 let error = ApplePayVerificationError.init(message: "Payment finished unsuccessfully")
 
-                onError?(error)
-                send(event: .purchaseError(error: error, source: entryPoint))
+                viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+                    self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
+                    self?.onError?(error)
+                    self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
+                }
+
                 return
             }
 
-            viewControllers.forEach({ $0.value?.onStartLoad() })
+            viewControllers.forEach { $0.value?.onStartLoad() }
 
             verificationClient.verifyApplePayRequest(
                 user: user,
@@ -119,22 +124,34 @@ final public class Panda: PandaProtocol, ObserverSupport {
                         return
                     }
 
+                    self.viewControllers.forEach { $0.value?.onFinishLoad() }
+
                     switch result {
                     case let .success(result):
                         if let transactionStatus = result.transactionStatus,
                            transactionStatus == .fail {
                             let error = ApplePayVerificationError.init(message: "Payment transaction failed")
-                            self.send(event: .purchaseError(error: error, source: self.entryPoint))
-                            self.onError?(error)
+
+                            self.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+                                self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
+                                self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
+                                self?.onError?(error)
+                            }
+
                             return
                         }
 
-                        self.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-                        self.send(event: .onApplePaySuccessfulPurchase(productID: productID))
+                        self.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+                            self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
+                            self?.send(event: .onApplePaySuccessfulPurchase(productID: productID))
+                        }
+
                     case let .failure(error):
-                        self.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-                        self.onError?(error)
-                        self.send(event: .purchaseError(error: error, source: self.entryPoint))
+                        self.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+                            self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
+                            self?.onError?(error)
+                            self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
+                        }
                     }
                 }
             }
@@ -335,13 +352,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+    public func getSubscriptionStatus(withDelay: Double, statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + withDelay) { [weak self] in
             guard
                 let self = self
             else {
                 return
             }
+
             self.networkClient.getSubscriptionStatus(user: self.user) { (result) in
                 switch result {
                 case .failure(let error):
@@ -449,13 +467,15 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 self.send(feedback: text, at: screenId)
             }
         }
-        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] pandaID, source, screenId, screenName, _ in
+        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] pandaID, source, screenId, screenName, view in
             guard
                 let pandaID = pandaID
             else {
                 pandaLog("Missing productId with source: \(source)")
                 return
             }
+            self?.viewControllerForApplePayPurchase = view
+
             pandaLog("purchaseStarted: \(pandaID) \(screenName) \(screenId)")
             self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: pandaID, source: entryPoint))
 
@@ -552,7 +572,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
     
     func onApplicationDidBecomeActive() {
-        getSubscriptionStatus { [weak self, settingsStorage] (result) in
+        getSubscriptionStatus(withDelay: 3.0) { [weak self, settingsStorage] (result) in
             let status: SubscriptionState
             switch result {
             case .failure(let error):
