@@ -54,7 +54,7 @@ public struct SubscriptionInfo: Codable {
     public let price: Double?
     public let state: SubscriptionAPIStatus
     public let paymentType: PaymentType
-    public let paymentStatus: PaymentStatus
+    public let paymentStatus: PaymentStatus?
     
     public var stateDescription: String {
         state.rawValue
@@ -93,5 +93,6 @@ public enum PaymentStatus: String, Codable {
     case fail
     case processing
     case success
+    case ok
     case unknown
 }

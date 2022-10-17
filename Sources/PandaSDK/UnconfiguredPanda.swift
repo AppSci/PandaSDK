@@ -121,7 +121,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         onShow?(.failure(Errors.notConfigured))
     }
     
-    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
+    func getSubscriptionStatus(withDelay: Double, statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
         pandaLog(UnconfiguredPanda.configError)
         statusCallback?(.failure(Errors.notConfigured))
     }

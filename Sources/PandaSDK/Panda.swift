@@ -125,7 +125,7 @@ public protocol PandaProtocol: AnyObject {
     /**
      You can call to check subscription status of User
     */
-    func getSubscriptionStatus(statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
+    func getSubscriptionStatus(withDelay: Double, statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
     
     /**
         Handle deeplinks
