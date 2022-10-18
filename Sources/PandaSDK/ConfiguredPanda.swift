@@ -76,35 +76,39 @@ final public class Panda: PandaProtocol, ObserverSupport {
         applePayPaymentHandler.outputPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] completion in
-                let error = ApplePayVerificationError.init(message: "failed to present apple pay screen")
-
-                self?.onError?(error)
-                self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
+                if case .failure = completion {
+                    self?.handleApplePayError(errorMessage: "failed to present apple pay screen")
+                }
             } receiveValue: { [weak self] message in
                 self?.handleApplePay(message)
             }
             .store(in: &cancellable)
     }
 
+    private func handleApplePayError(errorMessage: String) {
+        viewControllers.forEach { $0.value?.onFinishLoad() }
+
+        viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+            self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
+            self?.send(
+                event: .purchaseError(
+                    error: ApplePayVerificationError(message: errorMessage),
+                    source: self?.entryPoint
+                )
+            )
+        }
+    }
+
     private func handleApplePay(_ message: ApplePayPaymentHandlerOutputMessage) {
         switch message {
         case .failedToPresentPayment:
-            let error = ApplePayVerificationError.init(message: "failed to present apple pay screen")
-
-            onError?(error)
-            send(event: .purchaseError(error: error, source: entryPoint))
+            handleApplePayError(errorMessage: "failed to present apple pay screen")
         case let .paymentFinished(status, billingID, paymentData, productID):
             guard
                 let webAppId = webAppId,
                 status == PKPaymentAuthorizationStatus.success
             else {
-                let error = ApplePayVerificationError.init(message: "Payment finished unsuccessfully")
-
-                viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
-                    self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-                    self?.onError?(error)
-                    self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                }
+                handleApplePayError(errorMessage: "Payment finished unsuccessfully")
 
                 return
             }
@@ -116,43 +120,28 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 paymentData: paymentData,
                 billingID: billingID,
                 webAppId: webAppId
-            ) { result in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
-                    guard
-                        let self = self
-                    else {
+            ) { [weak self] result in
+
+                switch result {
+                case let .success(result):
+                    if let transactionStatus = result.transactionStatus,
+                       transactionStatus == .fail {
+                        self?.handleApplePayError(errorMessage: "Payment transaction failed")
+
                         return
                     }
 
-                    self.viewControllers.forEach { $0.value?.onFinishLoad() }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
 
-                    switch result {
-                    case let .success(result):
-                        if let transactionStatus = result.transactionStatus,
-                           transactionStatus == .fail {
-                            let error = ApplePayVerificationError.init(message: "Payment transaction failed")
-
-                            self.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
-                                self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-                                self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                                self?.onError?(error)
-                            }
-
-                            return
-                        }
-
-                        self.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+                        self?.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
                             self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
                             self?.send(event: .onApplePaySuccessfulPurchase(productID: productID))
                         }
 
-                    case let .failure(error):
-                        self.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
-                            self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-                            self?.onError?(error)
-                            self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                        }
                     }
+                case let .failure(error):
+                    self?.handleApplePayError(errorMessage: error.localizedDescription)
                 }
             }
         }
