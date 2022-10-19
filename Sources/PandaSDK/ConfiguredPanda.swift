@@ -86,16 +86,17 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
 
     private func handleApplePayError(errorMessage: String) {
-        viewControllers.forEach { $0.value?.onFinishLoad() }
-
-        viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
-            self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-            self?.send(
-                event: .purchaseError(
-                    error: ApplePayVerificationError(message: errorMessage),
-                    source: self?.entryPoint
+        DispatchQueue.main.async { [weak self] in
+            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
+            self?.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
+                self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
+                self?.send(
+                    event: .purchaseError(
+                        error: ApplePayVerificationError(message: errorMessage),
+                        source: self?.entryPoint
+                    )
                 )
-            )
+            }
         }
     }
 
