@@ -86,6 +86,7 @@ public enum PaymentType: String, Codable {
     case lifetime
     case subscription
     case onetime
+    case trial
     case unknown
 }
 
