@@ -78,7 +78,12 @@ public struct SubscriptionInfo: Codable {
         self.price = try container.decodeIfPresent(Double.self, forKey: .price)
         self.state = try container.decode(SubscriptionAPIStatus.self, forKey: .state)
         self.paymentType = try container.decodeIfPresent(PaymentType.self, forKey: .paymentType) ?? .unknown
-        self.paymentStatus = try container.decodeIfPresent(PaymentStatus.self, forKey: .paymentStatus) ?? .unknown
+
+        if let decodedString = try container.decodeIfPresent(String.self, forKey: .paymentStatus) {
+            self.paymentStatus = PaymentStatus(rawValue: decodedString) ?? .unknown
+        } else {
+            self.paymentStatus = .unknown
+        }
     }
 }
 
