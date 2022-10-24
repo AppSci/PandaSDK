@@ -62,9 +62,10 @@ final class ApplePayPaymentHandler: NSObject {
             return
         }
 
-        let product = PKPaymentSummaryItem(label: label, amount: NSDecimalNumber(string: price), type: .final)
+        let product = PKPaymentSummaryItem(label: label, amount: NSDecimalNumber(string: price), type: .pending)
+        let finalProduct = PKPaymentSummaryItem(label: "GM APPDEV LIMITED", amount: NSDecimalNumber(string: price), type: .final)
 
-        paymentSummaryItems = [product]
+        paymentSummaryItems = [product, finalProduct]
 
         // Create a payment request.
         let paymentRequest = PKPaymentRequest()
