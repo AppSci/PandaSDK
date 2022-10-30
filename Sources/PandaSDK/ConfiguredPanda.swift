@@ -104,7 +104,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         switch message {
         case .failedToPresentPayment:
             handleApplePayError(errorMessage: "failed to present apple pay screen")
-        case let .paymentFinished(status, billingID, paymentData, productID):
+        case let .paymentFinished(status, billingID, paymentData, productID, screenID):
             guard
                 let webAppId = webAppId,
                 status == PKPaymentAuthorizationStatus.success
@@ -137,7 +137,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
 
                         self?.viewControllerForApplePayPurchase?.dismiss(animated: true) { [weak self] in
                             self?.viewControllers.forEach { $0.value?.tryAutoDismiss() }
-                            self?.send(event: .onApplePaySuccessfulPurchase(productID: productID))
+                            self?.send(event: .onApplePaySuccessfulPurchase(productID: productID, screenID: screenID))
                         }
 
                     }
@@ -480,7 +480,8 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             currency: billingPlan.currency,
                             billingID: billingPlan.id,
                             countryCode: billingPlan.countryCode,
-                            productID: billingPlan.productID
+                            productID: billingPlan.productID,
+                            screenID: screenId
                         )
                     case let .failure(error):
                         self?.onError?(error)

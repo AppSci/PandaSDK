@@ -11,7 +11,7 @@ import Combine
 
 public enum ApplePayPaymentHandlerOutputMessage {
     case failedToPresentPayment
-    case paymentFinished(_ status: PKPaymentAuthorizationStatus, _ billingID: String, _ paymentData: Data, _ productID: String)
+    case paymentFinished(_ status: PKPaymentAuthorizationStatus, _ billingID: String, _ paymentData: Data, _ productID: String, _ screenID: String)
 }
 
 final class ApplePayPaymentHandler: NSObject {
@@ -26,6 +26,9 @@ final class ApplePayPaymentHandler: NSObject {
     
     let outputPublisher: AnyPublisher<ApplePayPaymentHandlerOutputMessage, Error>
     private let outputSubject = PassthroughSubject<ApplePayPaymentHandlerOutputMessage, Error>()
+
+    // MARK: - Use for analytic only -
+    private var screenID: String = ""
     
     init(configuration: ApplePayConfiguration) {
         self.configuration = configuration
@@ -50,7 +53,8 @@ final class ApplePayPaymentHandler: NSObject {
         currency: String?,
         billingID: String?,
         countryCode: String?,
-        productID: String?
+        productID: String?,
+        screenID: String
     ) {
         guard
             let price = price,
@@ -62,6 +66,7 @@ final class ApplePayPaymentHandler: NSObject {
             return
         }
 
+        self.screenID = screenID
         let product = PKPaymentSummaryItem(label: label, amount: NSDecimalNumber(string: price), type: .pending)
         let finalProduct = PKPaymentSummaryItem(label: "GM APPDEV LIMITED", amount: NSDecimalNumber(string: price), type: .final)
 
@@ -114,7 +119,7 @@ extension ApplePayPaymentHandler: PKPaymentAuthorizationControllerDelegate {
                 else {
                     return
                 }
-                self.outputSubject.send(.paymentFinished(self.paymentStatus, billingID, paymentData, productID))
+                self.outputSubject.send(.paymentFinished(self.paymentStatus, billingID, paymentData, productID, self.screenID))
             }
         }
     }
