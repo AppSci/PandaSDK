@@ -25,6 +25,9 @@ public struct PandaPayload {
         fromLanguage: String? = nil,
         strings: [[String: String]]? = nil,
         lessonTitle: String? = nil,
+        lessonKey: String? = nil,
+        courseID: String? = nil,
+        lessonRate: String? = nil,
         customId: String? = nil,
         email: String? = nil
     ) {
@@ -44,8 +47,21 @@ public struct PandaPayload {
         if let strings = strings {
             data["strings"] = strings
         }
+
         if let lessonTitle = lessonTitle {
             data["lesson_title"] = lessonTitle
+        }
+
+        if let lessonKey = lessonKey {
+            data["lesson_key"] = lessonKey
+        }
+
+        if let courseID = courseID {
+            data["course_id"] = courseID
+        }
+
+        if let lessonRate = lessonRate {
+            data["lesson_rate"] = lessonRate
         }
 
         if let customId = customId {
