@@ -512,6 +512,16 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
         viewModel.onSubscriptionTerms = openSubscriptionTerms
+        viewModel.onPricesLoaded = {  [weak self] productIds, view in
+            self?.appStoreClient.fetchProducts(productIds: Set(productIds)) { result in
+                switch result {
+                case .success(let success):
+                    view.sendLocalizedPrices(products: success)
+                case .failure(let failure):
+                    pandaLog("Failed to fetch AppStore products, \(failure)")
+                }
+            }
+        }
         viewModel.onBillingIssue = { view in
             pandaLog("onBillingIssue")
             self.openBillingIssue()
