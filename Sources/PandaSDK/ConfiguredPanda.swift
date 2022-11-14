@@ -515,10 +515,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewModel.onPricesLoaded = {  [weak self] productIds, view in
             self?.appStoreClient.fetchProducts(productIds: Set(productIds)) { result in
                 switch result {
-                case .success(let success):
-                    view.sendLocalizedPrices(products: success)
-                case .failure(let failure):
-                    pandaLog("Failed to fetch AppStore products, \(failure)")
+                case let .success(products):
+                    view.sendLocalizedPrices(products: products)
+                case let .failure(error):
+                    pandaLog("Failed to fetch AppStore products, \(error)")
                 }
             }
         }

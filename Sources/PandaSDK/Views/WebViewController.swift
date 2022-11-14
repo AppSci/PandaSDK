@@ -225,9 +225,9 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         
         if message.name == PandaJSMessagesNames.loadPricing.rawValue,
            let data = message.body as? [[String : String]] {
-            let productIds = data.map({ value in
+            let productIds = data.map { value in
                 return value["productId"] ?? ""
-            })
+            }
             viewModel?.onPricesLoaded?(
                 productIds,
                 self

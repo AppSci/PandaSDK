@@ -18,7 +18,7 @@ protocol WebViewModelProtocol {
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)? { get set }
     var onRestorePurchase: ((_ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onTerms: (() -> Void)? { get set }
-    var onPricesLoaded: ((_ productIds: [String], _ viewController: WebViewController) -> Void)! { get set }
+    var onPricesLoaded: ((_ productIds: [String], _ viewController: WebViewController) -> Void)? { get set }
     var onPolicy: (() -> Void)? { get set }
     var onSubscriptionTerms: (() -> Void)? { get set }
     var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
@@ -43,7 +43,7 @@ final class WebViewModel: WebViewModelProtocol {
     var onBillingIssue: ((_ viewController: WebViewController) -> Void)?
     var onRestorePurchase: ((_ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
     var onTerms: (() -> Void)?
-    var onPricesLoaded: ((_ productIds: [String], _ viewController: WebViewController) -> Void)!
+    var onPricesLoaded: ((_ productIds: [String], _ viewController: WebViewController) -> Void)?
     var onPolicy: (() -> Void)?
     var onSubscriptionTerms: (() -> Void)?
     var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)?
