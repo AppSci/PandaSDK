@@ -638,7 +638,7 @@ extension WebViewController {
     }
     
     func sendLocalizedPrices(products: [String: SKProduct]) {
-        let localizedPricesToSend = products.map { product in
+        let localizedPricesToSend = products.map { product -> [String : Any] in
             var localizedPriceInfo = [String : Any]()
             localizedPriceInfo["productId"] = product.key
             localizedPriceInfo["priceAmountMicros"] = Int(product.value.price.floatValue.roundedToHundredths() * 1_000_000)
