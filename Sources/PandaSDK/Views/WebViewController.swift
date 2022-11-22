@@ -217,6 +217,25 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             if viewModel?.screenData.id.string == "5077a1da-092c-4ab8-a41f-0a3966a4b326" {
                 viewModel?.onSupportUkraineAnyButtonTap?()
             }
+            if viewModel?.screenData.id.string == "b7627ad6-b5b2-4255-afe6-71842b1f46ec" {
+                print(data)
+                if let action = data["action"], let destination = data["destination"] {
+                    switch action {
+                       case "how_offer_works":
+                        viewModel?.onTutorsHowOfferWorks?(
+                            viewModel?.screenData.id.string ?? "",
+                            destination
+                        )
+                       case "no_apple_pay":
+                        viewModel?.onDontHaveApplePay?(
+                            viewModel?.screenData.id.string ?? "",
+                            destination
+                        )
+                       default:
+                          break
+                    }
+                }
+            }
             UIApplication.shared.open(url)
             onFinishLoad()
             isAutoDismissable = true
