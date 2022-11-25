@@ -208,6 +208,15 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             handleAndSendCustomEventIfPossible(with: data)
         }
         
+        if message.name == PandaJSMessagesNames.onTutorsHowOfferWorks.rawValue,
+           let data = message.body as? [String: String],
+           let destination = data["destination"] {
+            viewModel?.onTutorsHowOfferWorks?(
+                viewModel?.screenData.id.string ?? "",
+                destination
+            )
+        }
+        
         if message.name == PandaJSMessagesNames.onRedirect.rawValue,
            let data = message.body as? [String: String],
            let urlString = data["url"],
@@ -218,22 +227,11 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
                 viewModel?.onSupportUkraineAnyButtonTap?()
             }
             if viewModel?.screenData.id.string == "b7627ad6-b5b2-4255-afe6-71842b1f46ec" {
-                print(data)
-                if let action = data["action"], let destination = data["destination"] {
-                    switch action {
-                       case "how_offer_works":
-                        viewModel?.onTutorsHowOfferWorks?(
-                            viewModel?.screenData.id.string ?? "",
-                            destination
-                        )
-                       case "no_apple_pay":
-                        viewModel?.onDontHaveApplePay?(
-                            viewModel?.screenData.id.string ?? "",
-                            destination
-                        )
-                       default:
-                          break
-                    }
+                if let destination = data["destination"] {
+                    viewModel?.onDontHaveApplePay?(
+                        viewModel?.screenData.id.string ?? "",
+                        destination
+                    )
                 }
             }
             UIApplication.shared.open(url)
@@ -808,6 +806,7 @@ extension WebViewController {
         case onCustomEventSent
         case onRedirect
         case onRestore
+        case onTutorsHowOfferWorks
         case onDismiss
         case onBillingIssue
         case onTerms
