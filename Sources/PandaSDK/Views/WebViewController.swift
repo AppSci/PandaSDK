@@ -227,7 +227,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
                 viewModel?.onSupportUkraineAnyButtonTap?()
             }
             if viewModel?.screenData.id.string == "b7627ad6-b5b2-4255-afe6-71842b1f46ec" {
-                if let destination = data["destination"] {
+                if let destination = data["destination"]  {
                     viewModel?.onDontHaveApplePay?(
                         viewModel?.screenData.id.string ?? "",
                         destination
