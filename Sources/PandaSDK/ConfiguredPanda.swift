@@ -114,6 +114,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 return
             }
 
+            send(event: .onStartApplePayProcess)
             viewControllers.forEach { $0.value?.onStartLoad() }
 
             verificationClient.verifyApplePayRequest(
