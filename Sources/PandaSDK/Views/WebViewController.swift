@@ -222,6 +222,17 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             isAutoDismissable = true
             viewModel?.dismiss?(true, self, nil, nil)
         }
+        
+        if message.name == PandaJSMessagesNames.loadPricing.rawValue,
+           let data = message.body as? [[String : String]] {
+            let productIds = data.map { value in
+                return value["productId"] ?? ""
+            }
+            viewModel?.onPricesLoaded?(
+                productIds,
+                self
+            )
+        }
 
         if message.name == PandaJSMessagesNames.onRestore.rawValue {
             onStartLoad()
@@ -626,6 +637,30 @@ extension WebViewController {
         }
     }
     
+    func sendLocalizedPrices(products: [String: SKProduct]) {
+        let localizedPricesToSend = products.map { product -> [String : Any] in
+            var localizedPriceInfo = [String : Any]()
+            localizedPriceInfo["productId"] = product.key
+            localizedPriceInfo["priceAmountMicros"] = Int(product.value.price.floatValue.roundedToHundredths() * 1_000_000)
+            localizedPriceInfo["priceCurrencyCode"] = product.value.priceLocale.currencyCode
+            return localizedPriceInfo
+        }
+
+        let localizedPricesToSendJSON = localizedPricesToSend.toJSONString()
+        let jsFunction = "pricingLoaded(\(localizedPricesToSendJSON))"
+        
+        DispatchQueue.main.async {
+            self.wv.evaluateJavaScript(jsFunction) { (result, error) in
+                if let error = error {
+                    pandaLog(error.localizedDescription)
+                }
+                if let result = result {
+                    pandaLog("\(result)")
+                }
+            }
+        }
+    }
+    
     @objc
     private func replaceProductInfo(html: String) -> String {
         
@@ -750,6 +785,7 @@ extension WebViewController {
         case onPurchase
         case logHandler
         case onLessonFeedbackSent
+        case loadPricing
         case onCustomEventSent
         case onRedirect
         case onRestore

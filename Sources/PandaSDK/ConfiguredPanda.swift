@@ -114,6 +114,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                 return
             }
 
+            send(event: .onStartApplePayProcess)
             viewControllers.forEach { $0.value?.onStartLoad() }
 
             verificationClient.verifyApplePayRequest(
@@ -512,6 +513,16 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewModel.onTerms = openTerms
         viewModel.onPolicy = openPolicy
         viewModel.onSubscriptionTerms = openSubscriptionTerms
+        viewModel.onPricesLoaded = { [weak self] productIds, view in
+            self?.appStoreClient.fetchProducts(productIds: Set(productIds)) { result in
+                switch result {
+                case let .success(products):
+                    view.sendLocalizedPrices(products: products)
+                case let .failure(error):
+                    pandaLog("Failed to fetch AppStore products, \(error)")
+                }
+            }
+        }
         viewModel.onBillingIssue = { view in
             pandaLog("onBillingIssue")
             self.openBillingIssue()
