@@ -29,6 +29,8 @@ public enum PandaEvent {
     case customEvent(name: String, parameters: [String: String])
     case onPandaWillVerify(screenId: String, screenName: String, productId: String)
     case onSupportUkraineAnyButtonTap
+    case onDontHaveApplePay(screenId: String, source: String?, destination: String?)
+    case onTutorsHowOfferWorks(screenId: String, source: String?, destination: String?)
 }
 
 public protocol PandaAnalyticsObserver: AnyObject {
