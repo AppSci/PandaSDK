@@ -552,6 +552,14 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewModel.onSupportUkraineAnyButtonTap = { [weak self] in
             self?.send(event: .onSupportUkraineAnyButtonTap)
         }
+        
+        viewModel.onDontHaveApplePay = { [weak self]  screenID, destination in
+            self?.send(event: .onDontHaveApplePay(screenId: screenID ?? "", source: entryPoint, destination: destination))
+        }
+        
+        viewModel.onTutorsHowOfferWorks = { [weak self]  screenID, destination in
+            self?.send(event: .onTutorsHowOfferWorks(screenId: screenID ?? "", source: entryPoint, destination: destination))
+        }
                 
         return viewModel
     }
