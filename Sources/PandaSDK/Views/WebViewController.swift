@@ -309,7 +309,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             if let e = error {
                 pandaLog("error: \(e)")
             } else if self.viewModel?.screenData.id.string == "89a4b8c2-cb7b-45a5-a8df-f5a8ffd32618"  {
-                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String))
+                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String), self)
 
             }
             if let res = result {
@@ -335,13 +335,13 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     
     func didFinishLoading(_ url: URL?) {
         guard let url = url else {
-            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name, (viewModel?.payload?.data?["course"] as? String))
+            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name, (viewModel?.payload?.data?["course"] as? String), self)
             return
         }
         let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
         let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string
         let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name
-        viewModel?.onDidFinishLoading?(screenID, screenName, (viewModel?.payload?.data?["course"] as? String))
+        viewModel?.onDidFinishLoading?(screenID, screenName, (viewModel?.payload?.data?["course"] as? String), self)
     }
     
     func handleScreenDidLoad() {
@@ -633,6 +633,16 @@ extension WebViewController {
         wv.evaluateJavaScript(js) { (result, error) in
             if let _ = result {
                 // print("replace(string: '\(string)', with info: '\(info)') \(res)")
+            }
+        }
+    }
+
+    func hideTrialPurchases() {
+        DispatchQueue.main.async {
+            self.wv.evaluateJavaScript("removeTrialUi()") { (result, error) in
+                if let error = error {
+                    pandaLog(error.localizedDescription)
+                }
             }
         }
     }
