@@ -9,7 +9,6 @@ import Foundation
 import UIKit
 import Combine
 import PassKit
-import TPInAppReceipt
 
 protocol VerificationClient {
     func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)

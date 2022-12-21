@@ -656,7 +656,7 @@ extension WebViewController {
 
     func hideTrialPurchases() {
         DispatchQueue.main.async {
-            self.wv.evaluateJavaScript("removeTrialUi()") { (result, error) in
+            self.wv.evaluateJavaScript("removeTrialUi()") { _, error in
                 if let error = error {
                     pandaLog(error.localizedDescription)
                 }

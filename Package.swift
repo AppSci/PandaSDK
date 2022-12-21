@@ -15,7 +15,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/ninjaprox/NVActivityIndicatorView.git", from: "5.1.1"),
-        .package(url: "https://github.com/tikhop/TPInAppReceipt.git", .upToNextMajor(from: "3.0.0"))
+        .package(url: "https://github.com/tikhop/TPInAppReceipt.git", .exactItem("3.3.4"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
