@@ -7,6 +7,7 @@
 
 import Foundation
 import StoreKit
+import TPInAppReceipt
 
 
 class ProductRequest: NSObject, SKProductsRequestDelegate {
@@ -138,7 +139,21 @@ class AppStoreClient: NSObject {
         self.restoreSource = source
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
-    
+
+    func isNeedToHideTrialPurchasesOnPandaScreen(completion: @escaping (Result<Bool, Error>) -> Void) {
+        InAppReceipt.refresh { error in
+            if let error = error {
+                completion(.failure(error))
+            } else {
+                do {
+                    let receipt = try InAppReceipt.localReceipt()
+                    completion(.success(receipt.hasPurchases))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
 }
 
 extension AppStoreClient: SKPaymentTransactionObserver {
