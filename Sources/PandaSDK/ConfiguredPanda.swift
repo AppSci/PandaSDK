@@ -544,18 +544,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             pandaLog("onViewDidAppear \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint, course: course))
         }
-        viewModel.onDidFinishLoading = { [weak self] screenId, screenName, course, view in
-            self?.appStoreClient.isNeedToHideTrialPurchasesOnPandaScreen { result in
-                switch result {
-                case let .success(isNeedToHide):
-                    if isNeedToHide {
-                        view.hideTrialPurchases()
-                    }
-
-                case let .failure(error):
-                    pandaLog(error.localizedDescription)
-                }
-            }
+        viewModel.onDidFinishLoading = { [weak self] screenId, screenName, course in
 
             pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
             self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))

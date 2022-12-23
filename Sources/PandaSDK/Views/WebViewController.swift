@@ -326,7 +326,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
             if let e = error {
                 pandaLog("error: \(e)")
             } else if self.viewModel?.screenData.id.string == "89a4b8c2-cb7b-45a5-a8df-f5a8ffd32618"  {
-                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String), self)
+                self.viewModel?.onDidFinishLoading?(self.viewModel?.screenData.id.string, "Tutors-Phone-Collection-v2-Schedule", (self.viewModel?.payload?.data?["course"] as? String))
 
             }
             if let res = result {
@@ -352,22 +352,24 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     
     func didFinishLoading(_ url: URL?) {
         guard let url = url else {
-            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name, (viewModel?.payload?.data?["course"] as? String), self)
+            viewModel?.onDidFinishLoading?(viewModel?.screenData.id.string, viewModel?.screenData.name, (viewModel?.payload?.data?["course"] as? String))
             return
         }
         let urlComps = URLComponents(url: url, resolvingAgainstBaseURL: true)
         let screenID = urlComps?.queryItems?.first(where: { $0.name == "screen_id" })?.value ?? viewModel?.screenData.id.string
         let screenName = urlComps?.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name
-        viewModel?.onDidFinishLoading?(screenID, screenName, (viewModel?.payload?.data?["course"] as? String), self)
+        viewModel?.onDidFinishLoading?(screenID, screenName, (viewModel?.payload?.data?["course"] as? String))
     }
     
     func handleScreenDidLoad() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
         
         setPayload()
-        
-        wv.alpha = 1
-        loadingIndicator.stopAnimating()
+        hideTrialPurchasesIfNeeded { [weak self] in
+            self?.wv.alpha = 1
+            self?.loadingIndicator.stopAnimating()
+        }
+
         pandaLog("html did load \(Date().timeIntervalSince1970) \(Date())")
     }
     
@@ -654,12 +656,33 @@ extension WebViewController {
         }
     }
 
-    func hideTrialPurchases() {
-        DispatchQueue.main.async {
-            self.wv.evaluateJavaScript("removeTrialUi()") { _, error in
-                if let error = error {
-                    pandaLog(error.localizedDescription)
+    func hideTrialPurchasesIfNeeded(actionAfter: @escaping (() -> Void)) {
+        guard
+            let panda = Panda.shared as? Panda
+        else {
+            actionAfter()
+            return
+        }
+
+        panda.appStoreClient.isNeedToHideTrialPurchasesOnPandaScreen { result in
+            switch result {
+            case let .success(isNeedToHide):
+                switch isNeedToHide {
+                case true:
+                    DispatchQueue.main.async { [weak self] in
+                        self?.wv.evaluateJavaScript(Constants.hideTrialJSFunctionName) { _, error in
+                            if let error = error {
+                                pandaLog(error.localizedDescription)
+                            }
+                            actionAfter()
+                        }
+                    }
+                case false:
+                    actionAfter()
                 }
+            case let .failure(error):
+                pandaLog(error.localizedDescription)
+                actionAfter()
             }
         }
     }
@@ -822,5 +845,9 @@ extension WebViewController {
         case onTerms
         case onPolicy
         case onSubscriptionTerms
+    }
+
+    private enum Constants {
+        static let hideTrialJSFunctionName = "removeTrialUi"
     }
 }
