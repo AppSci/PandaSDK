@@ -848,6 +848,6 @@ extension WebViewController {
     }
 
     private enum Constants {
-        static let hideTrialJSFunctionName = "removeTrialUi"
+        static let hideTrialJSFunctionName = "removeTrialUi()"
     }
 }
