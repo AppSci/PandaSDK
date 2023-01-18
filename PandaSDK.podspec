@@ -138,6 +138,6 @@ Pod::Spec.new do |spec|
 
   # spec.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
   # spec.dependency "JSONKit", "~> 1.4"
-  spec.dependency 'NVActivityIndicatorViewExtended'
+  spec.dependency 'NVActivityIndicatorView/Extended'
   spec.dependency 'TPInAppReceipt'
 end
