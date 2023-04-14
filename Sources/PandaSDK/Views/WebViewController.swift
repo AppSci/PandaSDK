@@ -85,7 +85,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         
 
         if let html = html {
-            load(html: html, baseURL: url?.url)
+            load(html: html, baseURL: (url?.url == nil ? URL(fileURLWithPath: Bundle.main.bundlePath) : url?.url))
             return
         }
         guard let url = url?.url else { return }
