@@ -28,8 +28,6 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     var onPurchaseCmpld: (() -> Void)?
     var isAutoDismissable: Bool = true
     
-    var url: URLComponents?
-    
     private lazy var wv: WKWebView = {
         let config = getWKWebViewConfiguration()
         let wv = WKWebView(frame: view.bounds, configuration: config)
@@ -83,17 +81,8 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         _ = view // trigger viewdidload
         wv.alpha = 0
         
-
         if let html = html {
-            load(html: html, baseURL: url?.url)
-            return
-        }
-        guard let url = url?.url else { return }
-        
-        if url.isFileURL {
-            load(local: url)
-        } else {
-            load(url: url)
+            load(html: html, baseURL: URL(fileURLWithPath: Bundle.main.bundlePath))
         }
     }
 
@@ -104,19 +93,10 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         }
     }
     
-    private func load(url: URL) {
-        wv.load(URLRequest(url: url))
-    }
-    
     private func load(html: String, baseURL: URL?) {
         let html = replaceProductInfo(html: html)
         
         wv.loadHTMLString(html, baseURL: baseURL)
-    }
-    
-    private func load(local url: URL) {
-        wv.configuration.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
-        wv.loadFileURL(url, allowingReadAccessTo: url)
     }
     
     deinit {
