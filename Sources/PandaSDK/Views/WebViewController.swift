@@ -82,7 +82,12 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         wv.alpha = 0
         
         if let html = html {
-            load(html: html, baseURL: URL(fileURLWithPath: Bundle.main.bundlePath))
+            load(
+                html: html,
+                baseURL: html.contains(Constants.oldDismiss) // We are still using old panda screens that do not yet use JS dismiss functions, so we need to check whether it is the old screen or the new
+                ? nil
+                : URL(fileURLWithPath: Bundle.main.bundlePath)
+            )
         }
     }
 
@@ -829,5 +834,6 @@ extension WebViewController {
 
     private enum Constants {
         static let hideTrialJSFunctionName = "removeTrialUi()"
+        static let oldDismiss = "dismiss?type=dismiss"
     }
 }
