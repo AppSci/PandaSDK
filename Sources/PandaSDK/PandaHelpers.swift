@@ -44,9 +44,7 @@ internal func pandaLog(_ message: String, file: String = #file, function: String
 // MARK: UIApplication extensions
 
 extension UIApplication {
-
     class func getTopViewController(base: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
-
         if let nav = base as? UINavigationController {
             return getTopViewController(base: nav.visibleViewController)
 
@@ -57,15 +55,5 @@ extension UIApplication {
             return getTopViewController(base: presented)
         }
         return base
-    }
-}
-
-extension SubscriptionStatus {
-    static func pandaEvent(from notification: UNNotification) -> SubscriptionState? {
-        guard let subscriptionAPIStatus = (notification.request.content.userInfo["panda-event"] as? String)
-            .flatMap(SubscriptionAPIStatus.init(rawValue: )) else {
-                return nil
-        }
-        return SubscriptionState(with: subscriptionAPIStatus)
     }
 }

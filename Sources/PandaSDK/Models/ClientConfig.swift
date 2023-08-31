@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ClientConfig: Codable {
+public struct ClientConfig: Codable {
     enum CodingKeys: String, CodingKey {
         case productIds
         case serverUrl = "SERVER_URL"
@@ -18,8 +18,8 @@ struct ClientConfig: Codable {
         case billingUrl = "BILLING_URL"
     }
     
-    static let current = loadPlist(name: "PandaSDK-Info") ?? .default
-    static let `default` = ClientConfig(
+    public static let current = loadPlist(name: "PandaSDK-Info") ?? .default
+    public static let `default` = ClientConfig(
         productIds: nil,
         serverUrl: "https://api.panda.boosters.company",
         serverDebugUrl: "",
@@ -38,12 +38,12 @@ struct ClientConfig: Codable {
         return config
     }
 
-    let productIds: [String]?
+    public let productIds: [String]?
     
-    let serverUrl: String
-    let serverDebugUrl: String
-    let policyUrl: String
-    let termsUrl: String
-    let subscriptionUrl: String
-    let billingUrl: String
+    public let serverUrl: String
+    public let serverDebugUrl: String
+    public let policyUrl: String
+    public let termsUrl: String
+    public let subscriptionUrl: String
+    public let billingUrl: String
 }

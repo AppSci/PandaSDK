@@ -10,13 +10,7 @@ import Foundation
 import UIKit
 import Foundation
 import WebKit
-
-#if canImport(NVActivityIndicatorViewExtended)
-import NVActivityIndicatorViewExtended
-#else
-import NVActivityIndicatorView
-#endif
-
+import StoreKit
 
 final class WebViewController: UIViewController, WKScriptMessageHandler {
     
@@ -61,7 +55,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     }()
     
     private lazy var loadingIndicator: UIActivityIndicatorView = {
-        let loading = UIActivityIndicatorView(style: .gray)
+        let loading = UIActivityIndicatorView(style: .medium)
         loading.hidesWhenStopped = true
         view.addSubview(loading)
         loading.translatesAutoresizingMaskIntoConstraints = false
@@ -99,8 +93,6 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     private func load(html: String, baseURL: URL?) {
-        let html = replaceProductInfo(html: html)
-        
         wv.loadHTMLString(html, baseURL: baseURL)
     }
     
@@ -175,19 +167,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         if message.name == PandaJSMessagesNames.logHandler.rawValue {
             pandaLog("LOG: \(message.body)")
         }
-        
-        if message.name == PandaJSMessagesNames.onLessonFeedbackSent.rawValue,
-           let data = message.body as? [String: String],
-           let feedbackText = data["feedback_text"],
-           let screenId = data["screen_id"],
-           let screenName = data["screen_name"] {
-            viewModel?.onFeedback?(
-                feedbackText,
-                screenId,
-                screenName
-            )
-        }
-        
+                
         if message.name == PandaJSMessagesNames.onCustomEventSent.rawValue,
            let data = message.body as? [String: String] {
             handleAndSendCustomEventIfPossible(with: data)
@@ -237,7 +217,6 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         }
 
         if message.name == PandaJSMessagesNames.onRestore.rawValue {
-            onStartLoad()
             viewModel?.onRestorePurchase?(
                 self,
                 viewModel?.screenData.id.string ?? "",
@@ -350,12 +329,20 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(failedByTimeOut), object: nil)
         
         setPayload()
-        hideTrialPurchasesIfNeeded { [weak self] in
+        wv.alpha = 1
+        loadingIndicator.stopAnimating()
+        
+        pandaLog("html did load \(Date().timeIntervalSince1970) \(Date())")
+    }
+    
+    func hideTrial() {
+        wv.evaluateJavaScript(Constants.hideTrialJSFunctionName) { [weak self] _, error in
+            if let error = error {
+                pandaLog(error.localizedDescription)
+            }
             self?.wv.alpha = 1
             self?.loadingIndicator.stopAnimating()
         }
-
-        pandaLog("html did load \(Date().timeIntervalSince1970) \(Date())")
     }
     
     @objc private func failedByTimeOut() {
@@ -366,16 +353,11 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     internal func onStartLoad() {
-        DispatchQueue.main.async {
-            let activityData = ActivityData()
-            NVActivityIndicatorPresenter.sharedInstance.startAnimating(activityData, nil)
-        }
+        viewModel.onStartLoadingIndicator?()
     }
 
     internal func onFinishLoad() {
-        DispatchQueue.main.async {
-            NVActivityIndicatorPresenter.sharedInstance.stopAnimating(nil)
-        }
+        viewModel.onFinishLoadingIndicator?()
     }
     
     internal func tryAutoDismiss() {
@@ -446,7 +428,6 @@ extension WebViewController: WKNavigationDelegate {
 
             return false
         case "restore":
-            onStartLoad()
             viewModel?.onRestorePurchase?(
                 self,
                 screenID,
@@ -488,21 +469,6 @@ extension WebViewController: WKNavigationDelegate {
         let screenName = urlComps.queryItems?.first(where: { $0.name == "screen_name" })?.value ?? viewModel?.screenData.name ?? ""
         
         switch action {
-        case "survey":
-            let answer = urlComps.queryItems?.first(where: { $0.name == "answer" })?.value ?? "-1"
-            viewModel?.onSurvey?(
-                answer,
-                screenID,
-                screenName
-            )
-        case "feedback_sent":
-            let feedback = urlComps.queryItems?.first(where: { $0.name == "feedback_text" })?.value
-            viewModel?.onFeedback?(
-                feedback,
-                screenID,
-                screenName
-            )
-            fallthrough
         case "dismiss":
             onFinishLoad()
             viewModel?.dismiss?(
@@ -597,36 +563,39 @@ class ScriptMessageHandlerWeakProxy: NSObject, WKScriptMessageHandler {
 extension WebViewController {
 
     private func fillProductInfoWithJS() {
-        if let product = viewModel?.product {
-            let info = product.productInfoDictionary()
+        if let product = viewModel.product {
+            replace(string: "{{product_title}}", with: product.displayName)
+            replace(string: "{{product_id}}", with: product.id)
             
-            let title = info["title"] ?? ""
-            replace(string: "{{product_title}}", with: title)
+            let introInfo = {
+                if let offer = product.subscription?.introductoryOffer {
+                    let isTrial = offer.paymentMode == .freeTrial
+                    return "Try \(offer.period.unitDescription) for \(isTrial ? "Free" : "\(offer.displayPrice)")."
+                } else {
+                    return ""
+                }
+            }()
+            replace(string: "{{introductionary_information}}", with: introInfo)
             
-            let productIdentifier = product.productIdentifier
-            replace(string: "{{product_id}}", with: productIdentifier)
-            
-            let tryString = info["tryString"] ?? ""
-            replace(string: "{{introductionary_information}}", with: tryString)
-            
-            let thenString = info["thenString"] ?? ""
-            replace(string: "{{product_pricing_terms}}", with: thenString)
-        }
-        
-        guard let panda = (Panda.shared as? Panda) else { return }
-        
-        for product in panda.appStoreClient.products.values {
-            replace(string: product.productPrice.macros, with: product.productPrice.value)
-            replace(string: product.productDuration.macros, with: product.productDuration.value)
-            if let info = product.trialDuration {
-                replace(string: info.macros, with: info.value)
-            }
-            if let info = product.productIntroductoryPrice {
-                replace(string: info.macros, with: info.value)
-            }
-            if let info = product.productIntroductoryDuration {
-                replace(string: info.macros, with: info.value)
-            }
+            let pricingInfo = {
+                if let subscription = product.subscription {
+                    let subscriptionPeriod = subscription.subscriptionPeriod
+                    
+                    let periodNumber = subscriptionPeriod.value
+                    if periodNumber == 0 && subscriptionPeriod.unit == .day {
+                        /// set string for Lifetime
+                        return "for \(product.displayPrice) lifetime"
+                    } else {
+                        /// set thenString for subscription
+                        return "then \(product.displayPrice) per \(subscriptionPeriod.unitDescription)"
+                    }
+                    
+                } else {
+                    /// set string for Lifetime
+                    return "for \(product.displayPrice) lifetime"
+                }
+            }()
+            replace(string: "{{product_pricing_terms}}", with: pricingInfo)
         }
     }
     
@@ -640,178 +609,33 @@ extension WebViewController {
             }
         }
     }
-
-    func hideTrialPurchasesIfNeeded(actionAfter: @escaping (() -> Void)) {
-        guard
-            let panda = Panda.shared as? Panda
-        else {
-            actionAfter()
-            return
-        }
-
-        panda.appStoreClient.isNeedToHideTrialPurchasesOnPandaScreen { result in
-            switch result {
-            case let .success(isNeedToHide):
-                switch isNeedToHide {
-                case true:
-                    DispatchQueue.main.async { [weak self] in
-                        self?.wv.evaluateJavaScript(Constants.hideTrialJSFunctionName) { _, error in
-                            if let error = error {
-                                pandaLog(error.localizedDescription)
-                            }
-                            actionAfter()
-                        }
-                    }
-                case false:
-                    actionAfter()
-                }
-            case let .failure(error):
-                pandaLog(error.localizedDescription)
-                actionAfter()
-            }
-        }
-    }
     
-    func sendLocalizedPrices(products: [String: SKProduct]) {
+    func sendLocalizedPrices(products: [Product]) {
         let localizedPricesToSend = products.map { product -> [String : Any] in
-            var localizedPriceInfo = [String : Any]()
-            localizedPriceInfo["productId"] = product.key
-            localizedPriceInfo["priceAmountMicros"] = Int(product.value.price.floatValue.roundedToHundredths() * 1_000_000)
-            localizedPriceInfo["priceCurrencyCode"] = product.value.priceLocale.currencyCode
+            var localizedPriceInfo = [String: Any]()
+            var value = product.price
+            var roundedValue = Decimal()
+            NSDecimalRound(&roundedValue, &value, 2, .bankers)
+            let micros = roundedValue * Decimal(1_000_000)
+            localizedPriceInfo["productId"] = product.id
+            localizedPriceInfo["priceAmountMicros"] =  micros
+            localizedPriceInfo["priceCurrencyCode"] = product.priceFormatStyle.currencyCode
             return localizedPriceInfo
         }
-
+        
         let localizedPricesToSendJSON = localizedPricesToSend.toJSONString()
         let jsFunction = "pricingLoaded(\(localizedPricesToSendJSON))"
         
         DispatchQueue.main.async {
             self.wv.evaluateJavaScript(jsFunction) { (result, error) in
                 if let error = error {
-                    pandaLog(error.localizedDescription)
+                    pandaLog("\(error)")
                 }
                 if let result = result {
                     pandaLog("\(result)")
                 }
             }
         }
-    }
-    
-    @objc
-    private func replaceProductInfo(html: String) -> String {
-        
-        var html = html
-        
-        if let product = viewModel?.product {
-            html = html.updatedProductInfo(product: product)
-        }
-        
-        guard let panda = (Panda.shared as? Panda) else { return html }
-        
-        for product in panda.appStoreClient.products.values {
-            html = html.updatedTrialDuration(product: product)
-            html = html.updatedProductPrice(product: product)
-            html = html.updatedProductDuration(product: product)
-            html = html.updatedProductIntroductoryPrice(product: product)
-            html = html.updatedProductIntroductoryDuration(product: product)
-        }
-        
-        return html
-    }
-}
-
-import StoreKit
-
-fileprivate extension SKProduct {
-    var trialDuration: (macros: String, value: String)? {
-        if let introductoryDiscount = introductoryPrice {
-            let introPrice = discountDurationString(discount: introductoryDiscount)
-            let macros = "{{trial_duration:\(productIdentifier)}}"
-            return (macros, introPrice)
-        }
-        return nil
-    }
-
-    var productPrice: (macros: String, value: String) {
-        let replace_string = localizedString()
-        let macros = "{{product_price:\(productIdentifier)}}"
-        return (macros, replace_string)
-    }
-    
-    var productDuration: (macros: String, value: String) {
-        let replace_string = regularUnitString()
-        let macros = "{{product_duration:\(productIdentifier)}}"
-        return (macros, replace_string)
-    }
-    
-    
-    var productIntroductoryPrice: (macros: String, value: String)? {
-        if let introductoryPrice = introductoryPrice {
-            let introPrice = localizedDiscountPrice(discount: introductoryPrice)
-            let macros = "{{offer_price:\(productIdentifier)}}"
-            return (macros, introPrice)
-        }
-        return nil
-    }
-    
-    var productIntroductoryDuration: (macros: String, value: String)? {
-        if let introductoryDiscount = introductoryPrice {
-            let introPrice = discountDurationString(discount: introductoryDiscount)
-            let macros = "{{offer_duration:\(productIdentifier)}}"
-            return (macros, introPrice)
-        }
-        return nil
-    }
-}
-
-fileprivate extension String {
-    
-    mutating func updatedProductInfo(product: SKProduct) -> String {
-        let info = product.productInfoDictionary()
-        
-        let title = info["title"] ?? ""
-        self = replacingOccurrences(of: "{{product_title}}", with: title)
-        
-        let productIdentifier = product.productIdentifier
-        self = replacingOccurrences(of: "{{product_id}}", with: productIdentifier)
-        
-        let tryString = info["tryString"] ?? ""
-        self = replacingOccurrences(of: "{{introductionary_information}}", with: tryString)
-        
-        let thenString = info["thenString"] ?? ""
-        self = replacingOccurrences(of: "{{product_pricing_terms}}", with: thenString)
-        
-        return self
-    }
-    
-    func updatedTrialDuration(product: SKProduct) -> String {
-        if let info = product.trialDuration {
-            return replacingOccurrences(of: info.macros, with: info.value)
-        }
-        return self
-    }
-    
-    func updatedProductPrice(product: SKProduct) -> String {
-        let info = product.productPrice
-        return replacingOccurrences(of: info.macros, with: info.value)
-    }
-    
-    func updatedProductDuration(product: SKProduct) -> String {
-        let info = product.productDuration
-        return replacingOccurrences(of: info.macros, with: info.value)
-    }
-    
-    func updatedProductIntroductoryPrice(product: SKProduct) -> String {
-        if let info = product.productIntroductoryPrice {
-            return replacingOccurrences(of: info.macros, with: info.value)
-        }
-        return self
-    }
-    
-    func updatedProductIntroductoryDuration(product: SKProduct) -> String {
-        if let info = product.productIntroductoryPrice {
-            return replacingOccurrences(of: info.macros, with: info.value)
-        }
-        return self
     }
 }
 
