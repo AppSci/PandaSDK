@@ -8,14 +8,12 @@
 import Foundation
 
 public extension Float {
-
     /// Returns rounded number that will have 1 or 2 digits after the dot. Example: 13.21
     ///
     /// - Returns: maths rounded number to hundredths
     func roundedToHundredths() -> Float {
         return Float((100 * self).rounded() / 100)
     }
-
 }
 
 public struct MonetaryAmount: Equatable {

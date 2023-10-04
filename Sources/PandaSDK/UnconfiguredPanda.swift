@@ -8,10 +8,11 @@
 import Foundation
 import UIKit
 import Combine
+import StoreKit
 
 final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
-    
-    var onPurchase: ((String) -> Void)?
+    var onPurchase: ((Product) -> Void)?
+    var shouldAddStorePayment: ((SKProduct) -> Bool)?
     var onRestorePurchases: (([String]) -> Void)?
     var onError: ((Error) -> Void)?
     var onDismiss: (() -> Void)?
@@ -29,6 +30,8 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     var capiConfig: CAPIConfig?
     var pandaUserProperties = Set<PandaUserProperty>()
     var webAppId: String?
+    var onAddStore: ((SKProduct) -> Bool)?
+    var onUpdateStatus: (() -> Void)?
 
     var applePayOutputSubject = PassthroughSubject<ApplePayResult, Error>()
     lazy var applePayOutputPublisher = applePayOutputSubject.eraseToAnyPublisher()
@@ -111,7 +114,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     public func showScreen(
         screenType: ScreenType,
         screenId: String? = nil,
-        product: String? = nil,
+        productID: String? = nil,
         autoDismiss: Bool = true,
         presentationStyle: UIModalPresentationStyle = .pageSheet,
         payload: PandaPayload? = nil,
@@ -121,11 +124,6 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         onShow?(.failure(Errors.notConfigured))
     }
     
-    func getSubscriptionStatus(withDelay: Double, statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
-        pandaLog(UnconfiguredPanda.configError)
-        statusCallback?(.failure(Errors.notConfigured))
-    }
-
     func getScreen(
         screenId: String?,
         payload: PandaPayload? = nil,
@@ -137,7 +135,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     func getScreen(
         screenType: ScreenType = .sales,
         screenId: String? = nil,
-        product: String? = nil,
+        productID: String? = nil,
         payload: PandaPayload? = nil,
         callback: ((Result<UIViewController, Error>) -> Void)?
     ) {
@@ -156,7 +154,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
         }
 
         DispatchQueue.main.async {
-            callback?(.success(self.prepareViewController(screenData: screenData, screenType: screenType, product: product, payload: payload)))
+            callback?(.success(self.prepareViewController(screenData: screenData, screenType: screenType, productID: productID, payload: payload)))
         }
     }
     
@@ -167,10 +165,10 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     private func prepareViewController(
         screenData: ScreenData,
         screenType: ScreenType,
-        product: String? = nil,
+        productID: String? = nil,
         payload: PandaPayload? = nil
     ) -> WebViewController {
-        let viewModel = createViewModel(screenData: screenData, product: product, payload: payload)
+        let viewModel = createViewModel(screenData: screenData, productID: productID, payload: payload)
         let controller = setupWebView(html: screenData.html, viewModel: viewModel)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
@@ -179,14 +177,11 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     
     private func createViewModel(
         screenData: ScreenData,
-        product: String? = nil,
+        productID: String? = nil,
         payload: PandaPayload? = nil
     ) -> WebViewModel {
         let viewModel = WebViewModel(screenData: screenData, payload: payload)
         let source = payload?.entryPoint
-        viewModel.onSurvey = { value, screenId, screenName in
-            pandaLog("Survey: \(value)")
-        }
         viewModel.onApplePayPurchase = { [weak self] bilingID, source, screenId, screenName, viewController in
             guard let bilingID = bilingID else {
                 pandaLog("Missing productId with source: \(source)")
@@ -288,7 +283,7 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) -> Bool {
-        guard SubscriptionStatus.pandaEvent(from: notification) != nil else {
+        guard pandaEvent(notification: notification) != nil else {
             return false
         }
         completionHandler([.alert])
@@ -296,19 +291,23 @@ final class UnconfiguredPanda: PandaProtocol, ObserverSupport {
     }
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool {
-        guard SubscriptionStatus.pandaEvent(from: response.notification) != nil else {
+        guard pandaEvent(notification: response.notification) != nil else {
             return false
         }
         completionHandler()
         return true
     }
+    
+    private func pandaEvent(notification: UNNotification) -> String? {
+        notification.request.content.userInfo["panda-event"] as? String
+    }
 
-    public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
+    public func verifySubscriptions() async throws -> ReceiptVerificationResult {
         pandaLog(UnconfiguredPanda.configError)
-        callback(.failure(Errors.notConfigured))
+        throw Errors.notConfigured
     }
     
-    func purchase(productID: String) {
+    func purchase(productID: String, screenName: String) async throws {
         pandaLog(UnconfiguredPanda.configError)
     }
     

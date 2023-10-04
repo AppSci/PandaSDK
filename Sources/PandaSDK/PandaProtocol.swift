@@ -1,5 +1,5 @@
 //
-//  Panda.swift
+//  PandaProtocol.swift
 //  Panda
 //
 //  Created by Kuts on 02.07.2020.
@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import Combine
+import StoreKit
 
 public protocol PandaProtocol: AnyObject {
     /**
@@ -69,7 +70,7 @@ public protocol PandaProtocol: AnyObject {
     func getScreen(
         screenType: ScreenType,
         screenId: String?,
-        product: String?,
+        productID: String?,
         payload: PandaPayload?,
         callback: ((Result<UIViewController, Error>) -> Void)?
     )
@@ -92,7 +93,7 @@ public protocol PandaProtocol: AnyObject {
     func showScreen(
         screenType: ScreenType,
         screenId: String?,
-        product: String?,
+        productID: String?,
         payload: PandaPayload?,
         onShow: ((Result<Bool, Error>) -> Void)?
     )
@@ -100,7 +101,7 @@ public protocol PandaProtocol: AnyObject {
     func showScreen(
         screenType: ScreenType,
         screenId: String?,
-        product: String?,
+        productID: String?,
         autoDismiss: Bool,
         presentationStyle: UIModalPresentationStyle,
         payload: PandaPayload?,
@@ -121,11 +122,6 @@ public protocol PandaProtocol: AnyObject {
                 "no_default": true - disable loading and showing default screen in failure case
      */
     func prefetchScreen(screenId: String?, payload: PandaPayload?)
-    
-    /**
-     You can call to check subscription status of User
-    */
-    func getSubscriptionStatus(withDelay: Double, statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?)
     
     /**
         Handle deeplinks
@@ -191,7 +187,10 @@ public protocol PandaProtocol: AnyObject {
      Callback for successful purchase in Panda purchase screen - you can validate & do you own setup in this callback
      - parameter String in callback: Product ID that was purchased.
      */
-    var onPurchase: ((String) -> Void)? { get set }
+    var onPurchase: ((Product) -> Void)? { get set }
+    
+    
+    var shouldAddStorePayment: ((SKProduct) -> Bool)? { get set }
     
     /**
      Restore purchase callback
@@ -219,13 +218,9 @@ public protocol PandaProtocol: AnyObject {
      Call this func for users that already purchased subscription BEFORE Panda
      You can call this func only once, on first user session
      */
-    func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
-    
-    /*
-     Call this func for manual purchasing
-     - parameter productID: ProductID for Product that you want to purchase
-     */
-    func purchase(productID: String)
+    func verifySubscriptions() async throws -> ReceiptVerificationResult
+        
+    func purchase(productID: String, screenName: String) async throws
     
     /*
      Call this func for manual purchase restoring
@@ -269,8 +264,8 @@ public extension PandaProtocol {
      - parameter product: Optional. product ID. If `nil` - returns default screen from Panda Web without detailed product info
      - parameter callback: Optional. Returns Result for showing screen
      */
-    func showScreen(screenType: ScreenType, screenId: String? = nil, product: String? = nil, payload: PandaPayload? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
-        showScreen(screenType: screenType, screenId: screenId, product: product, autoDismiss: true, presentationStyle: .pageSheet, payload: payload, onShow: onShow)
+    func showScreen(screenType: ScreenType, screenId: String? = nil, productID: String? = nil, payload: PandaPayload? = nil, onShow: ((Result<Bool, Error>) -> Void)? = nil) {
+        showScreen(screenType: screenType, screenId: screenId, productID: productID, autoDismiss: true, presentationStyle: .pageSheet, payload: payload, onShow: onShow)
     }
     
     /**
@@ -281,7 +276,7 @@ public extension PandaProtocol {
      */
 
     func getScreen(screenId: String? = nil, payload: PandaPayload? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
-        getScreen(screenType: .sales, screenId: screenId, product: nil, payload: payload, callback: callback)
+        getScreen(screenType: .sales, screenId: screenId, productID: nil, payload: payload, callback: callback)
     }
     
 }
@@ -308,10 +303,10 @@ extension Panda {
         }
 
         let networkClient = NetworkClient(apiKey: apiKey, isDebug: isDebug)
-        let appStoreClient = AppStoreClient(storage: CodableStorageFactory.userDefaults())
+        let appStoreService = AppStoreService(verificationClient: networkClient)
         
         if let productIds = ClientConfig.current.productIds {
-            appStoreClient.fetchProducts(productIds: Set(productIds), completion: {_ in })
+            appStoreService.fetchProducts(productIDs: Set(productIds), completion: {_ in })
         }
         
         let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
@@ -321,7 +316,7 @@ extension Panda {
                     create(
                         user: user,
                         networkClient: networkClient,
-                        appStoreClient: appStoreClient,
+                        appStoreService: appStoreService,
                         unconfigured: unconfigured,
                         applePayConfiguration: applePayConfiguration,
                         webAppId: webAppId
@@ -339,7 +334,7 @@ extension Panda {
                         create(
                             user: user,
                             networkClient: networkClient,
-                            appStoreClient: appStoreClient,
+                            appStoreService: appStoreService,
                             unconfigured: unconfigured,
                             applePayConfiguration: applePayConfiguration,
                             webAppId: webAppId
@@ -355,7 +350,7 @@ extension Panda {
     static private func create(
         user: PandaUser,
         networkClient: NetworkClient,
-        appStoreClient: AppStoreClient,
+        appStoreService: AppStoreService,
         unconfigured: UnconfiguredPanda?,
         applePayConfiguration: ApplePayConfiguration?,
         webAppId: String?
@@ -363,7 +358,7 @@ extension Panda {
         let panda = Panda(
             user: user,
             networkClient: networkClient,
-            appStoreClient: appStoreClient,
+            appStoreService: appStoreService,
             applePayPaymentHandler: .init(configuration: applePayConfiguration ?? .init(merchantIdentifier: "")), webAppId: webAppId ?? ""
         )
         if let unconfigured = unconfigured {
@@ -372,9 +367,8 @@ extension Panda {
         }
         let deviceToken = unconfigured?.deviceToken
         shared = panda
-        panda.configureAppStoreClient()
+        panda.configureAppStoreService()
         deviceToken.map(panda.registerDevice(token:))
-        Panda.notificationDispatcher.onApplicationDidBecomeActive = panda.onApplicationDidBecomeActive
         
         let customUserId = unconfigured?.customUserId
         customUserId.map(panda.setCustomUserId(id:))

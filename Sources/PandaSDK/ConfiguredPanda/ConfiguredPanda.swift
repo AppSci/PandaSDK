@@ -9,14 +9,9 @@ import Foundation
 import UIKit
 import Combine
 import PassKit
-
-protocol VerificationClient {
-    func verifySubscriptions(user: PandaUser, receipt: String, source: PaymentSource?, retries: Int, callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void)
-    func verifyApplePayRequest(user: PandaUser, paymentData: Data, billingID: String, webAppId: String, callback: @escaping (Result<ApplePayResult, Error>) -> Void)
-}
+import StoreKit
 
 final public class Panda: PandaProtocol, ObserverSupport {
-
     internal static var notificationDispatcher: NotificationDispatcher!
 
     private struct Settings: Codable {
@@ -28,20 +23,23 @@ final public class Panda: PandaProtocol, ObserverSupport {
     
     let networkClient: NetworkClient
     let applePayPaymentHandler: ApplePayPaymentHandler
-    let cache: ScreenCache = ScreenCache()
+    private let cache: ScreenCache = ScreenCache()
     let user: PandaUser
-    let appStoreClient: AppStoreClient
+    let appStoreService: AppStoreService
+
     var verificationClient: VerificationClient
     private let settingsStorage: Storage<Settings> = CodableStorageFactory.userDefaults()
     private let deviceStorage: Storage<DeviceSettings> = CodableStorageFactory.userDefaults()
-    private var viewControllers: Set<WeakObject<WebViewController>> = []
-    private var viewControllerForApplePayPurchase: WebViewController?
+    var viewControllers: Set<WeakObject<WebViewController>> = []
+    var viewControllerForApplePayPurchase: WebViewController?
     private var payload: PandaPayload?
-    private var entryPoint: String? {
+    var entryPoint: String? {
         return payload?.entryPoint
     }
+    var observers: [ObjectIdentifier: WeakObserver] = [:]
     
-    public var onPurchase: ((String) -> Void)?
+    public var onPurchase: ((Product) -> Void)?
+    public var shouldAddStorePayment: ((SKProduct) -> Bool)?
     public var onRestorePurchases: (([String]) -> Void)?
     public var onError: ((Error) -> Void)?
     public var onDismiss: (() -> Void)?
@@ -58,18 +56,23 @@ final public class Panda: PandaProtocol, ObserverSupport {
     init(
         user: PandaUser,
         networkClient: NetworkClient,
-        appStoreClient: AppStoreClient,
+        appStoreService: AppStoreService,
         applePayPaymentHandler: ApplePayPaymentHandler,
         webAppId: String?
     ) {
         self.user = user
         self.networkClient = networkClient
-        self.appStoreClient = appStoreClient
+        self.appStoreService = appStoreService
         self.verificationClient = networkClient
         self.applePayPaymentHandler = applePayPaymentHandler
         self.pandaUserId = user.id
         self.webAppId = webAppId
         bindApplePayMessages()
+    }
+    
+    func configureAppStoreService() {
+        appStoreService.onVerify = onAppStoreServiceVerify
+        appStoreService.startTask()
     }
     
     private func bindApplePayMessages() {
@@ -148,21 +151,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
         }
     }
-    
-    internal func configureAppStoreClient() {
-        appStoreClient.onError = { [weak self] error in
-            self?.onAppStoreClient(error: error)
-        }
-        appStoreClient.onPurchase = { [weak self] productId, source in
-            self?.onAppStoreClientPurchase(productId: productId, source: source)
-        }
-        appStoreClient.onRestore = { [weak self] productIds, source in
-            self?.onAppStoreClientRestore(productIds: productIds, source: source)
-        }
-        appStoreClient.startObserving()
-    }
-    
-    var observers: [ObjectIdentifier: WeakObserver] = [:]
+        
     public func add(observer: PandaAnalyticsObserver) {
         observers[ObjectIdentifier(observer)] = WeakObserver(value: observer)
     }
@@ -184,89 +173,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    func onAppStoreClientPurchase(productId: String, source: PaymentSource) {
-        let receipt: String
-        switch appStoreClient.receiptBase64String() {
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    self.onError?(Errors.appStoreReceiptError(error))
-                    self.send(event: .purchaseError(error: error, source: self.entryPoint))
-                }
-                return
-            case .success(let receiptString):
-                receipt = receiptString
-        }
-        self.send(event: .onPandaWillVerify(screenId: source.screenId, screenName: source.screenName, productId: productId))
-        verificationClient.verifySubscriptions(user: user, receipt: receipt, source: source, retries: 1) { [weak self] (result) in
-            switch result {
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                    self?.onError?(Errors.appStoreReceiptError(error))
-                    self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                }
-            case .success(let verification):
-
-                pandaLog("productId = \(productId)\nid = \(verification.id)")
-                DispatchQueue.main.async {
-                    self?.viewControllers.forEach({ $0.value?.onPurchaseCompleted()})
-                    self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                    self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-                    self?.onPurchase?(productId)
-                    self?.onSuccessfulPurchase?()
-                    self?.send(
-                        event: .successfulPurchase(
-                            screenId: source.screenId,
-                            screenName: source.screenName,
-                            productId: productId,
-                            source: self?.entryPoint,
-                            course: source.course
-                        )
-                    )
-                }
-            }
-        }
-    }
-    
-    func onAppStoreClientRestore(productIds: [String], source: PaymentSource) {
-        switch appStoreClient.receiptBase64String() {
-        case .failure(let error):
-            DispatchQueue.main.async {
-                self.viewControllers.forEach { $0.value?.onFinishLoad() }
-                self.onError?(Errors.appStoreReceiptRestoreError(error))
-                self.send(event: .purchaseError(error: error, source: self.entryPoint))
-            }
-            return
-        case .success(let receipt):
-            verificationClient.verifySubscriptions(user: user, receipt: receipt, source: source, retries: 1) { [weak self] (result) in
-                switch result {
-                case .failure(let error):
-                    DispatchQueue.main.async {
-                        self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                        self?.onError?(Errors.appStoreRestoreError(error))
-                        self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                    }
-                case .success(let verification):
-                    DispatchQueue.main.async { [weak self] in
-                        if verification.active {
-                            self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                            self?.viewControllers.forEach({ $0.value?.tryAutoDismiss()})
-                            self?.onRestorePurchases?(productIds)
-                        } else {
-                            DispatchQueue.main.async {
-                                let e = Errors.message("Subscription isn't active")
-                                let error = Errors.appStoreRestoreError(e)
-                                self?.viewControllers.forEach { $0.value?.onFinishLoad() }
-                                self?.onError?(error)
-                                self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
     public func prefetchScreen(screenId: String?, payload: PandaPayload?) {
         self.payload = payload
         networkClient.loadScreen(user: user, screenId: screenId, timeout: payload?.htmlDownloadTimeout) { [weak self] result in
@@ -285,7 +191,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
 
-    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, product: String? = nil, payload: PandaPayload? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
+    public func getScreen(screenType: ScreenType = .sales, screenId: String? = nil, productID: String? = nil, payload: PandaPayload? = nil, callback: ((Result<UIViewController, Error>) -> Void)?) {
         self.payload = payload
         if let screen = cache[screenId] {
             DispatchQueue.main.async {
@@ -294,7 +200,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                         self.prepareViewController(
                             screen: screen,
                             screenType: screenType,
-                            product: product,
+                            productID: productID,
                             payload: payload
                         )
                     )
@@ -327,7 +233,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
                             self.prepareViewController(
                                 screen: screenData,
                                 screenType: screenType,
-                                product: product,
+                                productID: productID,
                                 payload: payload
                             )
                         )
@@ -337,33 +243,12 @@ final public class Panda: PandaProtocol, ObserverSupport {
             case .success(let screen):
                 self.cache[screen.id.string] = screen
                 DispatchQueue.main.async {
-                    callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, product: product, payload: payload)))
+                    callback?(.success(self.prepareViewController(screen: screen, screenType: screenType, productID: productID, payload: payload)))
                 }
             }
         }
     }
     
-    public func getSubscriptionStatus(withDelay: Double, statusCallback: ((Result<SubscriptionStatus, Error>) -> Void)?) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + withDelay) { [weak self] in
-            guard
-                let self = self
-            else {
-                return
-            }
-
-            self.networkClient.getSubscriptionStatus(user: self.user) { (result) in
-                switch result {
-                case .failure(let error):
-                    statusCallback?(.failure(error))
-                case .success(let apiResponse):
-                    let subscriptionStatus = SubscriptionStatus(with: apiResponse)
-                    statusCallback?(.success(subscriptionStatus))
-                }
-            }
-        }
-    }
-
-
     public func handleApplication(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any]) {
         
         guard url.host == "panda" else { return }
@@ -377,7 +262,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
         let type = url.pathComponents[safe: 1]
         
         /// get product_id safety
-        let product = url.pathComponents[safe: 2]
+        let productID = url.pathComponents[safe: 2]
         
         /// get screen_id sefety
         let screen = url.components?.queryItems?["screen_id"]
@@ -393,31 +278,52 @@ final public class Panda: PandaProtocol, ObserverSupport {
             screenType = .promo
         }
 
-        showScreen(screenType: screenType, screenId: screen, product: product)
+        showScreen(screenType: screenType, screenId: screen, productID: productID)
     }
     
-    public func verifySubscriptions(callback: @escaping (Result<ReceiptVerificationResult, Error>) -> Void) {
-        let receipt: String
-        switch appStoreClient.receiptBase64String() {
-            case .failure(let error):
-                callback(.failure(Errors.appStoreReceiptError(error)))
-                return
-            case .success(let receiptString):
-                receipt = receiptString
-        }
-        verificationClient.verifySubscriptions(user: user, receipt: receipt, source: nil, retries: 1) { (result) in
-            callback(result)
-        }
+    public func verifySubscriptions() async throws -> ReceiptVerificationResult {
+        try await appStoreService.verifyTransaction(user: user, source: nil)
     }
     
-    public func purchase(productID: String) {
-        appStoreClient.purchase(productId: productID, source: PaymentSource(screenId: "", screenName: "manual purchase", course: ""))
+    public func purchase(productID: String, screenName: String) async throws {
+        let paymentSource = PaymentSource(screenId: "", screenName: screenName, course: "")
+        try await purchase(productID: productID, paymentSource: paymentSource)
+    }
+    
+    public func purchase(productID: String, paymentSource: PaymentSource) async throws {
+        do {
+            let purchaseResult = try await appStoreService.purchase(
+                productID: productID,
+                source: paymentSource
+            )
+            switch purchaseResult {
+            case let .success(_, product):
+                try await Task.sleep(seconds: 1)
+                send(event: .onPandaWillVerify(
+                    screenId: paymentSource.screenId,
+                    screenName: paymentSource.screenName,
+                    productId: product.id
+                ))
+                _ = try await self.appStoreService.verifyTransaction(
+                    user: self.user,
+                    source: paymentSource
+                )
+                await self.onVerified(product: product, source: paymentSource)
+            case .cancelled, .pending:
+                await self.onCancel()
+            }
+        } catch {
+            await self.onError(error: error)
+            throw error
+        }
     }
     
     public func restorePurchase() {
-        appStoreClient.restore(with: PaymentSource(screenId: "", screenName: "manual restore", course: ""))
+        Task {
+            try await appStoreService.restore()
+        }
     }
-
+    
     func addViewControllers(controllers: Set<WeakObject<WebViewController>>) {
         let updatedVCs = controllers.compactMap {$0.value}
         updatedVCs.forEach { (vc) in
@@ -426,143 +332,12 @@ final public class Panda: PandaProtocol, ObserverSupport {
         viewControllers.formUnion(updatedVCs.map(WeakObject<WebViewController>.init(value:)))
     }
     
-    private func prepareViewController(screen: ScreenData, screenType: ScreenType, product: String? = nil, payload: PandaPayload? = nil) -> WebViewController {
-        let viewModel = createViewModel(screenData: screen, product: product, payload: payload)
+    private func prepareViewController(screen: ScreenData, screenType: ScreenType, productID: String? = nil, payload: PandaPayload? = nil) -> WebViewController {
+        let viewModel = createViewModel(screenData: screen, productID: productID, payload: payload)
         let controller = setupWebView(html: screen.html, viewModel: viewModel, screenType: screenType)
         viewControllers = viewControllers.filter { $0.value != nil }
         viewControllers.insert(WeakObject(value: controller))
         return controller
-    }
-
-    private func createViewModel(screenData: ScreenData, product: String? = nil, payload: PandaPayload? = nil) -> WebViewModel {
-        let viewModel = WebViewModel(screenData: screenData, payload: payload)
-        let entryPoint = payload?.entryPoint
-
-        if let product = product {
-            appStoreClient.getProduct(with: product) { result in
-                switch result {
-                case .failure(let error):
-                    pandaLog("\(error.localizedDescription)")
-                case .success(let product):
-                    viewModel.product = product
-                }
-            }
-        }
-        viewModel.onSurvey = { answer, screenId, screenName in
-            pandaLog("AnswerSelected send: \(answer)")
-            self.send(answer: answer, at: screenId, screenName: screenData.name)
-        }
-        viewModel.onFeedback = { feedback, screenId, screenName in
-            pandaLog("Feedback send: \(String(describing: feedback))")
-            if let text = feedback {
-                self.send(feedback: text, at: screenId)
-            }
-        }
-        viewModel.onApplePayPurchase = { [applePayPaymentHandler, weak self] pandaID, source, screenId, screenName, view in
-            guard
-                let pandaID = pandaID
-            else {
-                pandaLog("Missing productId with source: \(source)")
-                return
-            }
-            self?.viewControllerForApplePayPurchase = view
-
-            pandaLog("purchaseStarted: \(pandaID) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: pandaID, source: entryPoint))
-
-            self?.networkClient.getBillingPlan(
-                with: pandaID,
-                callback: { result in
-                    switch result {
-                    case let .success(billingPlan):
-                        applePayPaymentHandler.startPayment(
-                            with: billingPlan.getLabelForApplePayment(),
-                            price: billingPlan.getPrice(),
-                            currency: billingPlan.currency,
-                            billingID: billingPlan.id,
-                            countryCode: billingPlan.countryCode,
-                            productID: billingPlan.productID,
-                            screenID: screenId
-                        )
-                    case let .failure(error):
-                        self?.onError?(error)
-                        self?.send(event: .purchaseError(error: error, source: self?.entryPoint))
-                        pandaLog("Failed get billingPlan Error: \(error)")
-                    }
-                }
-            )
-
-        }
-        viewModel.onPurchase = { [appStoreClient, weak self] productId, source, _, screenId, screenName, course in
-            guard let productId = productId else {
-                pandaLog("Missing productId with source: \(source)")
-                return
-            }
-            pandaLog("purchaseStarted: \(productId) \(screenName) \(screenId)")
-            self?.send(event: .purchaseStarted(screenId: screenId, screenName: screenName, productId: productId, source: entryPoint))
-            appStoreClient.purchase(productId: productId, source: PaymentSource(screenId: screenId, screenName: screenData.name, course: course))
-        }
-        viewModel.onRestorePurchase = { [appStoreClient] _, screenId, screenName in
-            pandaLog("Restore")
-            appStoreClient.restore(with: PaymentSource(screenId: screenId ?? "", screenName: screenName ?? "", course: nil))
-        }
-        viewModel.onCustomEvent = { [weak self] eventName, eventParameters in
-            self?.send(event: .customEvent(name: eventName, parameters: eventParameters))
-        }
-        
-        viewModel.onTerms = openTerms
-        viewModel.onPolicy = openPolicy
-        viewModel.onSubscriptionTerms = openSubscriptionTerms
-        viewModel.onPricesLoaded = { [weak self] productIds, view in
-            self?.appStoreClient.fetchProducts(productIds: Set(productIds)) { result in
-                switch result {
-                case let .success(products):
-                    view.sendLocalizedPrices(products: products)
-                case let .failure(error):
-                    pandaLog("Failed to fetch AppStore products, \(error)")
-                }
-            }
-        }
-        viewModel.onBillingIssue = { view in
-            pandaLog("onBillingIssue")
-            self.openBillingIssue()
-            view.dismiss(animated: true, completion: nil)
-        }
-        viewModel.dismiss = { [weak self] status, view, screenId, screenName in
-            pandaLog("Dismiss")
-            if let screenID = screenId, let name = screenName {
-                self?.trackClickDismiss(screenId: screenID, screenName: name, source: entryPoint)
-            }
-            view.tryAutoDismiss()
-            self?.onDismiss?()
-        }
-        viewModel.onViewWillAppear = { [weak self] screenId, screenName in
-            pandaLog("onViewWillAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenWillShow(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
-        }
-        viewModel.onViewDidAppear = { [weak self] screenId, screenName, course in
-            pandaLog("onViewDidAppear \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenShowed(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint, course: course))
-        }
-        viewModel.onDidFinishLoading = { [weak self] screenId, screenName, course in
-
-            pandaLog("onDidFinishLoading \(String(describing: screenName)) \(String(describing: screenId))")
-            self?.send(event: .screenLoaded(screenId: screenId ?? "", screenName: screenName ?? "", source: entryPoint))
-        }
-
-        viewModel.onSupportUkraineAnyButtonTap = { [weak self] in
-            self?.send(event: .onSupportUkraineAnyButtonTap)
-        }
-        
-        viewModel.onDontHaveApplePay = { [weak self]  screenID, destination in
-            self?.send(event: .onDontHaveApplePay(screenId: screenID ?? "", source: entryPoint, destination: destination))
-        }
-        
-        viewModel.onTutorsHowOfferWorks = { [weak self]  screenID, destination in
-            self?.send(event: .onTutorsHowOfferWorks(screenId: screenID ?? "", source: entryPoint, destination: destination))
-        }
-                
-        return viewModel
     }
     
     private func setupWebView(html: String, viewModel: WebViewModel, screenType: ScreenType) -> WebViewController {
@@ -582,46 +357,10 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    func onApplicationDidBecomeActive() {
-        getSubscriptionStatus(withDelay: 3.0) { [weak self, settingsStorage] (result) in
-            let status: SubscriptionState
-            switch result {
-            case .failure(let error):
-                pandaLog("SubscriptionStatus Error: \(error)")
-                return
-            case .success(let value):
-                status = value.state
-            }
-            var settings = settingsStorage.fetch() ?? Settings.default
-            switch status {
-            case .canceled:
-                settings.billingScreenWasShown = false
-                settingsStorage.store(settings)
-                guard settings.canceledScreenWasShown == false else { break }
-                self?.showScreen(screenType: .survey, onShow: { [settingsStorage] result in
-                    settings.canceledScreenWasShown = true
-                    settingsStorage.store(settings)
-                })
-            case .billing:
-                settings.canceledScreenWasShown = false
-                settingsStorage.store(settings)
-                guard settings.billingScreenWasShown == false else { break }
-                self?.showScreen(screenType: .billing, onShow: { [settingsStorage] result in
-                    settings.billingScreenWasShown = true
-                    settingsStorage.store(settings)
-                })
-            default:
-                settings.canceledScreenWasShown = false
-                settings.billingScreenWasShown = false
-                settingsStorage.store(settings)
-            }
-        }
-    }
-    
     public func showScreen(
         screenType: ScreenType,
         screenId: String? = nil,
-        product: String? = nil,
+        productID: String? = nil,
         autoDismiss: Bool = true, 
         presentationStyle: UIModalPresentationStyle = .pageSheet,
         payload: PandaPayload? = nil,
@@ -629,7 +368,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     ) {
         self.payload = payload
         if let screen = cache[screenId] {
-            self.showPreparedViewController(screenData: screen, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
+            self.showPreparedViewController(screenData: screen, screenType: screenType, productID: productID, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             return
         }
         let shouldShowDefaultScreenOnFailure = payload?.shouldShowDefaultScreen == true
@@ -647,17 +386,17 @@ final public class Panda: PandaProtocol, ObserverSupport {
                     onShow?(.failure(error))
                     return
                 }
-                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
+                self?.showPreparedViewController(screenData: screenData, screenType: screenType, productID: productID, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             case .success(let screenData):
                 self?.cache[screenData.id.string] = screenData
-                self?.showPreparedViewController(screenData: screenData, screenType: screenType, product: product, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
+                self?.showPreparedViewController(screenData: screenData, screenType: screenType, productID: productID, autoDismiss: autoDismiss, presentationStyle: presentationStyle, payload: payload, onShow: onShow)
             }
         }
     }
     
-    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, product: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: PandaPayload? = nil, onShow: ((Result<Bool, Error>) -> Void)?) {
+    private func showPreparedViewController(screenData: ScreenData, screenType: ScreenType, productID: String?, autoDismiss: Bool, presentationStyle: UIModalPresentationStyle, payload: PandaPayload? = nil, onShow: ((Result<Bool, Error>) -> Void)?) {
         DispatchQueue.main.async {
-            let vc = self.prepareViewController(screen: screenData, screenType: screenType, product: product, payload: payload)
+            let vc = self.prepareViewController(screen: screenData, screenType: screenType, productID: productID, payload: payload)
             vc.modalPresentationStyle = presentationStyle
             vc.isAutoDismissable = autoDismiss
             self.presentOnRoot(with: vc) {
@@ -666,28 +405,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
         }
     }
     
-    public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) -> Bool {
-        guard SubscriptionStatus.pandaEvent(from: notification) != nil else {
-            return false
-        }
-        completionHandler([.alert])
-        return true
-    }
-    
-    public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) -> Bool {
-        guard let status = SubscriptionStatus.pandaEvent(from: response.notification) else {
-            return false
-        }
-        switch status {
-        case .canceled:
-            if UIApplication.shared.applicationState == .active {
-                showScreen(screenType: .survey)
-            }
-        default: break
-        }
-        completionHandler()
-        return true
-    }
     
     public func setCustomUserId(id: String) {
         var device = deviceStorage.fetch() ?? DeviceSettings.default
@@ -874,30 +591,6 @@ final public class Panda: PandaProtocol, ObserverSupport {
     }
 }
 
-extension Panda {
-    fileprivate func send(feedback text: String, at screenId: String?) {
-        networkClient.sendFeedback(user: user, screenId: screenId ?? "default", feedback: text) { result in
-            switch result {
-            case .failure(let error):
-                pandaLog("Send Feedback \(text) text failed: \(error)!")
-            case .success(let id):
-                pandaLog("Send Feedback \(id)")
-            }
-        }
-    }
-    
-    fileprivate func send(answer text: String, at screenId: String?, screenName: String?) {
-        networkClient.sendAnswers(user: user, screenId: screenId ?? "default", answer: text) { result in
-            switch result {
-            case .failure(let error):
-                pandaLog("Send Answers \(text) text failed: \(error)!")
-            case .success(let id):
-                pandaLog("Send Answers \(id)")
-            }
-        }
-    }
-}
-
 extension PandaProtocol where Self: ObserverSupport {
     
     func openBillingIssue() {
@@ -953,24 +646,5 @@ extension PandaProtocol where Self: ObserverSupport {
         onDismiss = other.onDismiss
         onSuccessfulPurchase = other.onSuccessfulPurchase
         observers.merge(other.observers, uniquingKeysWith: {(_, new) in new })
-    }
-}
-
-class ScreenCache {
-    var cache: [String: ScreenData] = [:]
-    
-    subscript(screenId: String?) -> ScreenData? {
-        get {
-            guard let key = screenId else { return nil }
-            return cache[key]
-        }
-        set(newValue) {
-            guard let key = screenId else { return }
-            guard let newValue = newValue else {
-                cache.removeValue(forKey: key)
-                return
-            }
-            cache[key] = newValue
-        }
     }
 }

@@ -17,8 +17,8 @@ struct PandaUserInfo: Codable {
     let platform: String = "iOS"
     let country: String? = Locale.current.regionCode
     let language: String? = Locale.current.languageCode
-    let idfv: String? = UIDevice.current.identifierForVendor?.uuidString
-    let idfa: String? = identifierForAdvertising()
+    var idfv: String?
+    var idfa: String?
     let pushNotificationToken: String?
     let customUserId: String?
     let appsFlyerId: String?
@@ -80,6 +80,8 @@ struct PandaUserInfo: Codable {
         self.pushNotificationToken = pushNotificationToken
         self.customUserId = customUserId
         self.appsFlyerId = appsFlyerId
+        self.idfa = idfa ?? UIDevice.current.identifierForVendor?.uuidString
+        self.idfv = idfv ?? identifierForAdvertising()
         self.fbc = fbc
         self.fbp = fbp
         self.email = email

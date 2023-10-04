@@ -23,14 +23,15 @@ protocol WebViewModelProtocol {
     var onPricesLoaded: ((_ productIds: [String], _ viewController: WebViewController) -> Void)? { get set }
     var onPolicy: (() -> Void)? { get set }
     var onSubscriptionTerms: (() -> Void)? { get set }
-    var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
-    var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)? { get set }
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)? { get set }
     var onScreenDataUpdate: ((ScreenData) -> Void)? { get set }
 
     var onSupportUkraineAnyButtonTap: (() -> Void)? { get set }
     
+    var onStartLoadingIndicator: (() -> Void)? { get set }
+    var onFinishLoadingIndicator: (() -> Void)? { get set }
+
     func webViewControllerDidFailLoadingHTML(_ webViewController: WebViewController)
 }
 
@@ -50,20 +51,21 @@ final class WebViewModel: WebViewModelProtocol {
     var onPricesLoaded: ((_ productIds: [String], _ viewController: WebViewController) -> Void)?
     var onPolicy: (() -> Void)?
     var onSubscriptionTerms: (() -> Void)?
-    var onSurvey: ((_ answer: String, _ screenId: String?, _ screenName: String?) -> Void)?
-    var onFeedback: ((_ feedback: String?, _ screenId: String?, _ screenName: String?) -> Void)?
     var onCustomEvent: ((_ name: String, _ parameters: [String: String]) -> Void)?
     var dismiss: ((_ success: Bool, _ viewController: WebViewController, _ screenId: String?, _ screenName: String?) -> Void)?
     var onScreenDataUpdate: ((ScreenData) -> Void)?
 
     var onSupportUkraineAnyButtonTap: (() -> Void)?
     
-    internal private(set) var screenData: ScreenData {
+    var onStartLoadingIndicator: (() -> Void)?
+    var onFinishLoadingIndicator: (() -> Void)?
+    
+    private(set) var screenData: ScreenData {
         didSet {
             onScreenDataUpdate?(screenData)
         }
     }
-    var product: SKProduct?
+    var product: Product?
     let payload: PandaPayload?
 
     // MARK: - Init

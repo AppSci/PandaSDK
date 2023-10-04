@@ -6,16 +6,16 @@
 //
 
 import Foundation
+import StoreKit
+
 public enum PandaEvent {
     case subscriptionSelect(screenId: String, screenName: String, productId: String)
     case purchaseStarted(screenId: String, screenName: String, productId: String, source: String?)
-    case successfulPurchase(screenId: String, screenName: String, productId: String, source: String?, course: String?)
+    case successfulPurchase(screenId: String, screenName: String, product: StoreKit.Product, source: String?, course: String?)
     case purchaseError(error: Error, source: String?)
     case onApplePaySuccessfulPurchase(productID: String?, screenID: String)
     case onStartApplePayProcess 
     case screenDismissed(screenId: String, screenName: String, source: String?)
-    case surveyAnswerSelect(screenId: String, screenName: String, answerId: String)
-    case surveyPosted(screenId: String, screenName: String, feedbackId: String)
     case screenShowed(screenId: String, screenName: String, source: String?, course: String?)
     case screenLoaded(screenId: String, screenName: String, source: String?)
     case screenWillShow(screenId: String, screenName: String, source: String?)
@@ -31,6 +31,9 @@ public enum PandaEvent {
     case onSupportUkraineAnyButtonTap
     case onDontHaveApplePay(screenId: String, source: String?, destination: String?)
     case onTutorsHowOfferWorks(screenId: String, source: String?, destination: String?)
+    case onStartLoading
+    case onFinishLoading
+    case updateStatuses
 }
 
 public protocol PandaAnalyticsObserver: AnyObject {
