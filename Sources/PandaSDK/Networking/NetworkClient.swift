@@ -249,7 +249,7 @@ extension NetworkClient {
         let request = createRequest(
             path: "/v1/users/\(user.id)",
             method: .put,
-            body: PandaUserInfo(idfa: idfa, idfv: idfv)
+            body: PandaUserInfo(idfv: idfv, idfa: idfa)
         )
         networkLoader.loadData(with: request, timeout: nil, completion: callback)
     }

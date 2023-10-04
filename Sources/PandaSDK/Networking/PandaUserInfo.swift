@@ -64,8 +64,8 @@ struct PandaUserInfo: Codable {
         pushNotificationToken: String? = nil,
         customUserId: String? = nil,
         appsFlyerId: String? = nil,
-        idfa: String? = nil,
         idfv: String? = nil,
+        idfa: String? = nil,
         fbc: String? = nil,
         fbp: String? = nil,
         email: String? = nil,
@@ -80,8 +80,8 @@ struct PandaUserInfo: Codable {
         self.pushNotificationToken = pushNotificationToken
         self.customUserId = customUserId
         self.appsFlyerId = appsFlyerId
-        self.idfa = idfa ?? UIDevice.current.identifierForVendor?.uuidString
-        self.idfv = idfv ?? identifierForAdvertising()
+        self.idfv = idfv ?? UIDevice.current.identifierForVendor?.uuidString
+        self.idfa = idfa ?? identifierForAdvertising()
         self.fbc = fbc
         self.fbp = fbp
         self.email = email

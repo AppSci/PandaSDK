@@ -397,6 +397,9 @@ extension Panda {
         let userStorage: Storage<PandaUser> = CodableStorageFactory.keychain()
         userStorage.clear()
         
+        let deviceStorage: Storage<DeviceSettings> = CodableStorageFactory.userDefaults()
+        deviceStorage.clear()
+        
         shared = UnconfiguredPanda()
     }
 }
