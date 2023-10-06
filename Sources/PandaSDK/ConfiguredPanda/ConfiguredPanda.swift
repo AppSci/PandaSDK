@@ -589,6 +589,31 @@ final public class Panda: PandaProtocol, ObserverSupport {
             }
         }
     }
+    
+    public func forceUpdateUser(completion: @escaping (Result<String, Error>) -> Void) {
+        let data = deviceStorage.fetch()
+        guard let data else {
+            return
+        }
+        let pandaUserInfo = PandaUserInfo(
+            pushNotificationToken: data.pushToken,
+            customUserId: data.customUserId,
+            appsFlyerId: data.appsFlyerId,
+            fbc: data.pandaFacebookId.fbc ?? "",
+            fbp: data.pandaFacebookId.fbp ?? "",
+            email: data.capiConfig.email ?? "",
+            facebookLoginId: data.capiConfig.facebookLoginId ?? "",
+            firstName: data.capiConfig.firstName ?? "",
+            lastName: data.capiConfig.lastName ?? "",
+            username: data.capiConfig.username ?? "",
+            phone: data.capiConfig.phone ?? "",
+            gender: data.capiConfig.gender,
+            userProperties: data.userProperties.reduce(into: [String: String]()) { $0[$1.key] = $1.value }
+        )
+        networkClient.updateUser(user: self.user, pandaUserInfo: pandaUserInfo) { result in
+            completion(result.map { $0.id })
+        }
+    }
 }
 
 extension PandaProtocol where Self: ObserverSupport {
