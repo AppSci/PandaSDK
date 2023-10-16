@@ -199,6 +199,13 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
                     )
                 }
             }
+            if viewModel?.screenData.id.string == "b0bff24a-a023-4a02-95a7-20b6af6e59cc" {
+                UIApplication.shared.open(url)
+                viewModel?.onFreeForUkraineButtonTap?(true)
+                onFinishLoad()
+                return
+            }
+
             UIApplication.shared.open(url)
             onFinishLoad()
             isAutoDismissable = true

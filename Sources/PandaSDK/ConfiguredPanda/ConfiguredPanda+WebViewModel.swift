@@ -103,6 +103,9 @@ extension Panda {
         viewModel.onFinishLoadingIndicator = { [weak self] in
             self?.send(event: .onFinishLoading)
         }
+        viewModel.onFreeForUkraineButtonTap = { [weak self] result in
+            self?.send(event: .trackOpenLink(link: "Free for Ukraine", result: result.description))
+        }
         return viewModel
     }
     

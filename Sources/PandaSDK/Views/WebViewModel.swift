@@ -56,7 +56,8 @@ final class WebViewModel: WebViewModelProtocol {
     var onScreenDataUpdate: ((ScreenData) -> Void)?
 
     var onSupportUkraineAnyButtonTap: (() -> Void)?
-    
+    var onFreeForUkraineButtonTap: ((Bool) -> Void)?
+
     var onStartLoadingIndicator: (() -> Void)?
     var onFinishLoadingIndicator: (() -> Void)?
     
