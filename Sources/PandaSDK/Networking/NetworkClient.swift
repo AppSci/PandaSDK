@@ -176,6 +176,19 @@ extension NetworkClient {
     }
     
     func updateUser(
+        user: PandaUser,
+        pandaUserInfo: PandaUserInfo,
+        callback: @escaping (Result<PandaUser, Error>) -> Void
+    ) {
+        let request = createRequest(
+            path: "/v1/users/\(user.id)",
+            method: .put,
+            body: pandaUserInfo
+        )
+        networkLoader.loadData(with: request, timeout: nil, completion: callback)
+    }
+    
+    func updateUser(
         pushToken: String,
         user: PandaUser,
         callback: @escaping (Result<PandaUser, Error>) -> Void

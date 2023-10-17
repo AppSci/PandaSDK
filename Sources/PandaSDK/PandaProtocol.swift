@@ -254,6 +254,8 @@ public protocol PandaProtocol: AnyObject {
     func getUserProperties() -> [PandaUserProperty]
     /// Fetch All User Properties From Remote or local in case of failure. Returns on main thread
     func fetchRemoteUserProperties(completion: @escaping((Set<PandaUserProperty>) -> Void))
+    
+    func forceUpdateUser(completion: @escaping (Result<String, Error>) -> Void)
 }
 
 public extension PandaProtocol {
