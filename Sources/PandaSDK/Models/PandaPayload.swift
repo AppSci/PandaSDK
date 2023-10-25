@@ -14,6 +14,7 @@ public struct PandaPayload {
     internal let pageLoadingTimeout: TimeInterval
     internal let htmlDownloadTimeout: TimeInterval?
     internal let data: [String: Any]?
+    internal let autoDismissible: Bool
 
     public init(
         shouldShowDefaultScreen: Bool = true,
@@ -21,6 +22,7 @@ public struct PandaPayload {
         entryPoint: String? = nil,
         pageLoadingTimeout: TimeInterval = 3.0,
         htmlDownloadTimeout: TimeInterval? = nil,
+        autoDismissible: Bool = true,
         targetLanguage: String? = nil,
         fromLanguage: String? = nil,
         strings: [[String: String]]? = nil,
@@ -36,6 +38,7 @@ public struct PandaPayload {
         self.entryPoint = entryPoint
         self.pageLoadingTimeout = pageLoadingTimeout
         self.htmlDownloadTimeout = htmlDownloadTimeout
+        self.autoDismissible = autoDismissible
         var data: [String: Any] = [:]
         if let targetLanguage = targetLanguage {
             data["target_language"] = targetLanguage

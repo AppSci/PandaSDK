@@ -387,6 +387,7 @@ final class WebViewController: UIViewController, WKScriptMessageHandler {
     }
     
     private func bindVM(_ viewModel: WebViewModel) {
+        isAutoDismissable = viewModel.payload?.autoDismissible ?? isAutoDismissable
         viewModel.onScreenDataUpdate = { [weak self] in
             self?.loadPage(html: $0.html)
         }
@@ -620,9 +621,19 @@ extension WebViewController {
     func sendLocalizedPrices(products: [Product]) {
         let localizedPricesToSend = products.map { product -> [String : Any] in
             var localizedPriceInfo = [String: Any]()
-            var value = product.price
+            var price: Decimal
+            if let introductoryOffer = product.subscription?.introductoryOffer {
+                switch introductoryOffer.paymentMode {
+                case .payAsYouGo, .payUpFront:
+                    price = introductoryOffer.price
+                default:
+                    price = product.price
+                }
+            } else {
+                price = product.price
+            }
             var roundedValue = Decimal()
-            NSDecimalRound(&roundedValue, &value, 2, .bankers)
+            NSDecimalRound(&roundedValue, &price, 2, .bankers)
             let micros = roundedValue * Decimal(1_000_000)
             localizedPriceInfo["productId"] = product.id
             localizedPriceInfo["priceAmountMicros"] =  micros
