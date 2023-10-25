@@ -618,34 +618,25 @@ extension WebViewController {
         }
     }
     
-    func sendLocalizedPrices(products: [Product]) {
-        let localizedPricesToSend = products.map { product -> [String : Any] in
+    func sendLocalizedPrices(products: [Product]) async {
+        var localizedPricesToSend: [[String: Any]] = []
+        for product in products {
             var localizedPriceInfo = [String: Any]()
-            var price: Decimal
-            if let introductoryOffer = product.subscription?.introductoryOffer {
-                switch introductoryOffer.paymentMode {
-                case .payAsYouGo, .payUpFront:
-                    price = introductoryOffer.price
-                default:
-                    price = product.price
-                }
-            } else {
-                price = product.price
-            }
+            var price = await productPrice(for: product)
             var roundedValue = Decimal()
             NSDecimalRound(&roundedValue, &price, 2, .bankers)
             let micros = roundedValue * Decimal(1_000_000)
             localizedPriceInfo["productId"] = product.id
             localizedPriceInfo["priceAmountMicros"] =  micros
             localizedPriceInfo["priceCurrencyCode"] = product.priceFormatStyle.currencyCode
-            return localizedPriceInfo
+            localizedPricesToSend.append(localizedPriceInfo)
         }
         
         let localizedPricesToSendJSON = localizedPricesToSend.toJSONString()
         let jsFunction = "pricingLoaded(\(localizedPricesToSendJSON))"
         
         DispatchQueue.main.async {
-            self.wv.evaluateJavaScript(jsFunction) { (result, error) in
+            self.wv.evaluateJavaScript(jsFunction) { result, error in
                 if let error = error {
                     pandaLog("\(error)")
                 }
@@ -653,6 +644,20 @@ extension WebViewController {
                     pandaLog("\(result)")
                 }
             }
+        }
+    }
+    
+    private func productPrice(for product: Product) async -> Decimal {
+        let subscription = product.subscription
+        if let subscription, await subscription.isEligibleForIntroOffer, let introductoryOffer = subscription.introductoryOffer {
+            switch introductoryOffer.paymentMode {
+            case .payAsYouGo, .payUpFront:
+                return introductoryOffer.price
+            default:
+                return product.price
+            }
+        } else {
+            return product.price
         }
     }
 }
