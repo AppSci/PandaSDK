@@ -15,6 +15,7 @@ final class AppStoreService: NSObject {
     private var purchasing: Bool = false
     
     var onVerify: (() async -> Void)?
+    var onTransaction: ((StoreKit.Transaction) -> Void)?
     
     init(verificationClient: VerificationClient) {
         self.verificationClient = verificationClient
@@ -87,6 +88,7 @@ final class AppStoreService: NSObject {
         switch result {
         case let .success(verification):
             let transaction = try verification.payloadValue
+            onTransaction?(transaction)
             await transaction.finish()
             return .success(transaction, product)
             

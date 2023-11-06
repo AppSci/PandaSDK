@@ -72,6 +72,7 @@ final public class Panda: PandaProtocol, ObserverSupport {
     
     func configureAppStoreService() {
         appStoreService.onVerify = onAppStoreServiceVerify
+        appStoreService.onTransaction = onAppStoreServiceTransaction
         appStoreService.startTask()
     }
     

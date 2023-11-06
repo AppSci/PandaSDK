@@ -34,6 +34,7 @@ public enum PandaEvent {
     case onStartLoading
     case onFinishLoading
     case updateStatuses
+    case trackTransaction(transaction: StoreKit.Transaction)
 }
 
 public protocol PandaAnalyticsObserver: AnyObject {
