@@ -181,6 +181,10 @@ extension Panda {
         }
     }
     
+    func onAppStoreServiceTransaction(transaction: StoreKit.Transaction) {
+        send(event: .trackTransaction(transaction: transaction))
+    }
+    
     @MainActor
     func onError(error: Error) {
         viewControllers.forEach { $0.value?.onFinishLoad() }
